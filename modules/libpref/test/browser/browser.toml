@@ -1,0 +1,9 @@
+[DEFAULT]
+support-files = ["file_access_sanitized_pref.html"]
+
+["browser_sanitization_events.js"]
+skip-if = [
+  "ccov",
+]
+
+["browser_savePrefFile_explicit_target.js"]

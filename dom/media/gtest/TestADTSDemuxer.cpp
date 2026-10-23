@@ -1,0 +1,177 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include <gtest/gtest.h>
+
+#include <climits>
+#include <cstdio>
+#include <functional>
+
+#include "ADTSDemuxer.h"
+#include "BufferMediaResource.h"
+#include "MediaDataDemuxer.h"
+#include "MockMediaResource.h"
+#include "VideoUtils.h"
+#include "mozilla/SharedThreadPool.h"
+#include "mozilla/TaskQueue.h"
+
+class MockADTSMediaResource;
+namespace mozilla {
+DDLoggedTypeNameAndBase(::MockADTSMediaResource, MockMediaResource);
+}  // namespace mozilla
+
+using namespace mozilla;
+using media::TimeUnit;
+
+class MockADTSMediaResource
+    : public MockMediaResource,
+      public DecoderDoctorLifeLogger<MockADTSMediaResource> {
+ public:
+  explicit MockADTSMediaResource(const char* aFileName)
+      : MockMediaResource(aFileName) {}
+
+ protected:
+  virtual ~MockADTSMediaResource() = default;
+};
+
+// ADTSTrackDemuxer::Duration(int64_t) must not produce signed integer overflow
+// when given a huge frame count.
+TEST(ADTSDemuxer, DurationOverflowReturnsInvalid)
+{
+  RefPtr<MockADTSMediaResource> resource =
+      new MockADTSMediaResource("adts.aac");
+  ASSERT_EQ(NS_OK, resource->Open());
+
+  RefPtr<ADTSTrackDemuxer> demuxer = new ADTSTrackDemuxer(resource);
+  ASSERT_TRUE(demuxer->Init());
+
+  // With 1024 samples/frame (typical AAC), INT64_MAX / 1024 + 1 frames means
+  // that sample count overflows int64_t.
+  const int64_t kOverflowFrames = INT64_MAX / 1024 + 1;
+  TimeUnit duration = demuxer->Duration(kOverflowFrames);
+
+  EXPECT_FALSE(duration.IsValid());
+}
+
+// Reads a whole file relative to the gtest working directory.
+static nsTArray<uint8_t> ReadTestFile(const char* aFilename) {
+  nsTArray<uint8_t> buffer;
+  FILE* f = fopen(aFilename, "rb");
+  if (!f) {
+    return buffer;
+  }
+  fseek(f, 0, SEEK_END);
+  long size = ftell(f);
+  if (size <= 0) {
+    fclose(f);
+    return buffer;
+  }
+  fseek(f, 0, SEEK_SET);
+  buffer.SetLength(size);
+  size_t bytesRead = fread(buffer.Elements(), 1, size, f);
+  fclose(f);
+  if (bytesRead != static_cast<size_t>(size)) {
+    buffer.Clear();
+  }
+  return buffer;
+}
+
+// Builds an in-memory ADTS stream whose first frame is an outlier (28 bytes,
+// e.g. encoder metadata) followed by the normal frames of adts.aac.
+// Estimating duration from the first frame alone would give ~9.4s for what
+// is really a ~0.99s stream.
+static nsTArray<uint8_t> BuildOutlierFirstFrameStream() {
+  nsTArray<uint8_t> file = ReadTestFile("adts.aac");
+  // adts.aac starts with a 292-byte frame; 7-byte header, no CRC.
+  constexpr size_t kFirstFrameLen = 292;
+  constexpr size_t kOutlierLen = 28;
+  if (file.Length() <= kFirstFrameLen) {
+    return {};
+  }
+  nsTArray<uint8_t> stream;
+  // Copy the first header, patching aac_frame_length down to 28 bytes.
+  for (size_t i = 0; i < kOutlierLen; ++i) {
+    uint8_t b = file[i];
+    if (i == 3) {
+      b &= ~0x03;
+    } else if (i == 4) {
+      b = 0x03;
+    } else if (i == 5) {
+      b = (b & 0x1F) | 0x80;
+    }
+    stream.AppendElement(b);
+  }
+  // ((0) << 11) | (3 << 3) | (0x80 >> 5) == 28.
+  stream.AppendElements(file.Elements() + kFirstFrameLen,
+                        file.Length() - kFirstFrameLen);
+  return stream;
+}
+
+// Init must not estimate duration from the first frame alone, and the
+// reported duration must stay stable as playback parses more frames.
+TEST(ADTSDemuxer, OutlierFirstFrameDuration)
+{
+  nsTArray<uint8_t> bytes = BuildOutlierFirstFrameStream();
+  ASSERT_FALSE(bytes.IsEmpty());
+
+  RefPtr<BufferMediaResource> resource =
+      new BufferMediaResource(bytes.Elements(), bytes.Length());
+  RefPtr<ADTSTrackDemuxer> demuxer = new ADTSTrackDemuxer(resource);
+  ASSERT_TRUE(demuxer->Init());
+
+  // adts.aac holds 31 frames at 32000Hz/1024 samples per frame; replacing
+  // the first frame keeps the count at 31: 31 * 1024 / 32000 == 0.992s.
+  constexpr int64_t kTotalFrames = 31;
+  UniquePtr<TrackInfo> info = demuxer->GetInfo();
+  ASSERT_TRUE(info && info->GetAsAudioInfo());
+  const uint32_t rate = info->GetAsAudioInfo()->mRate;
+  ASSERT_GT(rate, 0u);
+  const TimeUnit kExpected = TimeUnit(kTotalFrames * 1024, rate);
+
+  TimeUnit duration = demuxer->Duration();
+  ASSERT_TRUE(duration.IsValid());
+  // Exact frame count from the EOS scan, not the frozen estimate.
+  EXPECT_EQ(duration, demuxer->Duration(kTotalFrames));
+  EXPECT_EQ(duration, kExpected);
+  // The naive first-frame estimate ((8273 - 0) / 28 frames) is ~9.4s;
+  // the outlier must have been rejected.
+  EXPECT_LT(duration.ToSeconds() * 2, demuxer->Duration(295).ToSeconds());
+
+  // Demux everything: the rolling average adapts, but Duration() is frozen.
+  RefPtr<TaskQueue> taskQueue = TaskQueue::Create(
+      GetMediaThreadPool(MediaThreadType::SUPERVISOR), "TestADTSDemuxer");
+  bool ran = false;
+  int64_t demuxed = 0;
+  auto finish = std::make_shared<std::function<void()>>(
+      [demuxer, taskQueue, &demuxed, &ran, duration]() {
+        // int64_t{...} reads the constexpr without odr-using it, so no
+        // capture is needed (an explicit capture would trip
+        // -Wunused-lambda-capture where the use doesn't require one).
+        EXPECT_EQ(demuxed, int64_t{kTotalFrames});
+        EXPECT_EQ(demuxer->Duration(), duration);
+        ran = true;
+        taskQueue->BeginShutdown();
+      });
+  auto loop = std::make_shared<std::function<void()>>();
+  *loop = [demuxer, taskQueue, &demuxed, loop, finish]() {
+    demuxer->GetSamples()->Then(
+        taskQueue, __func__,
+        [&demuxed, loop,
+         finish](RefPtr<MediaTrackDemuxer::SamplesHolder> aHolder) {
+          if (aHolder->GetSamples().IsEmpty()) {
+            (*finish)();
+            return;
+          }
+          demuxed += aHolder->GetSamples().Length();
+          (*loop)();
+        },
+        [finish](const MediaResult& aError) {
+          EXPECT_TRUE(aError == NS_ERROR_DOM_MEDIA_END_OF_STREAM);
+          (*finish)();
+        });
+  };
+  (*loop)();
+  taskQueue->AwaitShutdownAndIdle();
+  EXPECT_TRUE(ran);
+}

@@ -1,0 +1,68 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#ifndef DOM_MEDIA_WEBSPEECH_SYNTH_COCOA_OSXSPEECHSYNTHESIZERSERVICE_H_
+#define DOM_MEDIA_WEBSPEECH_SYNTH_COCOA_OSXSPEECHSYNTHESIZERSERVICE_H_
+
+#include "mozilla/StaticPtr.h"
+#include "nsCOMPtr.h"
+#include "nsIObserver.h"
+#include "nsISpeechService.h"
+#include "nsIThread.h"
+#include "nsString.h"
+#include "nsTArray.h"
+#include "nsTHashSet.h"
+
+#ifdef __OBJC__
+@class NSObject;
+#else
+typedef struct objc_object NSObject;
+#endif
+
+namespace mozilla {
+namespace dom {
+
+class OSXSpeechSynthesizerService final : public nsISpeechService,
+                                          public nsIObserver {
+ public:
+  NS_DECL_THREADSAFE_ISUPPORTS
+  NS_DECL_NSISPEECHSERVICE
+  NS_DECL_NSIOBSERVER
+
+  bool Init();
+
+  static OSXSpeechSynthesizerService* GetInstance();
+  static already_AddRefed<OSXSpeechSynthesizerService> GetInstanceForService();
+
+  struct Voice {
+    nsString mUri;
+    nsString mName;
+    nsString mLocale;
+    bool mIsDefault = false;
+  };
+
+  // Brings the voice registry in sync with aVoices, adding and removing
+  // voices as needed. Must be called on the main thread.
+  void UpdateVoices(const nsTArray<Voice>& aVoices);
+
+ private:
+  OSXSpeechSynthesizerService();
+  virtual ~OSXSpeechSynthesizerService();
+
+  void EnumerateVoices();
+
+  bool mInitialized;
+  nsCOMPtr<nsIThread> mThread;
+  // Observer token for the system's voice list change notification.
+  NSObject* mVoicesChangedObserver = nullptr;
+  // The URIs of the voices this service has added to the registry.
+  nsTHashSet<nsString> mRegisteredVoices;
+  nsString mDefaultVoice;
+  static mozilla::StaticRefPtr<OSXSpeechSynthesizerService> sSingleton;
+};
+
+}  // namespace dom
+}  // namespace mozilla
+
+#endif  // DOM_MEDIA_WEBSPEECH_SYNTH_COCOA_OSXSPEECHSYNTHESIZERSERVICE_H_

@@ -1,0 +1,599 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+* License, v. 2.0. If a copy of the MPL was not distributed with this
+* file, You can obtain one at http://mozilla.org/MPL/2.0/.
+*/
+
+use crate::ads::{AdCallbacks, AdImage, AdImageOrSpoc, AdSpoc, AdTile};
+use crate::http_cache::RequestHash;
+use crate::telemetry;
+use serde::de::DeserializeOwned;
+use serde::Serialize;
+use std::collections::HashMap;
+
+#[derive(Debug, PartialEq, Serialize)]
+pub struct AdResponse<A: AdResponseValue> {
+    pub data: HashMap<String, Vec<A>>,
+}
+
+impl<A: AdResponseValue> AdResponse<A> {
+    pub fn parse(data: serde_json::Value) -> Result<AdResponse<A>, serde_json::Error> {
+        let raw: HashMap<String, serde_json::Value> = serde_json::from_value(data)?;
+        let mut result = HashMap::new();
+
+        for (key, value) in raw {
+            if let serde_json::Value::Array(arr) = value {
+                let mut ads: Vec<A> = vec![];
+                for item in arr {
+                    match serde_json::from_value::<A>(item.clone()) {
+                        Ok(ad) => ads.push(ad),
+                        Err(e) => {
+                            telemetry::record_invalid_ad_item(&e);
+                        }
+                    }
+                }
+                if !ads.is_empty() {
+                    result.insert(key, ads);
+                }
+            }
+        }
+
+        Ok(AdResponse { data: result })
+    }
+
+    pub fn enrich_callbacks(&mut self, request_hash: &RequestHash) {
+        let hash_str = request_hash.to_string();
+        for (placement_id, ads) in self.data.iter_mut() {
+            for (position, ad) in ads.iter_mut().enumerate() {
+                let cap_key = ad.cap_key();
+                let callbacks = ad.callbacks_mut();
+                callbacks
+                    .click
+                    .query_pairs_mut()
+                    .append_pair("request_hash", &hash_str);
+                let mut impression_callback_query = callbacks.impression.query_pairs_mut();
+                impression_callback_query.append_pair("request_hash", &hash_str);
+                if let Some(cap_key) = cap_key {
+                    impression_callback_query.append_pair("cap_key", &cap_key);
+                }
+                if let Some(report_url) = callbacks.report.as_mut() {
+                    report_url
+                        .query_pairs_mut()
+                        .append_pair("placement_id", placement_id)
+                        .append_pair("position", &position.to_string());
+                }
+            }
+        }
+    }
+
+    pub fn take_first(self) -> HashMap<String, A> {
+        self.data
+            .into_iter()
+            .filter_map(|(k, mut v)| {
+                if v.is_empty() {
+                    None
+                } else {
+                    Some((k, v.remove(0)))
+                }
+            })
+            .collect()
+    }
+}
+
+pub trait AdResponseValue: DeserializeOwned {
+    fn callbacks_mut(&mut self) -> &mut AdCallbacks;
+    fn cap_key(&self) -> Option<String> {
+        None
+    }
+}
+
+impl AdResponseValue for AdImage {
+    fn callbacks_mut(&mut self) -> &mut AdCallbacks {
+        &mut self.callbacks
+    }
+}
+
+impl AdResponseValue for AdSpoc {
+    fn callbacks_mut(&mut self) -> &mut AdCallbacks {
+        &mut self.callbacks
+    }
+
+    fn cap_key(&self) -> Option<String> {
+        Some(self.caps.cap_key.clone())
+    }
+}
+
+impl AdResponseValue for AdImageOrSpoc {
+    fn callbacks_mut(&mut self) -> &mut AdCallbacks {
+        match self {
+            AdImageOrSpoc::Image(ad) => &mut ad.callbacks,
+            AdImageOrSpoc::Spoc(ad) => &mut ad.callbacks,
+        }
+    }
+
+    fn cap_key(&self) -> Option<String> {
+        match self {
+            AdImageOrSpoc::Image(_ad) => None,
+            AdImageOrSpoc::Spoc(ad) => Some(ad.caps.cap_key.clone()),
+        }
+    }
+}
+
+impl AdResponseValue for AdTile {
+    fn callbacks_mut(&mut self) -> &mut AdCallbacks {
+        &mut self.callbacks
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::ads::{SpocFrequencyCaps, SpocRanking};
+
+    use super::*;
+    use serde_json::{from_str, json};
+    use url::Url;
+    use url_macro::url;
+
+    #[test]
+    fn a_malformed_url_is_a_deserialization_error() {
+        let response = json!({
+            "block_key": "abc123",
+            "callbacks": {
+                "click": "https://buyanvilseveryday.test/click",
+                "impression": "https://buyanvilseveryday.test/impression"
+            },
+            "format": "Leaderboard",
+            "image_url": "not a url",
+            "url": "https://buyanvilseveryday.test"
+        })
+        .to_string();
+
+        // Before these fields were typed as `Url`, this parsed and handed
+        // "not a url" straight to the caller.
+        assert!(from_str::<AdImage>(&response).is_err());
+    }
+
+    #[test]
+    fn test_moz_ad_full() {
+        let response_full = json!({
+            "alt_text": "An ad for an anvil",
+            "block_key": "abc123",
+            "callbacks": {
+                "click": "https://buyanvilseveryday.test/click",
+                "impression": "https://buyanvilseveryday.test/impression",
+                "report": "https://buyanvilseveryday.test/report"
+            },
+            "format": "Leaderboard",
+            "image_url": "https://buyanvilseveryday.test/img.png",
+            "url": "https://buyanvilseveryday.test"
+        })
+        .to_string();
+
+        let full: AdImage = from_str(&response_full).unwrap();
+        assert_eq!(
+            full,
+            AdImage {
+                alt_text: Some("An ad for an anvil".into()),
+                block_key: "abc123".into(),
+                callbacks: AdCallbacks {
+                    click: Url::parse("https://buyanvilseveryday.test/click").unwrap(),
+                    impression: Url::parse("https://buyanvilseveryday.test/impression").unwrap(),
+                    report: Some(Url::parse("https://buyanvilseveryday.test/report").unwrap()),
+                },
+                format: "Leaderboard".into(),
+                image_url: url!("https://buyanvilseveryday.test/img.png"),
+                url: url!("https://buyanvilseveryday.test"),
+            }
+        );
+    }
+
+    #[test]
+    fn test_moz_ad_response_partial() {
+        let response_partial = json!({
+            "alt_text": null,
+            "block_key": "abc123",
+            "callbacks": {
+                "click": "https://example.test/click",
+                "impression": "https://example.test/impression",
+                "report": null
+            },
+            "format": "Leaderboard",
+            "image_url": "https://example.test/image.png",
+            "url": "https://example.test/item"
+        })
+        .to_string();
+
+        let partial: AdImage = from_str(&response_partial).unwrap();
+        assert_eq!(
+            partial,
+            AdImage {
+                alt_text: None,
+                block_key: "abc123".into(),
+                callbacks: AdCallbacks {
+                    click: Url::parse("https://example.test/click").unwrap(),
+                    impression: Url::parse("https://example.test/impression").unwrap(),
+                    report: None,
+                },
+                format: "Leaderboard".into(),
+                image_url: url!("https://example.test/image.png"),
+                url: url!("https://example.test/item"),
+            }
+        );
+    }
+
+    #[test]
+    fn test_ad_response_serialization() {
+        let raw_ad_response = json!({
+            "missing_click_url": [
+                {
+                    "block_key": "abc123",
+                    "url": "https://ads.fakeexample.org/example_ad_1",
+                    "image_url": "https://ads.fakeexample.org/example_image_1",
+                    "format": "billboard",
+                    "alt_text": "An ad for a puppy",
+                    "callbacks": {
+                        "impression": "https://ads.fakeexample.org/impression/example_ad_1",
+                    }
+                }
+            ],
+            "incorrect_click_url": [
+                {
+                    "block_key": "abc123",
+                    "url": "https://ads.fakeexample.org/example_ad_1",
+                    "image_url": "https://ads.fakeexample.org/example_image_1",
+                    "format": "billboard",
+                    "alt_text": "An ad for a puppy",
+                    "callbacks": {
+                        "click": "incorrect-click-url",
+                        "impression": "https://ads.fakeexample.org/impression/example_ad_1",
+                    }
+                }
+            ],
+            "missing_impression_url": [
+                {
+                    "block_key": "abc123",
+                    "url": "https://ads.fakeexample.org/example_ad_1",
+                    "image_url": "https://ads.fakeexample.org/example_image_1",
+                    "format": "billboard",
+                    "alt_text": "An ad for a puppy",
+                    "callbacks": {
+                        "click": "https://ads.fakeexample.org/click/example_ad_1",
+                    }
+                }
+            ],
+            "incorrect_impression_url": [
+                {
+                    "block_key": "abc123",
+                    "url": "https://ads.fakeexample.org/example_ad_2",
+                    "image_url": "https://ads.fakeexample.org/example_image_2",
+                    "format": "skyscraper",
+                    "alt_text": "An ad for a pet duck",
+                    "callbacks": {
+                        "click": "https://ads.fakeexample.org/click/example_ad_2",
+                        "impression": "incorrect-impression-url",
+                    }
+                }
+            ],
+            "valid_ad": [
+                {
+                    "block_key": "abc123",
+                    "url": "https://ads.fakeexample.org/example_ad_3",
+                    "image_url": "https://ads.fakeexample.org/example_image_3",
+                    "format": "skyscraper",
+                    "alt_text": "An ad for a pet duck",
+                    "callbacks": {
+                        "click": "https://ads.fakeexample.org/click/example_ad_3",
+                        "impression": "https://ads.fakeexample.org/impression/example_ad_3",
+                        "report": "https://ads.fakeexample.org/report/example_ad_3"
+                    }
+                }
+            ]
+        });
+
+        let parsed = AdResponse::<AdImage>::parse(raw_ad_response).unwrap();
+
+        let expected = AdResponse {
+            data: HashMap::from([(
+                "valid_ad".to_string(),
+                vec![AdImage {
+                    url: url!("https://ads.fakeexample.org/example_ad_3"),
+                    image_url: url!("https://ads.fakeexample.org/example_image_3"),
+                    format: "skyscraper".to_string(),
+                    block_key: "abc123".into(),
+                    alt_text: Some("An ad for a pet duck".to_string()),
+                    callbacks: AdCallbacks {
+                        click: Url::parse("https://ads.fakeexample.org/click/example_ad_3")
+                            .unwrap(),
+                        impression: Url::parse(
+                            "https://ads.fakeexample.org/impression/example_ad_3",
+                        )
+                        .unwrap(),
+                        report: Some(
+                            Url::parse("https://ads.fakeexample.org/report/example_ad_3").unwrap(),
+                        ),
+                    },
+                }],
+            )]),
+        };
+
+        assert_eq!(parsed, expected);
+    }
+
+    #[test]
+    fn test_empty_ad_response_serialization() {
+        let raw_ad_response = json!({
+            "example_placement_1": [],
+            "example_placement_2": []
+        });
+
+        let parsed = AdResponse::<AdImage>::parse(raw_ad_response).unwrap();
+
+        let expected = AdResponse {
+            data: HashMap::from([]),
+        };
+
+        assert_eq!(parsed, expected);
+    }
+
+    #[test]
+    fn test_take_first() {
+        let mut response = AdResponse {
+            data: HashMap::new(),
+        };
+        response.data.insert(
+            "placement_1".to_string(),
+            vec![
+                AdImage {
+                    alt_text: Some("First ad".to_string()),
+                    block_key: "key1".to_string(),
+                    callbacks: AdCallbacks {
+                        click: Url::parse("https://example.com/click1").unwrap(),
+                        impression: Url::parse("https://example.com/impression1").unwrap(),
+                        report: None,
+                    },
+                    format: "billboard".to_string(),
+                    image_url: url!("https://example.com/image1.png"),
+                    url: url!("https://example.com/ad1"),
+                },
+                AdImage {
+                    alt_text: Some("Second ad".to_string()),
+                    block_key: "key2".to_string(),
+                    callbacks: AdCallbacks {
+                        click: Url::parse("https://example.com/click2").unwrap(),
+                        impression: Url::parse("https://example.com/impression2").unwrap(),
+                        report: None,
+                    },
+                    format: "billboard".to_string(),
+                    image_url: url!("https://example.com/image2.png"),
+                    url: url!("https://example.com/ad2"),
+                },
+            ],
+        );
+        response.data.insert(
+            "placement_2".to_string(),
+            vec![AdImage {
+                alt_text: Some("Third ad".to_string()),
+                block_key: "key3".to_string(),
+                callbacks: AdCallbacks {
+                    click: Url::parse("https://example.com/click3").unwrap(),
+                    impression: Url::parse("https://example.com/impression3").unwrap(),
+                    report: None,
+                },
+                format: "skyscraper".to_string(),
+                image_url: url!("https://example.com/image3.png"),
+                url: url!("https://example.com/ad3"),
+            }],
+        );
+        response.data.insert("placement_3".to_string(), vec![]);
+
+        let result = response.take_first();
+
+        assert_eq!(result.len(), 2);
+        assert!(result.contains_key("placement_1"));
+        assert!(result.contains_key("placement_2"));
+        assert!(!result.contains_key("placement_3"));
+
+        let first_ad = result.get("placement_1").unwrap();
+        assert_eq!(first_ad.alt_text, Some("First ad".to_string()));
+        assert_eq!(first_ad.block_key, "key1");
+
+        let second_ad = result.get("placement_2").unwrap();
+        assert_eq!(second_ad.alt_text, Some("Third ad".to_string()));
+        assert_eq!(second_ad.block_key, "key3");
+    }
+
+    #[test]
+    fn test_enrich_callbacks() {
+        let mut response = AdResponse {
+            data: HashMap::from([(
+                "mock_tile_1".to_string(),
+                vec![
+                    AdImage {
+                        alt_text: None,
+                        block_key: "key1".into(),
+                        callbacks: AdCallbacks {
+                            click: Url::parse("https://example.com/click1").unwrap(),
+                            impression: Url::parse("https://example.com/impression1").unwrap(),
+                            report: Some(Url::parse("https://example.com/report").unwrap()),
+                        },
+                        format: "billboard".to_string(),
+                        image_url: url!("https://example.com/image1.png"),
+                        url: url!("https://example.com/ad1"),
+                    },
+                    AdImage {
+                        alt_text: None,
+                        block_key: "key2".into(),
+                        callbacks: AdCallbacks {
+                            click: Url::parse("https://example.com/click2").unwrap(),
+                            impression: Url::parse("https://example.com/impression2").unwrap(),
+                            report: Some(Url::parse("https://example.com/report").unwrap()),
+                        },
+                        format: "billboard".to_string(),
+                        image_url: url!("https://example.com/image2.png"),
+                        url: url!("https://example.com/ad2"),
+                    },
+                ],
+            )]),
+        };
+
+        let request_hash = RequestHash::from("abc123def456");
+        response.enrich_callbacks(&request_hash);
+
+        let ads = &response.data["mock_tile_1"];
+
+        // request_hash added to click and impression
+        assert!(ads[0]
+            .callbacks
+            .click
+            .query()
+            .unwrap_or("")
+            .contains("request_hash=abc123def456"));
+        assert!(ads[0]
+            .callbacks
+            .impression
+            .query()
+            .unwrap_or("")
+            .contains("request_hash=abc123def456"));
+
+        // placement info added to report
+        let report_0 = ads[0]
+            .callbacks
+            .report
+            .as_ref()
+            .unwrap()
+            .query()
+            .unwrap_or("");
+        assert!(report_0.contains("placement_id=mock_tile_1"));
+        assert!(report_0.contains("position=0"));
+
+        let report_1 = ads[1]
+            .callbacks
+            .report
+            .as_ref()
+            .unwrap()
+            .query()
+            .unwrap_or("");
+        assert!(report_1.contains("placement_id=mock_tile_1"));
+        assert!(report_1.contains("position=1"));
+    }
+
+    #[test]
+    fn test_enrich_callbacks_spoc_impressions_have_cap_key() {
+        let mut response = AdResponse {
+            data: HashMap::from([(
+                "tile1".into(),
+                vec![
+                    AdSpoc {
+                        block_key: "block_key1".into(),
+                        callbacks: AdCallbacks {
+                            click: Url::parse("https://example.com/click1").unwrap(),
+                            impression: Url::parse("https://example.com/impression1").unwrap(),
+                            report: Some(Url::parse("https://example.com/report1").unwrap()),
+                        },
+                        caps: SpocFrequencyCaps {
+                            cap_key: "cap_key1".into(),
+                            day: 100,
+                        },
+                        domain: "1.example.com".into(),
+                        excerpt: "excerpt1".into(),
+                        format: "format1".into(),
+                        image_url: url!("https://example.com/image1.png"),
+                        url: url!("https://example.com/ad1"),
+                        ranking: SpocRanking {
+                            priority: 1,
+                            personalization_models: None,
+                            item_score: 1.0,
+                        },
+                        sponsor: "sponsor1".into(),
+                        sponsored_by_override: None,
+                        title: "title1".into(),
+                    },
+                    AdSpoc {
+                        block_key: "block_key2".into(),
+                        callbacks: AdCallbacks {
+                            click: Url::parse("https://example.com/click2").unwrap(),
+                            impression: Url::parse("https://example.com/impression2").unwrap(),
+                            report: Some(Url::parse("https://example.com/report2").unwrap()),
+                        },
+                        caps: SpocFrequencyCaps {
+                            cap_key: "cap_key2".into(),
+                            day: 200,
+                        },
+                        domain: "2.example.com".into(),
+                        excerpt: "excerpt2".into(),
+                        format: "format2".into(),
+                        image_url: url!("https://example.com/image2.png"),
+                        url: url!("https://example.com/ad2"),
+                        ranking: SpocRanking {
+                            priority: 2,
+                            personalization_models: None,
+                            item_score: 2.0,
+                        },
+                        sponsor: "sponsor2".into(),
+                        sponsored_by_override: None,
+                        title: "title2".into(),
+                    },
+                ],
+            )]),
+        };
+
+        let request_hash = RequestHash::from("abc123def456");
+        response.enrich_callbacks(&request_hash);
+
+        let ads = &response.data["tile1"];
+
+        assert!(ads[0]
+            .callbacks
+            .impression
+            .query()
+            .unwrap_or("")
+            .contains("cap_key=cap_key1"));
+
+        assert!(ads[1]
+            .callbacks
+            .impression
+            .query()
+            .unwrap_or("")
+            .contains("cap_key=cap_key2"));
+    }
+
+    #[test]
+    fn test_enrich_callbacks_skips_ads_without_report_url() {
+        let mut response = AdResponse {
+            data: HashMap::from([(
+                "mock_tile_1".to_string(),
+                vec![AdImage {
+                    alt_text: None,
+                    block_key: "key1".into(),
+                    callbacks: AdCallbacks {
+                        click: Url::parse("https://example.com/click").unwrap(),
+                        impression: Url::parse("https://example.com/impression").unwrap(),
+                        report: None,
+                    },
+                    format: "billboard".to_string(),
+                    image_url: url!("https://example.com/image.png"),
+                    url: url!("https://example.com/ad"),
+                }],
+            )]),
+        };
+
+        // Should not panic
+        let request_hash = RequestHash::from("abc123def456");
+        response.enrich_callbacks(&request_hash);
+
+        let ad = &response.data["mock_tile_1"][0];
+        assert!(ad.callbacks.report.is_none());
+        // click/impression still get request_hash
+        assert!(ad
+            .callbacks
+            .click
+            .query()
+            .unwrap_or("")
+            .contains("request_hash=abc123def456"));
+        assert!(ad
+            .callbacks
+            .impression
+            .query()
+            .unwrap_or("")
+            .contains("request_hash=abc123def456"));
+    }
+}
