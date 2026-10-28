@@ -1,0 +1,59 @@
+EXPORTS.vge.bedrock += [
+    "!VgeV8BindingsGenerated.h",
+    "VgeBedrockScriptHook.h",
+    "VgeV8BindingSupport.h",
+    "VgeV8Events.h",
+]
+
+UNIFIED_SOURCES += [
+    "VgeBedrockScriptHook.cpp",
+    "VgeV8BindingSupport.cpp",
+    "VgeV8Events.cpp",
+]
+
+vge_v8_binding_shards = ["VgeV8Bindings%d.cpp" % i for i in range(24)]
+
+GeneratedFile(
+    "VgeV8Bindings.cpp",
+    "VgeV8BindingsGenerated.h",
+    *vge_v8_binding_shards,
+    script="V8Codegen.py",
+    entry_point="main",
+    inputs=[
+        "/dom/bindings/Bindings.conf",
+        "/parser/htmlparser/nsHTMLTagList.inc",
+        "V8Codegen.py",
+    ]
+)
+
+SOURCES += sorted(["!VgeV8Bindings.cpp"] + ["!%s" % shard for shard in vge_v8_binding_shards])
+
+include("/vge/bedrock/v8.mozbuild")
+include("/ipc/chromium/chromium-config.mozbuild")
+
+LOCAL_INCLUDES += [
+    "!/dist/include/mozilla/dom",
+    "/dom/base",
+    "/dom/battery",
+    "/dom/bindings",
+    "/dom/canvas",
+    "/dom/geolocation",
+    "/dom/html",
+    "/dom/indexedDB",
+    "/dom/media/webaudio",
+    "/dom/media/webspeech/recognition",
+    "/dom/svg",
+    "/dom/xml",
+    "/dom/xslt/base",
+    "/dom/xslt/xpath",
+    "/dom/xul",
+    "/js/xpconnect/src",
+    "/layout/generic",
+    "/layout/style",
+    "/layout/xul/tree",
+    "/netwerk/base/",
+    "/third_party/abseil-cpp",
+]
+LOCAL_INCLUDES += ["/third_party/msgpack/include"]
+
+FINAL_LIBRARY = "xul"

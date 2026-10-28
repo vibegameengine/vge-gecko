@@ -1,0 +1,135 @@
+include("/js/app.mozbuild")
+
+DIRS += [
+    "/tools",
+]
+
+if CONFIG["COMPILE_ENVIRONMENT"]:
+    DIRS += [
+        "/config/external",
+        "/security",
+    ]
+
+if not CONFIG["MOZ_OVERRIDE_GKRUST"]:
+    if CONFIG["ENABLE_TESTS"]:
+        DIRS += [
+            "/toolkit/library/gtest/rust",
+        ]
+    DIRS += [
+        "/toolkit/library/rust",
+    ]
+
+if CONFIG["MOZ_SANDBOX"]:
+    DIRS += ["/security/sandbox"]
+
+if CONFIG["MOZ_USING_WASM_SANDBOXING"] and CONFIG["COMPILE_ENVIRONMENT"]:
+    DIRS += ["/security/rlbox"]
+
+if CONFIG["MOZ_UPDATER"]:
+    DIRS += ["/modules/libmar"]
+
+DIRS += [
+    "/config/external/abseil-cpp",
+    "/config/external/freetype2",
+    "/intl",
+    "/modules/libpref",
+    "/netwerk",
+    "/xpcom",
+]
+
+if CONFIG["MOZ_AUTH_EXTENSION"]:
+    DIRS += ["/extensions/auth"]
+
+if CONFIG["MOZ_UPDATER"] and CONFIG["OS_TARGET"] != "Android":
+    if CONFIG["MOZ_BSPATCH"]:
+        DIRS += [
+            "/toolkit/mozapps/update/updater/bspatch",
+            "/other-licenses/bsdiff",
+        ]
+    if CONFIG["MOZ_ZUCCHINI"]:
+        DIRS += [
+            "/third_party/zucchini",
+        ]
+
+DIRS += [
+    "/ipc",
+    "/hal",
+    "/js/loader",
+    "/js/xpconnect",
+    "/modules/libjar",
+    "/storage",
+]
+
+if CONFIG["COMPILE_ENVIRONMENT"]:
+    DIRS += [
+        "/media/libyuv",
+    ]
+
+DIRS += [
+    "/extensions/permissions",
+]
+
+if CONFIG["MOZ_WEBRTC"] and CONFIG["COMPILE_ENVIRONMENT"]:
+    DIRS += [
+        "/media/webrtc",
+        "/dom/media/webrtc/transport",
+    ]
+
+if CONFIG["ENABLE_TESTS"]:
+    DIRS += ["/testing/specialpowers"]
+
+DIRS += [
+    "/testing/gtest",
+    "/uriloader",
+    "/caps",
+    "/parser",
+    "/gfx",
+    "/image",
+    "/dom",
+    "/widget",
+    "/editor",
+    "/layout",
+    "/docshell",
+    "/xpfe/appshell",
+]
+
+if CONFIG["MOZ_UNIVERSALCHARDET"]:
+    DIRS += ["/extensions/universalchardet"]
+
+if CONFIG["ACCESSIBILITY"]:
+    DIRS += ["/accessible"]
+else:
+    DIRS += ["/accessible/ipc"]
+
+DIRS += [
+    "/tools/code-coverage",
+    "/tools/performance",
+    "/tools/power",
+    "/tools/profiler",
+    "/extensions/spellcheck",
+    "/security/certverifier",
+    "/security/manager",
+    "/toolkit",
+]
+
+if CONFIG["MOZ_PREF_EXTENSIONS"]:
+    DIRS += ["/extensions/pref"]
+
+DIRS += [
+    "/devtools",
+    "/toolkit/library",
+    "/services",
+    "/startupcache",
+    "/other-licenses/snappy",
+    "/media/gmp-clearkey/0.1",
+]
+
+DIRS += [
+    "/%s" % CONFIG["MOZ_BRANDING_DIRECTORY"],
+    "/vge/bedrock/ittnotify",
+    "/vge/bedrock/jsapi",
+    "/vge/bedrock/v8",
+    "/vge/bedrock/bindings",
+    "/vge/bedrock/runtime",
+    "/vge/bedrock/app",
+]

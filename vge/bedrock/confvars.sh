@@ -1,0 +1,1 @@
+MOZ_BRANDING_DIRECTORY=browser/branding/unofficial

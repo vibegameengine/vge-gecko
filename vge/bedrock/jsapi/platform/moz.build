@@ -1,0 +1,7 @@
+SOURCES += [
+    "VgeJsPlatform.cpp",
+]
+
+include("/vge/bedrock/v8.mozbuild")
+
+FINAL_LIBRARY = "xul"

@@ -1,0 +1,1338 @@
+## js/Proxy.h 94
+  bool __cdecl js::NukeCrossCompartmentWrappers(struct JSContext *, struct js::CompartmentFilter const &, class JS::Realm *, enum js::NukeReferencesToWindow, enum js::NukeReferencesFromTarget)
+  class JSObject * __cdecl JS_TransplantObject(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>)
+  class JSObject * __cdecl js::NewProxyObject(struct JSContext *, class js::BaseProxyHandler const *, class JS::Handle<class JS::Value>, class JSObject *, class js::ProxyOptions const &)
+  public: static class js::CrossCompartmentWrapper const js::CrossCompartmentWrapper::singleton
+  public: virtual bool __cdecl js::BaseProxyHandler::boxedValue_unbox(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>) const
+  public: virtual bool __cdecl js::BaseProxyHandler::call(struct JSContext *, class JS::Handle<class JSObject *>, class JS::CallArgs const &) const
+  public: virtual bool __cdecl js::BaseProxyHandler::construct(struct JSContext *, class JS::Handle<class JSObject *>, class JS::CallArgs const &) const
+  public: virtual bool __cdecl js::BaseProxyHandler::enter(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, unsigned int, bool, bool *) const
+  public: virtual bool __cdecl js::BaseProxyHandler::enumerate(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+  public: virtual bool __cdecl js::BaseProxyHandler::get(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class JS::Value>) const
+  public: virtual bool __cdecl js::BaseProxyHandler::getBuiltinClass(struct JSContext *, class JS::Handle<class JSObject *>, enum js::ESClass *) const
+  public: virtual bool __cdecl js::BaseProxyHandler::getElements(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int, unsigned int, class js::ElementAdder *) const
+  public: virtual bool __cdecl js::BaseProxyHandler::getOwnEnumerablePropertyKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+  public: virtual bool __cdecl js::BaseProxyHandler::getPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSObject *>) const
+  public: virtual bool __cdecl js::BaseProxyHandler::has(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *) const
+  public: virtual bool __cdecl js::BaseProxyHandler::hasOwn(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *) const
+  public: virtual bool __cdecl js::BaseProxyHandler::isArray(struct JSContext *, class JS::Handle<class JSObject *>, enum JS::IsArrayAnswer *) const
+  public: virtual bool __cdecl js::BaseProxyHandler::isCallable(class JSObject *) const
+  public: virtual bool __cdecl js::BaseProxyHandler::isConstructor(class JSObject *) const
+  public: virtual bool __cdecl js::BaseProxyHandler::nativeCall(struct JSContext *, bool (__cdecl *)(class JS::Handle<class JS::Value>), bool (__cdecl *)(struct JSContext *, class JS::CallArgs const &), class JS::CallArgs const &) const
+  public: virtual bool __cdecl js::BaseProxyHandler::set(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::BaseProxyHandler::setImmutablePrototype(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+  public: virtual bool __cdecl js::BaseProxyHandler::setPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::boxedValue_unbox(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::call(struct JSContext *, class JS::Handle<class JSObject *>, class JS::CallArgs const &) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::construct(struct JSContext *, class JS::Handle<class JSObject *>, class JS::CallArgs const &) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::defineProperty(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::PropertyDescriptor>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::delete_(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::enumerate(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::get(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class JS::Value>) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::getOwnEnumerablePropertyKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::getOwnPropertyDescriptor(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class mozilla::Maybe<class JS::PropertyDescriptor>>) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::getPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSObject *>) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::getPrototypeIfOrdinary(struct JSContext *, class JS::Handle<class JSObject *>, bool *, class JS::MutableHandle<class JSObject *>) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::has(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::hasOwn(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::isExtensible(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::nativeCall(struct JSContext *, bool (__cdecl *)(class JS::Handle<class JS::Value>), bool (__cdecl *)(struct JSContext *, class JS::CallArgs const &), class JS::CallArgs const &) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::ownPropertyKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::preventExtensions(struct JSContext *, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::set(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::setImmutablePrototype(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+  public: virtual bool __cdecl js::CrossCompartmentWrapper::setPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::boxedValue_unbox(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::call(struct JSContext *, class JS::Handle<class JSObject *>, class JS::CallArgs const &) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::construct(struct JSContext *, class JS::Handle<class JSObject *>, class JS::CallArgs const &) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::defineProperty(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::PropertyDescriptor>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::delete_(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::enumerate(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::get(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class JS::Value>) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::getBuiltinClass(struct JSContext *, class JS::Handle<class JSObject *>, enum js::ESClass *) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::getOwnEnumerablePropertyKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::getOwnPropertyDescriptor(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class mozilla::Maybe<class JS::PropertyDescriptor>>) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::getPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSObject *>) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::getPrototypeIfOrdinary(struct JSContext *, class JS::Handle<class JSObject *>, bool *, class JS::MutableHandle<class JSObject *>) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::has(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::hasOwn(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::isArray(struct JSContext *, class JS::Handle<class JSObject *>, enum JS::IsArrayAnswer *) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::isCallable(class JSObject *) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::isConstructor(class JSObject *) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::isExtensible(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::nativeCall(struct JSContext *, bool (__cdecl *)(class JS::Handle<class JS::Value>), bool (__cdecl *)(struct JSContext *, class JS::CallArgs const &), class JS::CallArgs const &) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::ownPropertyKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::preventExtensions(struct JSContext *, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::set(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::setImmutablePrototype(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+  public: virtual bool __cdecl js::ForwardingProxyHandler::setPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::boxedValue_unbox(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>) const
+  public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::defineProperty(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::PropertyDescriptor>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::getBuiltinClass(struct JSContext *, class JS::Handle<class JSObject *>, enum js::ESClass *) const
+  public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::isArray(struct JSContext *, class JS::Handle<class JSObject *>, enum JS::IsArrayAnswer *) const
+  public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::isExtensible(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+  public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::nativeCall(struct JSContext *, bool (__cdecl *)(class JS::Handle<class JS::Value>), bool (__cdecl *)(struct JSContext *, class JS::CallArgs const &), class JS::CallArgs const &) const
+  public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::preventExtensions(struct JSContext *, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+  public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::setImmutablePrototype(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+  public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::setPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+  public: virtual char const * __cdecl js::CrossCompartmentWrapper::className(struct JSContext *, class JS::Handle<class JSObject *>) const
+  public: virtual char const * __cdecl js::ForwardingProxyHandler::className(struct JSContext *, class JS::Handle<class JSObject *>) const
+  public: virtual class JSString * __cdecl js::BaseProxyHandler::fun_toString(struct JSContext *, class JS::Handle<class JSObject *>, bool) const
+  public: virtual class JSString * __cdecl js::CrossCompartmentWrapper::fun_toString(struct JSContext *, class JS::Handle<class JSObject *>, bool) const
+  public: virtual class JSString * __cdecl js::ForwardingProxyHandler::fun_toString(struct JSContext *, class JS::Handle<class JSObject *>, bool) const
+  public: virtual class js::RegExpShared * __cdecl js::BaseProxyHandler::regexp_toShared(struct JSContext *, class JS::Handle<class JSObject *>) const
+  public: virtual class js::RegExpShared * __cdecl js::CrossCompartmentWrapper::regexp_toShared(struct JSContext *, class JS::Handle<class JSObject *>) const
+  public: virtual class js::RegExpShared * __cdecl js::ForwardingProxyHandler::regexp_toShared(struct JSContext *, class JS::Handle<class JSObject *>) const
+  public: virtual class js::RegExpShared * __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::regexp_toShared(struct JSContext *, class JS::Handle<class JSObject *>) const
+  public: virtual unsigned __int64 __cdecl js::BaseProxyHandler::objectMoved(class JSObject *, class JSObject *) const
+  public: virtual void __cdecl js::BaseProxyHandler::finalize(class JS::GCContext *, class JSObject *) const
+  public: virtual void __cdecl js::BaseProxyHandler::trace(class JSTracer *, class JSObject *) const
+  struct JSClass const js::ProxyClass
+  struct JSClassOps const js::ProxyClassOps
+  struct js::ClassExtension const js::ProxyClassExtension
+  struct js::ObjectOps const js::ProxyObjectOps
+  void __cdecl js::NukeNonCCWProxy(struct JSContext *, class JS::Handle<class JSObject *>)
+  void __cdecl js::detail::SetValueInProxy(class JS::Value *, class JS::Value const &)
+## js/CompileOptions.h 84
+  private: static bool JS::Prefs::atomics_wait_async_
+  private: static bool JS::Prefs::experimental_arraybuffer_immutable_
+  private: static bool JS::Prefs::experimental_async_iterator_helpers_
+  private: static bool JS::Prefs::experimental_atomics_pause_
+  private: static bool JS::Prefs::experimental_capture_oom_stack_trace_
+  private: static bool JS::Prefs::experimental_defer_import_eval_
+  private: static bool JS::Prefs::experimental_error_stack_trace_limit_
+  private: static bool JS::Prefs::experimental_export_star_default_
+  private: static bool JS::Prefs::experimental_import_bytes_
+  private: static bool JS::Prefs::experimental_inline_simple_field_initializers_
+  private: static bool JS::Prefs::experimental_intl_locale_info_
+  private: static bool JS::Prefs::experimental_iterator_chunking_
+  private: static bool JS::Prefs::experimental_iterator_includes_
+  private: static bool JS::Prefs::experimental_iterator_join_
+  private: static bool JS::Prefs::experimental_iterator_range_
+  private: static bool JS::Prefs::experimental_iterator_sequencing_
+  private: static bool JS::Prefs::experimental_joint_iteration_
+  private: static bool JS::Prefs::experimental_legacy_regexp_
+  private: static bool JS::Prefs::experimental_promise_allkeyed_
+  private: static bool JS::Prefs::experimental_regexp_buffer_boundaries_
+  private: static bool JS::Prefs::experimental_source_phase_imports_test262_module_source_
+  private: static bool JS::Prefs::experimental_symbols_as_weakmap_keys_
+  private: static bool JS::Prefs::experimental_weakrefs_expose_cleanupSome_
+  private: static bool JS::Prefs::extra_gc_poisoning_
+  private: static bool JS::Prefs::fuzzingSafe_
+  private: static bool JS::Prefs::objectfuse_for_all_protos_
+  private: static bool JS::Prefs::objectfuse_for_global_
+  private: static bool JS::Prefs::objectfuse_for_js_builtin_ctors_protos_
+  private: static bool JS::Prefs::property_error_message_fix_
+  private: static bool JS::Prefs::site_based_pretenuring_
+  private: static bool JS::Prefs::wasm_custom_page_sizes_
+  private: static bool JS::Prefs::wasm_disable_huge_memory_
+  private: static bool JS::Prefs::wasm_moz_intgemm_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::dom_alloc_site_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::ducktyped_errors_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::experimental_error_capture_stack_trace_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::experimental_error_iserror_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::experimental_import_text_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::experimental_self_hosted_cache_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::experimental_source_phase_imports_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::experimental_wasm_esm_integration_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::tests_fuzzing_unsafe_pref_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::use_fdlibm_for_sin_cos_tan_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_baseline_debug_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_branch_hinting_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_call_ref_inlining_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_compact_imports_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_components_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_direct_inlining_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_exception_force_stack_trace_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_js_promise_integration_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_lazy_tiering_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_lazy_tiering_synchronous_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_memory_control_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_memory_debugging_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_relaxed_simd_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_stack_switching_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_test_serialization_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_trace_api_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_unroll_loops_
+  private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_wide_arithmetic_
+  private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::tests_uint32_pref_
+  private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_call_ref_inlining_percent_
+  private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_cont_stack_arena_capacity_
+  private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_cont_stack_max_vmem_
+  private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_cont_stack_size_
+  private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_inlining_level_
+  private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_lazy_tiering_level_
+  private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_unroll_factor_
+  private: static unsigned int JS::Prefs::ion_regalloc_
+  private: static void __cdecl JS::Prefs::reportIgnoredFuzzingUnsafePref(char const *)
+  public: __cdecl JS::CompileOptions::CompileOptions(struct JSContext *)
+  public: __cdecl JS::OwningCompileOptions::OwningCompileOptions(struct JSContext *)
+  public: __cdecl JS::OwningCompileOptions::~OwningCompileOptions(void)
+  public: __cdecl JS::OwningDecodeOptions::~OwningDecodeOptions(void)
+  public: bool __cdecl JS::OwningCompileOptions::copy(class js::FrontendContext *, class JS::ReadOnlyCompileOptions const &)
+  public: bool __cdecl JS::OwningCompileOptions::copy(struct JSContext *, class JS::ReadOnlyCompileOptions const &)
+  public: bool __cdecl JS::OwningDecodeOptions::copy(class js::FrontendContext *, class JS::ReadOnlyDecodeOptions const &)
+  public: class JS::CompileOptions & __cdecl JS::CompileOptions::setIntroductionInfoToCaller(struct JSContext *, char const *, class JS::MutableHandle<class JSScript *>)
+  public: class JS::ContextOptions & __cdecl JS::ContextOptions::setWasmDisablesDenormals(void)
+  public: void __cdecl JS::CompileOptions::warnAboutConflictingDelazification(void) const
+  public: void __cdecl JS::OwningCompileOptions::steal(class JS::OwningDecodeOptions &&)
+  public: void __cdecl JS::OwningDecodeOptions::infallibleCopy(class JS::ReadOnlyDecodeOptions const &)
+  void __cdecl JS::SetFilenameValidationCallback(bool (__cdecl *)(struct JSContext *, char const *))
+## jsapi.h 73
+  __int64 __cdecl JS_Now(void)
+  bool __cdecl JS::DescribeScriptedCaller(class JS::AutoFilename *, struct JSContext *, unsigned int *, struct JS::ColumnNumberOneOrigin *)
+  bool __cdecl JS::GetFirstArgumentAsTypeHint(struct JSContext *, class JS::CallArgs const &, enum JSType *)
+  bool __cdecl JS::IsMaybeWrappedSavedFrame(class JSObject *)
+  bool __cdecl JS::IsUnwrappedSavedFrame(class JSObject *)
+  bool __cdecl JS::PropertySpecNameEqualsId(union JSPropertySpec::Name, class JS::Handle<class JS::PropertyKey>)
+  bool __cdecl JS::PropertySpecNameToPermanentId(struct JSContext *, union JSPropertySpec::Name, class JS::PropertyKey *)
+  bool __cdecl JS_CharsToId(struct JSContext *, class JS::TwoByteChars, class JS::MutableHandle<class JS::PropertyKey>)
+  bool __cdecl JS_DeepFreezeObject(struct JSContext *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS_DefineProfilingFunctions(struct JSContext *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS_FreezeObject(struct JSContext *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS_GetClassObject(struct JSContext *, enum JSProtoKey, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl JS_GetClassPrototype(struct JSContext *, enum JSProtoKey, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl JS_GetFunctionDisplayId(struct JSContext *, class JS::Handle<class JSFunction *>, class JS::MutableHandle<class JSString *>)
+  bool __cdecl JS_GetFunctionId(struct JSContext *, class JS::Handle<class JSFunction *>, class JS::MutableHandle<class JSString *>)
+  bool __cdecl JS_GetFunctionLength(struct JSContext *, class JS::Handle<class JSFunction *>, unsigned short *)
+  bool __cdecl JS_GetPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl JS_HasInstance(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, bool *)
+  bool __cdecl JS_IndexToId(struct JSContext *, unsigned int, class JS::MutableHandle<class JS::PropertyKey>)
+  bool __cdecl JS_InitReflectParse(struct JSContext *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS_IsBuiltinEvalFunction(class JSFunction *)
+  bool __cdecl JS_IsBuiltinFunctionConstructor(class JSFunction *)
+  bool __cdecl JS_IsIdentifier(char16_t const *, unsigned __int64)
+  bool __cdecl JS_IsNativeFunction(class JSObject *, bool (__cdecl *)(struct JSContext *, unsigned int, class JS::Value *))
+  bool __cdecl JS_LinkConstructorAndPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>)
+  bool __cdecl JS_MayResolveStandardClass(struct JSAtomState const &, class JS::PropertyKey, class JSObject *)
+  bool __cdecl JS_NewEnumerateStandardClasses(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>, bool)
+  bool __cdecl JS_NewEnumerateStandardClassesIncludingResolved(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>, bool)
+  bool __cdecl JS_ObjectIsFunction(class JSObject *)
+  bool __cdecl JS_ResolveStandardClass(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *)
+  bool __cdecl JS_SetImmutablePrototype(struct JSContext *, class JS::Handle<class JSObject *>, bool *)
+  bool __cdecl JS_SetPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>)
+  bool __cdecl JS_ValueToObject(struct JSContext *, class JS::Handle<class JS::Value>, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl JS_WrapId(struct JSContext *, class JS::MutableHandle<class JS::PropertyKey>)
+  bool __cdecl JS_WrapObject(struct JSContext *, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl JS_WrapValue(struct JSContext *, class JS::MutableHandle<class JS::Value>)
+  char const * __cdecl JS_GetImplementationVersion(void)
+  char const * __cdecl JS_GetScriptFilename(class JSScript *)
+  class JSFunction * __cdecl JS::GetSelfHostedFunction(struct JSContext *, char const *, class JS::Handle<class JS::PropertyKey>, unsigned int)
+  class JSFunction * __cdecl JS::NewFunctionFromSpec(struct JSContext *, struct JSFunctionSpec const *, class JS::Handle<class JS::PropertyKey>)
+  class JSFunction * __cdecl JS_NewFunction(struct JSContext *, bool (__cdecl *)(struct JSContext *, unsigned int, class JS::Value *), unsigned int, unsigned int, char const *)
+  class JSFunction * __cdecl JS_ValueToFunction(struct JSContext *, class JS::Handle<class JS::Value>)
+  class JSObject * __cdecl JS::GetScriptedCallerGlobal(struct JSContext *)
+  class JSObject * __cdecl JS_GetFunctionObject(class JSFunction *)
+  class JSObject * __cdecl JS_GlobalLexicalEnvironment(class JSObject *)
+  class JSObject * __cdecl JS_NewObjectWithGivenProto(struct JSContext *, struct JSClass const *, class JS::Handle<class JSObject *>)
+  class JSObject * __cdecl JS_NewPlainObject(struct JSContext *)
+  class JSScript * __cdecl JS_GetFunctionScript(struct JSContext *, class JS::Handle<class JSFunction *>)
+  class JSString * __cdecl JS_DecompileScript(struct JSContext *, class JS::Handle<class JSScript *>)
+  class JSString * __cdecl JS_GetMaybePartialFunctionDisplayId(class JSFunction *)
+  class JSString * __cdecl JS_GetMaybePartialFunctionId(class JSFunction *)
+  class JSString * __cdecl JS_ValueToSource(struct JSContext *, class JS::Handle<class JS::Value>)
+  class mozilla::Maybe<enum JSExnType> __cdecl JS_GetErrorType(class JS::Value const &)
+  enum JSProtoKey __cdecl JS::IdentifyStandardConstructor(class JSObject *)
+  enum JSProtoKey __cdecl JS::IdentifyStandardInstance(class JSObject *)
+  enum JSProtoKey __cdecl JS::IdentifyStandardInstanceOrPrototype(class JSObject *)
+  enum JSProtoKey __cdecl JS::IdentifyStandardPrototype(class JSObject *)
+  enum JSProtoKey __cdecl JS_IdToProtoKey(struct JSContext *, class JS::Handle<class JS::PropertyKey>)
+  enum JSType __cdecl JS_TypeOfValue(struct JSContext *, class JS::Handle<class JS::Value>)
+  public: char const * __cdecl JS::AutoFilename::get(void) const
+  public: void __cdecl JS::AutoFilename::reset(void)
+  unsigned int __cdecl JS_GetScriptBaseLineNumber(struct JSContext *, class JSScript *)
+  unsigned short __cdecl JS_GetFunctionArity(class JSFunction *)
+  void __cdecl JS::DisableSpectreMitigationsAfterInit(void)
+  void __cdecl JS::HideScriptedCaller(struct JSContext *)
+  void __cdecl JS::UnhideScriptedCaller(struct JSContext *)
+  void __cdecl JS_AbortIfWrongThread(struct JSContext *)
+  void __cdecl JS_SetAllNonReservedSlotsToUndefined(class JS::Handle<class JSObject *>)
+  void __cdecl JS_SetGlobalJitCompilerOption(struct JSContext *, enum JSJitCompilerOption, unsigned int)
+  void __cdecl JS_SetOffthreadBaselineCompilationEnabled(struct JSContext *, bool)
+  void __cdecl JS_SetOffthreadIonCompilationEnabled(struct JSContext *, bool)
+  void __cdecl JS_SetReservedSlot(class JSObject *, unsigned int, class JS::Value const &)
+  void __cdecl JS_SetWrapObjectCallbacks(struct JSContext *, struct JSWrapObjectCallbacks const *)
+## jsfriendapi.h 73
+  bool __cdecl JS::GetDebuggerObservesWasm(class JS::Realm *)
+  bool __cdecl JS::GetIsSecureContext(class JS::Realm *)
+  bool __cdecl JS::IsGCPoisoning(void)
+  bool __cdecl JS_InitializePropertiesFromCompatibleNativeObject(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>)
+  bool __cdecl JS_IsDeadWrapper(class JSObject *)
+  bool __cdecl JS_NondeterministicGetWeakMapKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl JS_NondeterministicGetWeakSetKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl JS_WrapPropertyDescriptor(struct JSContext *, class JS::MutableHandle<class JS::PropertyDescriptor>)
+  bool __cdecl JS_WrapPropertyDescriptor(struct JSContext *, class JS::MutableHandle<class mozilla::Maybe<class JS::PropertyDescriptor>>)
+  bool __cdecl js::AddRawValueRoot(struct JSContext *, class JS::Value *, char const *)
+  bool __cdecl js::AppendUnique(struct JSContext *, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>, class JS::Handle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>)
+  bool __cdecl js::CompartmentHasLiveGlobal(class JS::Compartment *)
+  bool __cdecl js::DateGetMsecSinceEpoch(struct JSContext *, class JS::Handle<class JSObject *>, double *)
+  bool __cdecl js::DateIsValid(struct JSContext *, class JS::Handle<class JSObject *>, bool *)
+  bool __cdecl js::ExecuteInFrameScriptEnvironment(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSScript *>, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl js::ForwardToNative(struct JSContext *, bool (__cdecl *)(struct JSContext *, unsigned int, class JS::Value *), class JS::CallArgs const &)
+  bool __cdecl js::FunctionHasNativeReserved(class JSObject *)
+  bool __cdecl js::GetElementsWithAdder(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>, unsigned int, unsigned int, class js::ElementAdder *)
+  bool __cdecl js::GetMapObjectKeysAndValuesInterleaved(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::GCVector<class JS::Value, 0, class js::TempAllocPolicy>>)
+  bool __cdecl js::GetObjectProto(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl js::GetPropertyKeys(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>)
+  bool __cdecl js::GetRealmOriginalEval(struct JSContext *, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl js::GetSetObjectKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::GCVector<class JS::Value, 0, class js::TempAllocPolicy>>)
+  bool __cdecl js::IsArgumentsObject(class JS::Handle<class JSObject *>)
+  bool __cdecl js::IsCompartmentZoneSweepingOrCompacting(class JS::Compartment *)
+  bool __cdecl js::IsFunctionObject(class JSObject *)
+  bool __cdecl js::IsObjectInContextCompartment(class JSObject *, struct JSContext const *)
+  bool __cdecl js::IsSavedFrame(class JSObject *)
+  bool __cdecl js::IsSharableCompartment(class JS::Compartment *)
+  bool __cdecl js::IsSystemCompartment(class JS::Compartment *)
+  bool __cdecl js::IsSystemRealm(class JS::Realm *)
+  bool __cdecl js::IsSystemZone(class JS::Zone *)
+  bool __cdecl js::ReportIsNotFunction(struct JSContext *, class JS::Handle<class JS::Value>)
+  bool __cdecl js::SetPropertyIgnoringNamedGetter(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>, class JS::Handle<class mozilla::Maybe<class JS::PropertyDescriptor>>, class JS::ObjectOpResult &)
+  bool __cdecl js::ShouldIgnorePropertyDefinition(struct JSContext *, enum JSProtoKey, class JS::PropertyKey)
+  bool __cdecl js::StringIsArrayIndex(char16_t const *, unsigned int, unsigned int *)
+  bool __cdecl js::StringIsArrayIndex(class JSLinearString const *, unsigned int *)
+  char const * __cdecl js::MaybeGetModuleFilename(class JSObject *)
+  class JS::Realm * __cdecl js::GetAnyRealmInZone(class JS::Zone *)
+  class JS::Value const & __cdecl js::GetFunctionNativeReserved(class JSObject *, unsigned __int64)
+  class JS::Zone * __cdecl js::GetObjectZoneFromAnyThread(class JSObject const *)
+  class JS::Zone * __cdecl js::GetRealmZone(class JS::Realm *)
+  class JSFunction * __cdecl JS_GetObjectFunction(class JSObject *)
+  class JSFunction * __cdecl js::DefineFunctionWithReserved(struct JSContext *, class JSObject *, char const *, bool (__cdecl *)(struct JSContext *, unsigned int, class JS::Value *), unsigned int, unsigned int)
+  class JSFunction * __cdecl js::NewFunctionByIdWithReserved(struct JSContext *, bool (__cdecl *)(struct JSContext *, unsigned int, class JS::Value *), unsigned int, unsigned int, class JS::PropertyKey)
+  class JSFunction * __cdecl js::NewFunctionByIdWithReservedAndProto(struct JSContext *, bool (__cdecl *)(struct JSContext *, unsigned int, class JS::Value *), class JS::Handle<class JSObject *>, unsigned int, unsigned int, class JS::PropertyKey)
+  class JSFunction * __cdecl js::NewFunctionWithReserved(struct JSContext *, bool (__cdecl *)(struct JSContext *, unsigned int, class JS::Value *), unsigned int, unsigned int, char const *)
+  class JSLinearString * __cdecl js::GetErrorTypeName(struct JSContext *, short)
+  class JSObject * __cdecl JS_FindCompilationScope(struct JSContext *, class JS::Handle<class JSObject *>)
+  class JSObject * __cdecl JS_NewDeadWrapper(struct JSContext *, class JSObject *)
+  class JSObject * __cdecl JS_NewObjectWithoutMetadata(struct JSContext *, struct JSClass const *, class JS::Handle<class JSObject *>)
+  class JSObject * __cdecl js::GetFirstGlobalInCompartment(class JS::Compartment *)
+  class JSObject * __cdecl js::GetStaticPrototype(class JSObject *)
+  class JSObject * __cdecl js::GetTestingFunctions(struct JSContext *)
+  public: __cdecl js::AutoAssertNoContentJS::AutoAssertNoContentJS(struct JSContext *)
+  public: __cdecl js::AutoAssertNoContentJS::~AutoAssertNoContentJS(void)
+  struct JSClass const * __cdecl js::ProtoKeyToClass(enum JSProtoKey)
+  struct JSPrincipals * __cdecl JS::GetRealmPrincipals(class JS::Realm *)
+  struct JSPrincipals * __cdecl JS_GetScriptPrincipals(class JSScript *)
+  unsigned __int64 __cdecl js::GetGCHeapUsage(struct JSContext *)
+  unsigned __int64 __cdecl js::GetSCOffset(struct JSStructuredCloneWriter *)
+  unsigned int __cdecl JS_PCToLineNumber(class JSScript *, unsigned char *, struct JS::LimitedColumnNumberOneOrigin *)
+  void __cdecl JS::SetRealmPrincipals(class JS::Realm *, struct JSPrincipals *)
+  void __cdecl js::AssertSameCompartment(struct JSContext *, class JS::Handle<class JS::Value>)
+  void __cdecl js::AssertSameCompartment(struct JSContext *, class JSObject *)
+  void __cdecl js::CommitPendingWrapperPreservations(struct JSContext *)
+  void __cdecl js::NotifyAnimationActivity(class JSObject *)
+  void __cdecl js::RemapRemoteWindowProxies(struct JSContext *, class js::CompartmentTransplantCallback *, class JS::MutableHandle<class JSObject *>)
+  void __cdecl js::RemoveRawValueRoot(struct JSContext *, class JS::Value *)
+  void __cdecl js::SetDOMCallbacks(struct JSContext *, struct js::JSDOMCallbacks const *)
+  void __cdecl js::SetFunctionNativeReserved(class JSObject *, unsigned __int64, class JS::Value const &)
+  void __cdecl js::SetPreserveWrapperCallbacks(struct JSContext *, void (__cdecl *)(struct JSContext *, class JS::Handle<class JSObject *>), bool (__cdecl *)(class JS::Handle<class JSObject *>))
+  void __cdecl js::SetScriptEnvironmentPreparer(struct JSContext *, struct js::ScriptEnvironmentPreparer *)
+## js/GCAPI.h 60
+  bool __cdecl JS::AddGCNurseryCollectionCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, enum JS::GCNurseryProgress, enum JS::GCReason, void *), void *)
+  bool __cdecl JS::AtomsZoneIsCollecting(struct JSRuntime *)
+  bool __cdecl JS::IncrementalGCHasForegroundWork(struct JSContext *)
+  bool __cdecl JS::InternalGCReason(enum JS::GCReason)
+  bool __cdecl JS::IsAtomsZone(class JS::Zone *)
+  bool __cdecl JS::IsIncrementalGCInProgress(struct JSContext *)
+  bool __cdecl JS::IsIncrementalGCInProgress(struct JSRuntime *)
+  bool __cdecl JS::WasIncrementalGC(struct JSRuntime *)
+  bool __cdecl JS_AddExtraGCRootsTracer(struct JSContext *, void (__cdecl *)(class JSTracer *, void *), void *)
+  bool __cdecl JS_AddFinalizeCallback(struct JSContext *, void (__cdecl *)(class JS::GCContext *, enum JSFinalizeStatus, void *), void *)
+  bool __cdecl JS_AddWeakPointerCompartmentCallback(struct JSContext *, void (__cdecl *)(class JSTracer *, class JS::Compartment *, void *), void *)
+  bool __cdecl JS_AddWeakPointerZonesCallback(struct JSContext *, void (__cdecl *)(class JSTracer *, void *), void *)
+  bool __cdecl JS_UpdateWeakPointerAfterGC(class JSTracer *, class JS::Heap<class JSObject *> *)
+  bool __cdecl JS_UpdateWeakPointerAfterGCUnbarriered(class JSTracer *, class JSObject **)
+  char const * __cdecl JS::ExplainGCAbortReason(unsigned int)
+  char const * __cdecl JS::ExplainGCReason(enum JS::GCReason)
+  char const * __cdecl JS::GetGCPhaseName(unsigned int)
+  class JSObject * __cdecl js::gc::NewMemoryInfoObject(struct JSContext *)
+  class JSString * __cdecl JS_NewMaybeExternalStringLatin1(struct JSContext *, unsigned char const *, unsigned __int64, struct JSExternalStringCallbacks const *, bool *)
+  class JSString * __cdecl JS_NewMaybeExternalStringUTF8(struct JSContext *, class JS::UTF8Chars const &, struct JSExternalStringCallbacks const *, bool *)
+  class JSString * __cdecl JS_NewMaybeExternalUCString(struct JSContext *, char16_t const *, unsigned __int64, struct JSExternalStringCallbacks const *, bool *)
+  class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS::MinorGcToJSON(struct JSContext *)
+  enum JS::GCReason __cdecl JS::WantEagerMinorGC(struct JSRuntime *)
+  private: bool __cdecl JS::SliceBudget::checkOverBudget(void)
+  public: __cdecl JS::AutoAssertNoGC::AutoAssertNoGC(struct JSContext *)
+  public: __cdecl JS::AutoAssertNoGC::~AutoAssertNoGC(void)
+  public: __cdecl JS::SliceBudget::SliceBudget(struct JS::TimeBudget, class mozilla::Atomic<bool, 0, void> *)
+  public: __cdecl JS::SliceBudget::SliceBudget(struct JS::WorkBudget)
+  public: char16_t * __cdecl JS::GCDescription::formatSliceMessage(struct JSContext *) const
+  public: char16_t * __cdecl JS::GCDescription::formatSummaryMessage(struct JSContext *) const
+  public: class mozilla::TimeStamp __cdecl JS::GCDescription::endTime(struct JSContext *) const
+  public: class mozilla::TimeStamp __cdecl JS::GCDescription::lastSliceEnd(struct JSContext *) const
+  public: class mozilla::TimeStamp __cdecl JS::GCDescription::lastSliceStart(struct JSContext *) const
+  public: class mozilla::TimeStamp __cdecl JS::GCDescription::startTime(struct JSContext *) const
+  public: class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS::GCDescription::formatJSONProfiler(struct JSContext *) const
+  public: class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS::GCDescription::sliceToJSONProfiler(struct JSContext *) const
+  public: class std::unique_ptr<class JS::dbg::GarbageCollectionEvent, struct JS::DeletePolicy<class JS::dbg::GarbageCollectionEvent>> __cdecl JS::GCDescription::toGCEvent(struct JSContext *) const
+  unsigned int __cdecl JS_GetGCParameter(struct JSContext *, enum JSGCParamKey)
+  void __cdecl JS::AbortIncrementalGC(struct JSContext *)
+  void __cdecl JS::ClearKeptObjects(struct JSContext *)
+  void __cdecl JS::FinishIncrementalGC(struct JSContext *, enum JS::GCReason)
+  void __cdecl JS::IncrementalGCSlice(struct JSContext *, enum JS::GCReason, class JS::SliceBudget const &)
+  void __cdecl JS::MaybeRunNurseryCollection(struct JSRuntime *, enum JS::GCReason)
+  void __cdecl JS::NonIncrementalGC(struct JSContext *, enum JS::GCOptions, enum JS::GCReason)
+  void __cdecl JS::PrepareForFullGC(struct JSContext *)
+  void __cdecl JS::PrepareForIncrementalGC(struct JSContext *)
+  void __cdecl JS::PrepareZoneForGC(struct JSContext *, class JS::Zone *)
+  void __cdecl JS::RemoveGCNurseryCollectionCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, enum JS::GCNurseryProgress, enum JS::GCReason, void *), void *)
+  void __cdecl JS::RunNurseryCollection(struct JSRuntime *, enum JS::GCReason, class mozilla::BaseTimeDuration<class mozilla::TimeDurationValueCalculator>)
+  void __cdecl JS::SetCreateGCSliceBudgetCallback(struct JSContext *, class JS::SliceBudget (__cdecl *)(enum JS::GCReason, __int64))
+  void __cdecl JS::SetHostCleanupFinalizationRegistryCallback(struct JSContext *, void (__cdecl *)(class JSFunction *, class JSObject *, void *), void *)
+  void __cdecl JS::SetLowMemoryState(struct JSContext *, bool)
+  void __cdecl JS::StartIncrementalGC(struct JSContext *, enum JS::GCOptions, enum JS::GCReason, class JS::SliceBudget const &)
+  void __cdecl JS_GC(struct JSContext *, enum JS::GCReason)
+  void __cdecl JS_MaybeGC(struct JSContext *)
+  void __cdecl JS_RemoveFinalizeCallback(struct JSContext *, void (__cdecl *)(class JS::GCContext *, enum JSFinalizeStatus, void *))
+  void __cdecl JS_ResetGCParameter(struct JSContext *, enum JSGCParamKey)
+  void __cdecl JS_SetGCCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, enum JSGCStatus, enum JS::GCReason, void *), void *)
+  void __cdecl JS_SetGCParameter(struct JSContext *, enum JSGCParamKey, unsigned int)
+  void __cdecl js::gc::SetPerformanceHint(struct JSContext *, enum js::gc::PerformanceHint)
+## js/PropertyAndElement.h 44
+  bool __cdecl JS_AlreadyHasOwnPropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *)
+  bool __cdecl JS_DefineElement(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int, class JS::Handle<class JS::Value>, unsigned int)
+  bool __cdecl JS_DefineElement(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int, class JS::Handle<class JSObject *>, unsigned int)
+  bool __cdecl JS_DefineElement(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int, class JS::Handle<class JSString *>, unsigned int)
+  bool __cdecl JS_DefineElement(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int, double, unsigned int)
+  bool __cdecl JS_DefineElement(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int, int, unsigned int)
+  bool __cdecl JS_DefineElement(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int, unsigned int, unsigned int)
+  bool __cdecl JS_DefineFunctions(struct JSContext *, class JS::Handle<class JSObject *>, struct JSFunctionSpec const *)
+  bool __cdecl JS_DefineProperties(struct JSContext *, class JS::Handle<class JSObject *>, struct JSPropertySpec const *)
+  bool __cdecl JS_DefineProperty(struct JSContext *, class JS::Handle<class JSObject *>, char const *, bool (__cdecl *)(struct JSContext *, unsigned int, class JS::Value *), bool (__cdecl *)(struct JSContext *, unsigned int, class JS::Value *), unsigned int)
+  bool __cdecl JS_DefineProperty(struct JSContext *, class JS::Handle<class JSObject *>, char const *, class JS::Handle<class JS::Value>, unsigned int)
+  bool __cdecl JS_DefineProperty(struct JSContext *, class JS::Handle<class JSObject *>, char const *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>, unsigned int)
+  bool __cdecl JS_DefineProperty(struct JSContext *, class JS::Handle<class JSObject *>, char const *, class JS::Handle<class JSObject *>, unsigned int)
+  bool __cdecl JS_DefineProperty(struct JSContext *, class JS::Handle<class JSObject *>, char const *, class JS::Handle<class JSString *>, unsigned int)
+  bool __cdecl JS_DefineProperty(struct JSContext *, class JS::Handle<class JSObject *>, char const *, double, unsigned int)
+  bool __cdecl JS_DefineProperty(struct JSContext *, class JS::Handle<class JSObject *>, char const *, int, unsigned int)
+  bool __cdecl JS_DefineProperty(struct JSContext *, class JS::Handle<class JSObject *>, char const *, unsigned int, unsigned int)
+  bool __cdecl JS_DefinePropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool (__cdecl *)(struct JSContext *, unsigned int, class JS::Value *), bool (__cdecl *)(struct JSContext *, unsigned int, class JS::Value *), unsigned int)
+  bool __cdecl JS_DefinePropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::PropertyDescriptor>)
+  bool __cdecl JS_DefinePropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::PropertyDescriptor>, class JS::ObjectOpResult &)
+  bool __cdecl JS_DefinePropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::Value>, unsigned int)
+  bool __cdecl JS_DefinePropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>, unsigned int)
+  bool __cdecl JS_DefinePropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JSObject *>, unsigned int)
+  bool __cdecl JS_DefinePropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JSString *>, unsigned int)
+  bool __cdecl JS_DefinePropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, unsigned int, unsigned int)
+  bool __cdecl JS_DefineUCProperty(struct JSContext *, class JS::Handle<class JSObject *>, char16_t const *, unsigned __int64, class JS::Handle<class JS::Value>, unsigned int)
+  bool __cdecl JS_DefineUCProperty(struct JSContext *, class JS::Handle<class JSObject *>, char16_t const *, unsigned __int64, class JS::Handle<class JSObject *>, unsigned int)
+  bool __cdecl JS_DeletePropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::ObjectOpResult &)
+  bool __cdecl JS_DeleteUCProperty(struct JSContext *, class JS::Handle<class JSObject *>, char16_t const *, unsigned __int64, class JS::ObjectOpResult &)
+  bool __cdecl JS_ForwardGetPropertyTo(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::Value>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_GetElement(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_GetProperty(struct JSContext *, class JS::Handle<class JSObject *>, char const *, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_GetPropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_GetUCProperty(struct JSContext *, class JS::Handle<class JSObject *>, char16_t const *, unsigned __int64, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_HasOwnPropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *)
+  bool __cdecl JS_HasProperty(struct JSContext *, class JS::Handle<class JSObject *>, char const *, bool *)
+  bool __cdecl JS_HasPropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *)
+  bool __cdecl JS_SetElement(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int, class JS::Handle<class JS::Value>)
+  bool __cdecl JS_SetElement(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int, class JS::Handle<class JSObject *>)
+  bool __cdecl JS_SetProperty(struct JSContext *, class JS::Handle<class JSObject *>, char const *, class JS::Handle<class JS::Value>)
+  bool __cdecl JS_SetPropertyById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::Value>)
+  class JSFunction * __cdecl JS_DefineFunction(struct JSContext *, class JS::Handle<class JSObject *>, char const *, bool (__cdecl *)(struct JSContext *, unsigned int, class JS::Value *), unsigned int, unsigned int)
+  class JSFunction * __cdecl JS_DefineFunctionById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool (__cdecl *)(struct JSContext *, unsigned int, class JS::Value *), unsigned int, unsigned int)
+  class JSObject * __cdecl JS_DefineObject(struct JSContext *, class JS::Handle<class JSObject *>, char const *, struct JSClass const *, unsigned int)
+## ? 43
+  class JSObject * __cdecl JS_NewBigInt64Array(struct JSContext *, unsigned __int64)
+  class JSObject * __cdecl JS_NewBigInt64ArrayWithBuffer(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, __int64)
+  class JSObject * __cdecl JS_NewBigUint64Array(struct JSContext *, unsigned __int64)
+  class JSObject * __cdecl JS_NewBigUint64ArrayWithBuffer(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, __int64)
+  class JSObject * __cdecl JS_NewFloat16ArrayWithBuffer(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, __int64)
+  class JSObject * __cdecl JS_NewFloat32Array(struct JSContext *, unsigned __int64)
+  class JSObject * __cdecl JS_NewFloat32ArrayWithBuffer(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, __int64)
+  class JSObject * __cdecl JS_NewFloat64Array(struct JSContext *, unsigned __int64)
+  class JSObject * __cdecl JS_NewFloat64ArrayWithBuffer(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, __int64)
+  class JSObject * __cdecl JS_NewInt16Array(struct JSContext *, unsigned __int64)
+  class JSObject * __cdecl JS_NewInt16ArrayWithBuffer(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, __int64)
+  class JSObject * __cdecl JS_NewInt32Array(struct JSContext *, unsigned __int64)
+  class JSObject * __cdecl JS_NewInt32ArrayWithBuffer(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, __int64)
+  class JSObject * __cdecl JS_NewInt8Array(struct JSContext *, unsigned __int64)
+  class JSObject * __cdecl JS_NewInt8ArrayWithBuffer(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, __int64)
+  class JSObject * __cdecl JS_NewUint16Array(struct JSContext *, unsigned __int64)
+  class JSObject * __cdecl JS_NewUint16ArrayWithBuffer(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, __int64)
+  class JSObject * __cdecl JS_NewUint32Array(struct JSContext *, unsigned __int64)
+  class JSObject * __cdecl JS_NewUint32ArrayWithBuffer(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, __int64)
+  class JSObject * __cdecl JS_NewUint8Array(struct JSContext *, unsigned __int64)
+  class JSObject * __cdecl JS_NewUint8ArrayFromArray(struct JSContext *, class JS::Handle<class JSObject *>)
+  class JSObject * __cdecl JS_NewUint8ArrayWithBuffer(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, __int64)
+  class JSObject * __cdecl JS_NewUint8ClampedArray(struct JSContext *, unsigned __int64)
+  class JSObject * __cdecl JS_NewUint8ClampedArrayWithBuffer(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, __int64)
+  class std::basic_ostream<char, struct std::char_traits<char>> & __cdecl JS::operator<<(class std::basic_ostream<char, struct std::char_traits<char>> &, class JS::RegExpFlags)
+  float * __cdecl JS_GetFloat32ArrayData(class JSObject *, bool *, class JS::AutoRequireNoGC const &)
+  js_call_js_normalize_latin1
+  js_call_js_normalize_utf16
+  js_new_ucstring_copy_n
+  js_new_ucstring_copy_n_dont_deflate
+  public: __cdecl mozilla::Compression::LZ4FrameCompressionContext::LZ4FrameCompressionContext(int, unsigned __int64, bool, bool)
+  public: __cdecl mozilla::Compression::LZ4FrameCompressionContext::~LZ4FrameCompressionContext(void)
+  public: __cdecl mozilla::Compression::LZ4FrameDecompressionContext::LZ4FrameDecompressionContext(bool)
+  public: __cdecl mozilla::Compression::LZ4FrameDecompressionContext::~LZ4FrameDecompressionContext(void)
+  public: class mozilla::Result<class mozilla::Span<char const, -1>, unsigned __int64> __cdecl mozilla::Compression::LZ4FrameCompressionContext::BeginCompressing(class mozilla::Span<char, -1>)
+  public: class mozilla::Result<class mozilla::Span<char const, -1>, unsigned __int64> __cdecl mozilla::Compression::LZ4FrameCompressionContext::ContinueCompressing(class mozilla::Span<char const, -1>)
+  public: class mozilla::Result<class mozilla::Span<char const, -1>, unsigned __int64> __cdecl mozilla::Compression::LZ4FrameCompressionContext::EndCompressing(void)
+  public: class mozilla::Result<struct mozilla::Compression::LZ4FrameDecompressionResult, unsigned __int64> __cdecl mozilla::Compression::LZ4FrameDecompressionContext::Decompress(class mozilla::Span<char, -1>, class mozilla::Span<char const, -1>)
+  public: static bool __cdecl mozilla::Compression::LZ4::decompress(char const *, unsigned __int64, char *, unsigned __int64, unsigned __int64 *)
+  public: static bool __cdecl mozilla::Compression::LZ4::decompressPartial(char const *, unsigned __int64, char *, unsigned __int64, unsigned __int64 *)
+  public: static unsigned __int64 __cdecl mozilla::Compression::LZ4::compress(char const *, unsigned __int64, char *)
+  unsigned __int64 (__cdecl * __cdecl JS::dbg::GetDebuggerMallocSizeOf(struct JSContext *))(void const *)
+  unsigned char * __cdecl JS_GetUint8ClampedArrayData(class JSObject *, bool *, class JS::AutoRequireNoGC const &)
+## js/ArrayBuffer.h 30
+  bool __cdecl JS::ArrayBufferCopyData(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, class JS::Handle<class JSObject *>, unsigned __int64, unsigned __int64)
+  bool __cdecl JS::ArrayBufferHasData(class JSObject *)
+  bool __cdecl JS::Call(struct JSContext *, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>, class JS::HandleValueArray const &, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::DetachArrayBuffer(struct JSContext *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS::HasDefinedArrayBufferDetachKey(struct JSContext *, class JS::Handle<class JSObject *>, bool *)
+  bool __cdecl JS::IsArrayBufferObject(class JSObject *)
+  bool __cdecl JS::IsDetachedArrayBufferObject(class JSObject *)
+  class JSObject * __cdecl JS::ArrayBufferClone(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, unsigned __int64)
+  class JSObject * __cdecl JS::CopyArrayBuffer(struct JSContext *, class JS::Handle<class JSObject *>)
+  class JSObject * __cdecl JS::NewArrayBuffer(struct JSContext *, unsigned __int64)
+  class JSObject * __cdecl JS::NewArrayBufferWithContents(struct JSContext *, unsigned __int64, class std::unique_ptr<void, struct JS::FreePolicy>)
+  class JSObject * __cdecl JS::NewArrayBufferWithContents(struct JSContext *, unsigned __int64, void *, enum JS::NewArrayBufferOutOfMemory)
+  class JSObject * __cdecl JS::NewExternalArrayBuffer(struct JSContext *, unsigned __int64, class std::unique_ptr<void, class JS::BufferContentsDeleter>)
+  class JSObject * __cdecl JS::NewMappedArrayBufferWithContents(struct JSContext *, unsigned __int64, void *)
+  class JSObject * __cdecl JS::UnwrapArrayBuffer(class JSObject *)
+  private: static struct JSClass const *const JS::ArrayBuffer::FixedLengthSharedClass
+  private: static struct JSClass const *const JS::ArrayBuffer::FixedLengthUnsharedClass
+  private: static struct JSClass const *const JS::ArrayBuffer::GrowableSharedClass
+  private: static struct JSClass const *const JS::ArrayBuffer::ImmutableUnsharedClass
+  private: static struct JSClass const *const JS::ArrayBuffer::ResizableUnsharedClass
+  public: class mozilla::Span<unsigned char, -1> __cdecl JS::ArrayBuffer::getData(bool *, class JS::AutoRequireNoGC const &)
+  public: static class JS::ArrayBuffer __cdecl JS::ArrayBuffer::create(struct JSContext *, unsigned __int64)
+  public: static class JS::ArrayBuffer __cdecl JS::ArrayBuffer::unwrap(class JSObject *)
+  unsigned __int64 __cdecl JS::GetArrayBufferByteLength(class JSObject *)
+  unsigned char * __cdecl JS::GetArrayBufferData(class JSObject *, bool *, class JS::AutoRequireNoGC const &)
+  void * __cdecl JS::CreateMappedArrayBufferContents(int, unsigned __int64, unsigned __int64)
+  void * __cdecl JS::StealArrayBufferContents(struct JSContext *, class JS::Handle<class JSObject *>)
+  void __cdecl JS::GetArrayBufferLengthAndData(class JSObject *, unsigned __int64 *, bool *, unsigned char **)
+  void __cdecl JS::ReleaseMappedArrayBufferContents(void *, unsigned __int64)
+  void __cdecl JS_free(struct JSContext *, void *)
+## js/Modules.h 30
+  bool __cdecl JS::FinishCompileForESM(struct JSContext *, struct JS::WasmCompileArgs const &, struct JS::ESMCompileResult const &, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl JS::FinishLoadingImportedModule(struct JSContext *, class JS::Handle<class JS::Value>, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JSObject *>, bool)
+  bool __cdecl JS::FinishLoadingImportedModuleFailed(struct JSContext *, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>)
+  bool __cdecl JS::FinishLoadingImportedModuleFailedWithPendingException(struct JSContext *, class JS::Handle<class JS::Value>)
+  bool __cdecl JS::IsCyclicModule(class JSObject *)
+  bool __cdecl JS::LoadRequestedModules(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, bool (__cdecl *)(struct JSContext *, class JS::Handle<class JS::Value>), bool (__cdecl *)(struct JSContext *, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>))
+  bool __cdecl JS::LoadRequestedModules(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl JS::ModuleEvaluate(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::ModuleIsLinked(class JSObject *)
+  bool __cdecl JS::ModuleLink(struct JSContext *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS::ModuleRequestIsSourcePhase(struct JSContext *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS::ThrowOnModuleEvaluationFailure(struct JSContext *, class JS::Handle<class JSObject *>, enum JS::ModuleErrorBehaviour)
+  class JS::Value __cdecl JS::GetModulePrivate(class JSObject *)
+  class JS::Value __cdecl JS::GetReferrerPrivate(class JS::Handle<class JS::Value>)
+  class JSObject * __cdecl JS::CompileJsonModule(struct JSContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<char16_t> &)
+  class JSObject * __cdecl JS::CompileJsonModule(struct JSContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<union mozilla::Utf8Unit> &)
+  class JSObject * __cdecl JS::CompileWasmModule(struct JSContext *, class JS::ReadOnlyCompileOptions const &, class mozilla::Vector<unsigned char, 0, class js::MallocAllocPolicy> &)
+  class JSObject * __cdecl JS::CompileWasmModuleAsSource(struct JSContext *, class JS::ReadOnlyCompileOptions const &, class mozilla::Vector<unsigned char, 0, class js::MallocAllocPolicy> &)
+  class JSObject * __cdecl JS::CreateDefaultExportSyntheticModule(struct JSContext *, class JS::Handle<class JS::Value>)
+  class JSObject * __cdecl JS::CreateWasmSourcePhaseModule(struct JSContext *, class JS::Handle<class JSObject *>)
+  class JSObject * __cdecl JS::GetModuleNamespace(struct JSContext *, class JS::Handle<class JSObject *>)
+  class JSScript * __cdecl JS::GetModuleScript(class JS::Handle<class JSObject *>)
+  class JSString * __cdecl JS::GetModuleRequestSpecifier(struct JSContext *, class JS::Handle<class JSObject *>)
+  enum JS::ModuleType __cdecl JS::GetModuleRequestType(struct JSContext *, class JS::Handle<class JSObject *>)
+  void __cdecl JS::ClearModuleEnvironment(class JSObject *)
+  void __cdecl JS::ResetPreloadedModule(class JSObject *)
+  void __cdecl JS::SetModuleLoadHook(struct JSRuntime *, bool (__cdecl *)(struct JSContext *, class JS::Handle<class JS::Value>, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>, unsigned int, struct JS::ColumnNumberOneOrigin))
+  void __cdecl JS::SetModuleMetadataHook(struct JSRuntime *, bool (__cdecl *)(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>))
+  void __cdecl JS::SetModulePrivate(class JSObject *, class JS::Value const &)
+  void __cdecl JS::SetScriptPrivate(class JSScript *, class JS::Value const &)
+## js/Promise.h 28
+  bool __cdecl JS::AddPromiseReactions(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>)
+  bool __cdecl JS::GetPromiseIsHandled(class JS::Handle<class JSObject *>)
+  bool __cdecl JS::IsPromiseObject(class JS::Handle<class JSObject *>)
+  bool __cdecl JS::RejectPromise(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>)
+  bool __cdecl JS::ResolvePromise(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>)
+  bool __cdecl JS::SafeResolve(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, bool *)
+  bool __cdecl JS::SetAnyPromiseIsHandled(struct JSContext *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS::SetPromiseUserInputEventHandlingState(class JS::Handle<class JSObject *>, enum JS::PromiseUserInputEventHandlingState)
+  bool __cdecl JS::SetSettledPromiseIsHandled(struct JSContext *, class JS::Handle<class JSObject *>)
+  class JS::Value __cdecl JS::GetPromiseResult(class JS::Handle<class JSObject *>)
+  class JSObject * __cdecl JS::CallOriginalPromiseReject(struct JSContext *, class JS::Handle<class JS::Value>)
+  class JSObject * __cdecl JS::CallOriginalPromiseResolve(struct JSContext *, class JS::Handle<class JS::Value>)
+  class JSObject * __cdecl JS::GetPromiseAllocationSite(class JS::Handle<class JSObject *>)
+  class JSObject * __cdecl JS::GetPromiseResolutionSite(class JS::Handle<class JSObject *>)
+  class JSObject * __cdecl JS::GetWaitForAllPromise(struct JSContext *, class JS::Handle<class JS::StackGCVector<class JSObject *, class js::TempAllocPolicy>>)
+  class JSObject * __cdecl JS::NewPromiseObject(struct JSContext *, class JS::Handle<class JSObject *>)
+  enum JS::PromiseState __cdecl JS::GetPromiseState(class JS::Handle<class JSObject *>)
+  enum JS::PromiseUserInputEventHandlingState __cdecl JS::GetPromiseUserInputEventHandlingState(class JSObject *)
+  public: static void __cdecl JS::Dispatchable::ReleaseFailedTask(class std::unique_ptr<class JS::Dispatchable, struct JS::DeletePolicy<class JS::Dispatchable>> &&)
+  public: static void __cdecl JS::Dispatchable::Run(struct JSContext *, class std::unique_ptr<class JS::Dispatchable, struct JS::DeletePolicy<class JS::Dispatchable>> &&, enum JS::Dispatchable::MaybeShuttingDown)
+  unsigned __int64 __cdecl JS::GetPromiseID(class JS::Handle<class JSObject *>)
+  void __cdecl JS::CancelAsyncTasks(struct JSContext *)
+  void __cdecl JS::InitAsyncTaskCallbacks(struct JSContext *, bool (__cdecl *)(void *, class std::unique_ptr<class JS::Dispatchable, struct JS::DeletePolicy<class JS::Dispatchable>> &&), bool (__cdecl *)(void *, class std::unique_ptr<class JS::Dispatchable, struct JS::DeletePolicy<class JS::Dispatchable>> &&, unsigned int), void (__cdecl *)(void *, class JS::Dispatchable *), void (__cdecl *)(void *, class JS::Dispatchable *), void *)
+  void __cdecl JS::JobQueueIsEmpty(struct JSContext *)
+  void __cdecl JS::JobQueueMayNotBeEmpty(struct JSContext *)
+  void __cdecl JS::SetJobQueue(struct JSContext *, class JS::JobQueue *)
+  void __cdecl JS::SetPromiseRejectionTrackerCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, bool, class JS::Handle<class JSObject *>, enum JS::PromiseRejectionHandlingState, void *), void *)
+  void __cdecl JS::ShutdownAsyncTasks(struct JSContext *)
+## js/UbiNode.h 27
+  bool __cdecl JS::ubi::ConstructSavedFrameStackSlow(struct JSContext *, class JS::ubi::StackFrame &, class JS::MutableHandle<class JSObject *>)
+  private: virtual char16_t const * __cdecl JS::ubi::Concrete<void>::typeName(void) const
+  private: virtual class JS::Compartment * __cdecl JS::ubi::Concrete<void>::compartment(void) const
+  private: virtual class JS::Realm * __cdecl JS::ubi::Concrete<void>::realm(void) const
+  private: virtual class JS::Zone * __cdecl JS::ubi::Concrete<void>::zone(void) const
+  private: virtual class JS::Zone * __cdecl JS::ubi::TracerConcrete<class JSObject>::zone(void) const
+  private: virtual class std::unique_ptr<class JS::ubi::EdgeRange, struct JS::DeletePolicy<class JS::ubi::EdgeRange>> __cdecl JS::ubi::Concrete<void>::edges(struct JSContext *, bool) const
+  private: virtual enum JS::ubi::CoarseType __cdecl JS::ubi::Concrete<void>::coarseType(void) const
+  private: virtual unsigned __int64 __cdecl JS::ubi::Concrete<void>::size(unsigned __int64 (__cdecl *)(void const *)) const
+  public: __cdecl JS::ubi::RootList::RootList(struct JSContext *, bool)
+  public: bool __cdecl JS::ubi::RootList::addRoot(class JS::ubi::Node, char16_t const *)
+  public: static char16_t const *const JS::ubi::Concrete<class JS::ubi::RootList>::concreteTypeName
+  public: static char16_t const *const JS::ubi::Concrete<class JSObject>::concreteTypeName
+  public: static void __cdecl JS::ubi::Concrete<class JSObject>::construct(void *, class JSObject *)
+  public: struct std::pair<bool, class JS::AutoCheckCannotGC> __cdecl JS::ubi::RootList::init(class mozilla::HashSet<class JS::Compartment *, struct mozilla::DefaultHasher<class JS::Compartment *, void>, class js::SystemAllocPolicy> &)
+  public: struct std::pair<bool, class JS::AutoCheckCannotGC> __cdecl JS::ubi::RootList::init(void)
+  public: unsigned __int64 __cdecl JS::ubi::AtomOrTwoByteChars::copyToBuffer(class mozilla::RangedPtr<char16_t>, unsigned __int64)
+  public: unsigned __int64 __cdecl JS::ubi::AtomOrTwoByteChars::length(void)
+  public: virtual bool __cdecl JS::ubi::Concrete<class JSObject>::hasAllocationStack(void) const
+  public: virtual char const * __cdecl JS::ubi::Concrete<class JSObject>::jsObjectClassName(void) const
+  public: virtual class JS::Compartment * __cdecl JS::ubi::Concrete<class JSObject>::compartment(void) const
+  public: virtual class JS::Realm * __cdecl JS::ubi::Concrete<class JSObject>::realm(void) const
+  public: virtual class JS::ubi::StackFrame __cdecl JS::ubi::Concrete<class JSObject>::allocationStack(void) const
+  public: virtual class std::unique_ptr<class JS::ubi::EdgeRange, struct JS::DeletePolicy<class JS::ubi::EdgeRange>> __cdecl JS::ubi::Concrete<class JS::ubi::RootList>::edges(struct JSContext *, bool) const
+  public: virtual class std::unique_ptr<class JS::ubi::EdgeRange, struct JS::DeletePolicy<class JS::ubi::EdgeRange>> __cdecl JS::ubi::TracerConcrete<class JSObject>::edges(struct JSContext *, bool) const
+  public: virtual unsigned __int64 __cdecl JS::ubi::Concrete<class JSObject>::size(unsigned __int64 (__cdecl *)(void const *)) const
+  void __cdecl JS::ubi::SetConstructUbiNodeForDOMObjectCallback(struct JSContext *, void (__cdecl *)(void *, class JSObject *))
+## js/String.h 27
+  bool __cdecl JS_CopyStringChars(struct JSContext *, class mozilla::Range<char16_t> const &, class JSString *)
+  bool __cdecl JS_EncodeStringToBuffer(struct JSContext *, class JSString *, char *, unsigned __int64)
+  bool __cdecl JS_GetStringCharAt(struct JSContext *, class JSString *, unsigned __int64, char16_t *)
+  bool __cdecl JS_LinearStringEqualsAscii(class JSLinearString *, char const *)
+  bool __cdecl JS_LinearStringEqualsAscii(class JSLinearString *, char const *, unsigned __int64)
+  bool __cdecl JS_StringEqualsAscii(struct JSContext *, class JSString *, char const *, unsigned __int64, bool *)
+  char16_t const * __cdecl JS_GetTwoByteStringCharsAndLength(struct JSContext *, class JS::AutoRequireNoGC const &, class JSString *, unsigned __int64 *)
+  class JS::Value __cdecl JS_GetEmptyStringValue(struct JSContext *)
+  class JSLinearString * __cdecl JS::detail::StringToLinearStringSlow(struct JSContext *, class JSString *)
+  class JSLinearString * __cdecl JS_EnsureLinearString(struct JSContext *, class JSString *)
+  class JSString * __cdecl JS::NewStringFromKnownLiveLatin1Buffer(struct JSContext *, class mozilla::StringBuffer *, unsigned __int64)
+  class JSString * __cdecl JS::NewStringFromKnownLiveTwoByteBuffer(struct JSContext *, class mozilla::StringBuffer *, unsigned __int64)
+  class JSString * __cdecl JS::NewStringFromKnownLiveUTF8Buffer(struct JSContext *, class mozilla::StringBuffer *, unsigned __int64)
+  class JSString * __cdecl JS_AtomizeString(struct JSContext *, char const *)
+  class JSString * __cdecl JS_AtomizeStringN(struct JSContext *, char const *, unsigned __int64)
+  class JSString * __cdecl JS_AtomizeUCString(struct JSContext *, char16_t const *)
+  class JSString * __cdecl JS_ConcatStrings(struct JSContext *, class JS::Handle<class JSString *>, class JS::Handle<class JSString *>)
+  class JSString * __cdecl JS_GetEmptyString(struct JSContext *)
+  class JSString * __cdecl JS_NewStringCopyN(struct JSContext *, char const *, unsigned __int64)
+  class JSString * __cdecl JS_NewStringCopyUTF8N(struct JSContext *, class JS::UTF8Chars const &)
+  class JSString * __cdecl JS_NewStringCopyZ(struct JSContext *, char const *)
+  class JSString * __cdecl JS_NewUCStringCopyN(struct JSContext *, char16_t const *, unsigned __int64)
+  class JSString * __cdecl JS_NewUCStringCopyZ(struct JSContext *, char16_t const *)
+  class JSString * __cdecl JS_NewUCStringDontDeflate(struct JSContext *, class std::unique_ptr<char16_t[], struct JS::FreePolicy>, unsigned __int64)
+  unsigned __int64 __cdecl JS_GetStringEncodingLength(struct JSContext *, class JSString *)
+  unsigned __int64 __cdecl JS_PutEscapedLinearString(char *, unsigned __int64, class JSLinearString *, char)
+  unsigned char const * __cdecl JS_GetLatin1StringCharsAndLength(struct JSContext *, class JS::AutoRequireNoGC const &, class JSString *, unsigned __int64 *)
+## js/Class.h 26
+  bool __cdecl JS::dbg::ShouldAvoidSideEffects(struct JSContext *)
+  bool __cdecl JS_Enumerate(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::GCVector<class JS::PropertyKey, 0, class js::TempAllocPolicy>>)
+  class JSObject * __cdecl JS_NewObject(struct JSContext *, struct JSClass const *)
+  public: bool __cdecl JS::ObjectOpResult::failBadArrayLength(void)
+  public: bool __cdecl JS::ObjectOpResult::failBadIndex(void)
+  public: bool __cdecl JS::ObjectOpResult::failCantDefineWindowElement(void)
+  public: bool __cdecl JS::ObjectOpResult::failCantDefineWindowNamedProperty(void)
+  public: bool __cdecl JS::ObjectOpResult::failCantDelete(void)
+  public: bool __cdecl JS::ObjectOpResult::failCantDeleteWindowElement(void)
+  public: bool __cdecl JS::ObjectOpResult::failCantDeleteWindowNamedProperty(void)
+  public: bool __cdecl JS::ObjectOpResult::failCantPreventExtensions(void)
+  public: bool __cdecl JS::ObjectOpResult::failCantSetProto(void)
+  public: bool __cdecl JS::ObjectOpResult::failInvalidDescriptor(void)
+  public: bool __cdecl JS::ObjectOpResult::failNoIndexedSetter(void)
+  public: bool __cdecl JS::ObjectOpResult::failNoNamedSetter(void)
+  public: bool __cdecl JS::ObjectOpResult::failNotDataDescriptor(void)
+  public: bool __cdecl JS::ObjectOpResult::failReadOnly(void)
+  public: bool __cdecl JS::ObjectOpResult::reportError(struct JSContext *, class JS::Handle<class JSObject *>)
+  public: bool __cdecl JSPropertySpec::getValue(struct JSContext *, class JS::MutableHandle<class JS::Value>) const
+  public: bool __cdecl js::ElementAdder::append(struct JSContext *, class JS::Handle<class JS::Value>)
+  public: static char const js::Wrapper::family
+  public: static class JSObject * __cdecl js::Wrapper::New(struct JSContext *, class JSObject *, class js::Wrapper const *, class js::WrapperOptions const &)
+  public: static class JSObject * __cdecl js::Wrapper::Renew(class JSObject *, class JSObject *, class js::Wrapper const *)
+  public: static class JSObject * __cdecl js::Wrapper::wrappedObject(class JSObject *)
+  public: virtual bool __cdecl js::Wrapper::finalizeInBackground(class JS::Value const &) const
+  public: void __cdecl JS::PropertyDescriptor::trace(class JSTracer *)
+## js/Realm.h 25
+  bool __cdecl JS::HasRealmInitializedGlobal(class JS::Realm *)
+  class JS::Handle<class JSObject *> __cdecl JS::GetRealmFunctionPrototypeHandle(struct JSContext *)
+  class JS::Handle<class JSObject *> __cdecl JS::GetRealmObjectPrototypeHandle(struct JSContext *)
+  class JS::Realm * __cdecl JS::GetCurrentRealmOrNull(struct JSContext *)
+  class JS::Realm * __cdecl JS::GetFunctionRealm(struct JSContext *, class JS::Handle<class JSObject *>)
+  class JS::Realm * __cdecl JS::GetObjectRealmOrNull(class JSObject *)
+  class JSObject * __cdecl JS::GetRealmAsyncIteratorPrototype(struct JSContext *)
+  class JSObject * __cdecl JS::GetRealmErrorPrototype(struct JSContext *)
+  class JSObject * __cdecl JS::GetRealmFunctionPrototype(struct JSContext *)
+  class JSObject * __cdecl JS::GetRealmGlobalOrNull(class JS::Realm *)
+  class JSObject * __cdecl JS::GetRealmIteratorPrototype(struct JSContext *)
+  class JSObject * __cdecl JS::GetRealmKeyObject(struct JSContext *)
+  class JSObject * __cdecl JS::GetRealmMapIteratorPrototype(struct JSContext *)
+  class JSObject * __cdecl JS::GetRealmObjectPrototype(struct JSContext *)
+  class JSObject * __cdecl JS::GetRealmSetIteratorPrototype(struct JSContext *)
+  public: __cdecl JSAutoNullableRealm::JSAutoNullableRealm(struct JSContext *, class JSObject *)
+  public: __cdecl JSAutoNullableRealm::~JSAutoNullableRealm(void)
+  public: __cdecl JSAutoRealm::JSAutoRealm(struct JSContext *, class JSObject *)
+  public: __cdecl JSAutoRealm::JSAutoRealm(struct JSContext *, class JSScript *)
+  public: __cdecl JSAutoRealm::~JSAutoRealm(void)
+  void * __cdecl JS::GetRealmPrivate(class JS::Realm *)
+  void __cdecl JS::SetDestroyRealmCallback(struct JSContext *, void (__cdecl *)(class JS::GCContext *, class JS::Realm *))
+  void __cdecl JS::SetRealmNameCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, class JS::Realm *, char *, unsigned __int64, class JS::AutoRequireNoGC const &))
+  void __cdecl JS::SetRealmPrivate(class JS::Realm *, void *)
+  void __cdecl js::gc::TraceRealmRoot(class JSTracer *, class JS::Realm *, char const *)
+## js/experimental/TypedData.h 23
+  bool __cdecl JS::EnsureNonInlineArrayBufferOrView(struct JSContext *, class JSObject *)
+  bool __cdecl JS::IsImmutableArrayBufferView(class JSObject *)
+  bool __cdecl JS::IsLargeArrayBufferView(class JSObject *)
+  bool __cdecl JS::IsResizableArrayBufferView(class JSObject *)
+  bool __cdecl JS::PinArrayBufferOrViewLength(class JSObject *, bool)
+  bool __cdecl JS_GetTypedArraySharedness(class JSObject *)
+  bool __cdecl JS_IsTypedArrayObject(class JSObject *)
+  class JSObject * __cdecl JS_GetArrayBufferViewBuffer(struct JSContext *, class JS::Handle<class JSObject *>, bool *)
+  class JSObject * __cdecl JS_NewDataView(struct JSContext *, class JS::Handle<class JSObject *>, unsigned __int64, unsigned __int64)
+  enum JS::Scalar::Type __cdecl JS_GetArrayBufferViewType(class JSObject *)
+  protected: static struct JSClass const *const JS::TypedArray_base::fixedLengthClasses
+  protected: static struct JSClass const *const JS::TypedArray_base::immutableClasses
+  protected: static struct JSClass const *const JS::TypedArray_base::resizableClasses
+  public: bool __cdecl JS::ArrayBufferOrView::isDetached(void) const
+  public: bool __cdecl JS::ArrayBufferOrView::isImmutable(void) const
+  public: bool __cdecl JS::ArrayBufferOrView::isResizable(void) const
+  public: static class JS::TypedArray_base __cdecl JS::TypedArray_base::fromObject(class JSObject *)
+  unsigned __int64 __cdecl JS_GetArrayBufferViewByteLength(class JSObject *)
+  unsigned __int64 __cdecl JS_GetArrayBufferViewByteOffset(class JSObject *)
+  unsigned __int64 __cdecl JS_GetTypedArrayByteLength(class JSObject *)
+  unsigned __int64 __cdecl JS_GetTypedArrayByteOffset(class JSObject *)
+  unsigned __int64 __cdecl JS_GetTypedArrayLength(class JSObject *)
+  void * __cdecl JS_GetArrayBufferViewData(class JSObject *, bool *, class JS::AutoRequireNoGC const &)
+## js/Debug.h 22
+  bool __cdecl JS::dbg::FireOnGarbageCollectionHook(struct JSContext *, class std::unique_ptr<class JS::dbg::GarbageCollectionEvent, struct JS::DeletePolicy<class JS::dbg::GarbageCollectionEvent>> &&)
+  bool __cdecl JS::dbg::FireOnGarbageCollectionHookRequired(struct JSContext *)
+  bool __cdecl JS::dbg::GetDebuggeeGlobals(struct JSContext *, class JSObject &, class JS::MutableHandle<class JS::StackGCVector<class JSObject *, class js::TempAllocPolicy>>)
+  bool __cdecl JS::dbg::IsDebugger(class JSObject &)
+  bool __cdecl JS_DefineDebuggerObject(struct JSContext *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS_TracerBeginTracing(struct JSContext *)
+  bool __cdecl JS_TracerEndTracing(struct JSContext *)
+  bool __cdecl JS_TracerIsTracing(struct JSContext *)
+  bool __cdecl JS_TracerSnapshotTrace(struct JS::ExecutionTrace &)
+  char const * __cdecl JS_GetLastOOMStackTrace(struct JSContext *)
+  public: bool __cdecl JS_TracerSummaryWriter::writeValue(struct JSContext *, class JS::Handle<class JS::Value>)
+  public: void __cdecl JS_TracerSummaryWriter::writeTwoByteString(char16_t const *)
+  public: void __cdecl JS_TracerSummaryWriter::writeUTF8String(char const *)
+  public: void __cdecl JS_TracerSummaryWriter::writeUint16(unsigned short)
+  public: void __cdecl JS_TracerSummaryWriter::writeUint32(unsigned int)
+  public: void __cdecl JS_TracerSummaryWriter::writeUint8(unsigned char)
+  void __cdecl JS::dbg::SetDebuggerMallocSizeOf(struct JSContext *, unsigned __int64 (__cdecl *)(void const *))
+  void __cdecl JS_SetCustomObjectSummaryCallback(struct JSContext *, bool (__cdecl *)(struct JSContext *, class JS::Handle<class JSObject *>, bool, struct JS_TracerSummaryWriter *))
+  void __cdecl JS_TracerEnterLabelLatin1(struct JSContext *, char const *)
+  void __cdecl JS_TracerEnterLabelTwoByte(struct JSContext *, char16_t const *)
+  void __cdecl JS_TracerLeaveLabelLatin1(struct JSContext *, char const *)
+  void __cdecl JS_TracerLeaveLabelTwoByte(struct JSContext *, char16_t const *)
+## js/MapAndSet.h 21
+  bool __cdecl JS::MapClear(struct JSContext *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS::MapDelete(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, bool *)
+  bool __cdecl JS::MapEntries(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::MapForEach(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>)
+  bool __cdecl JS::MapGet(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::MapHas(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, bool *)
+  bool __cdecl JS::MapKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::MapSet(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>)
+  bool __cdecl JS::MapValues(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::SetAdd(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>)
+  bool __cdecl JS::SetClear(struct JSContext *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS::SetDelete(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, bool *)
+  bool __cdecl JS::SetEntries(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::SetForEach(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>)
+  bool __cdecl JS::SetHas(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, bool *)
+  bool __cdecl JS::SetKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::SetValues(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>)
+  class JSObject * __cdecl JS::NewMapObject(struct JSContext *)
+  class JSObject * __cdecl JS::NewSetObject(struct JSContext *)
+  unsigned int __cdecl JS::MapSize(struct JSContext *, class JS::Handle<class JSObject *>)
+  unsigned int __cdecl JS::SetSize(struct JSContext *, class JS::Handle<class JSObject *>)
+## js/StructuredClone.h 20
+  bool __cdecl JS_ObjectNotWritten(struct JSStructuredCloneWriter *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS_ReadBytes(struct JSStructuredCloneReader *, void *, unsigned __int64)
+  bool __cdecl JS_ReadDouble(struct JSStructuredCloneReader *, double *)
+  bool __cdecl JS_ReadString(struct JSStructuredCloneReader *, class JS::MutableHandle<class JSString *>)
+  bool __cdecl JS_ReadStructuredClone(struct JSContext *, class JSStructuredCloneData const &, unsigned int, enum JS::StructuredCloneScope, class JS::MutableHandle<class JS::Value>, class JS::CloneDataPolicy const &, struct JSStructuredCloneCallbacks const *, void *)
+  bool __cdecl JS_ReadTypedArray(struct JSStructuredCloneReader *, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_ReadUint32Pair(struct JSStructuredCloneReader *, unsigned int *, unsigned int *)
+  bool __cdecl JS_StructuredClone(struct JSContext *, class JS::Handle<class JS::Value>, class JS::MutableHandle<class JS::Value>, struct JSStructuredCloneCallbacks const *, void *)
+  bool __cdecl JS_WriteBytes(struct JSStructuredCloneWriter *, void const *, unsigned __int64)
+  bool __cdecl JS_WriteDouble(struct JSStructuredCloneWriter *, double)
+  bool __cdecl JS_WriteString(struct JSStructuredCloneWriter *, class JS::Handle<class JSString *>)
+  bool __cdecl JS_WriteTypedArray(struct JSStructuredCloneWriter *, class JS::Handle<class JS::Value>)
+  bool __cdecl JS_WriteUint32PairUnchecked(struct JSStructuredCloneWriter *, unsigned int, unsigned int)
+  public: __cdecl JSStructuredCloneData::~JSStructuredCloneData(void)
+  public: bool __cdecl JSAutoStructuredCloneBuffer::read(struct JSContext *, class JS::MutableHandle<class JS::Value>, class JS::CloneDataPolicy const &, struct JSStructuredCloneCallbacks const *, void *)
+  public: bool __cdecl JSAutoStructuredCloneBuffer::write(struct JSContext *, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>, class JS::CloneDataPolicy const &, struct JSStructuredCloneCallbacks const *, void *)
+  public: bool __cdecl JSAutoStructuredCloneBuffer::write(struct JSContext *, class JS::Handle<class JS::Value>, struct JSStructuredCloneCallbacks const *, void *)
+  public: class js::SharedArrayRawBufferRefs & __cdecl js::SharedArrayRawBufferRefs::operator=(class js::SharedArrayRawBufferRefs &&)
+  public: void __cdecl JSAutoStructuredCloneBuffer::adopt(class JSStructuredCloneData &&, unsigned int, struct JSStructuredCloneCallbacks const *, void *)
+  public: void __cdecl JSAutoStructuredCloneBuffer::clear(void)
+## js/friend/MicroTask.h 19
+  bool __cdecl JS::EnqueueDebugMicroTask(struct JSContext *, class JS::MicroTask const &)
+  bool __cdecl JS::EnqueueMicroTask(struct JSContext *, class JS::MicroTask const &)
+  bool __cdecl JS::HasAnyMicroTasks(struct JSContext *)
+  bool __cdecl JS::HasDebuggerMicroTasks(struct JSContext *)
+  bool __cdecl JS::HasRegularMicroTasks(struct JSContext *)
+  bool __cdecl JS::PrependMicroTask(struct JSContext *, class JS::MicroTask const &)
+  bool __cdecl JS::RunJSMicroTask(struct JSContext *, class JS::Handle<class mozilla::Maybe<class JS::MicroTask>>)
+  class mozilla::Maybe<class JS::MicroTask> __cdecl JS::DequeueNextDebuggerMicroTask(struct JSContext *)
+  class mozilla::Maybe<class JS::MicroTask> __cdecl JS::DequeueNextMicroTask(struct JSContext *)
+  class mozilla::Maybe<class JS::MicroTask> __cdecl JS::DequeueNextRegularMicroTask(struct JSContext *)
+  class mozilla::Maybe<class JS::MicroTask> __cdecl JS::PeekNextMicroTask(struct JSContext *)
+  class std::unique_ptr<class JS::SavedMicroTaskQueue, struct JS::DeletePolicy<class JS::SavedMicroTaskQueue>> __cdecl JS::SaveMicroTaskQueue(struct JSContext *)
+  public: bool __cdecl JS::JSMicroTaskRef::getFlowId(unsigned __int64 *) &&
+  public: bool __cdecl JS::JSMicroTaskRef::maybeGetAllocationSite(class JS::MutableHandle<class JSObject *>) &&
+  public: bool __cdecl JS::JSMicroTaskRef::maybeGetHostDefinedData(class JS::MutableHandle<class JSObject *>, class JS::MutableHandle<class JSObject *>) &&
+  public: class JSObject * __cdecl JS::JSMicroTaskRef::executionGlobal(void) &&
+  public: class JSObject * __cdecl JS::JSMicroTaskRef::maybeGetPromise(void) &&
+  public: void __cdecl JS::MicroTask::trace(class JSTracer *, char const *)
+  void __cdecl JS::RestoreMicroTaskQueue(struct JSContext *, class std::unique_ptr<class JS::SavedMicroTaskQueue, struct JS::DeletePolicy<class JS::SavedMicroTaskQueue>>)
+## js/experimental/CompileScript.h 18
+  bool __cdecl JS::ConvertFrontendErrorsToRuntimeErrors(struct JSContext *, class js::FrontendContext *, class JS::ReadOnlyCompileOptions const &)
+  bool __cdecl JS::HadFrontendErrors(class js::FrontendContext *)
+  bool __cdecl JS::PrepareForInstantiate(class js::FrontendContext *, struct js::frontend::InitialStencilAndDelazifications &, struct JS::InstantiationStorage &)
+  class js::FrontendContext * __cdecl JS::NewFrontendContext(enum JS::AllowCancellingCompilation)
+  public: __cdecl JS::InstantiationStorage::~InstantiationStorage(void)
+  struct already_AddRefed<struct js::frontend::InitialStencilAndDelazifications> __cdecl JS::CompileGlobalScriptToStencil(class js::FrontendContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<char16_t> &)
+  struct already_AddRefed<struct js::frontend::InitialStencilAndDelazifications> __cdecl JS::CompileGlobalScriptToStencil(class js::FrontendContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<union mozilla::Utf8Unit> &)
+  struct already_AddRefed<struct js::frontend::InitialStencilAndDelazifications> __cdecl JS::CompileGlobalScriptToStencil(struct JSContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<char16_t> &)
+  struct already_AddRefed<struct js::frontend::InitialStencilAndDelazifications> __cdecl JS::CompileGlobalScriptToStencil(struct JSContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<union mozilla::Utf8Unit> &)
+  struct already_AddRefed<struct js::frontend::InitialStencilAndDelazifications> __cdecl JS::CompileModuleScriptToStencil(class js::FrontendContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<char16_t> &)
+  struct already_AddRefed<struct js::frontend::InitialStencilAndDelazifications> __cdecl JS::CompileModuleScriptToStencil(class js::FrontendContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<union mozilla::Utf8Unit> &)
+  struct already_AddRefed<struct js::frontend::InitialStencilAndDelazifications> __cdecl JS::CompileModuleScriptToStencil(struct JSContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<char16_t> &)
+  struct already_AddRefed<struct js::frontend::InitialStencilAndDelazifications> __cdecl JS::CompileModuleScriptToStencil(struct JSContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<union mozilla::Utf8Unit> &)
+  unsigned __int64 __cdecl JS::ThreadStackQuotaForSize(unsigned __int64)
+  void __cdecl JS::ClearFrontendErrors(class js::FrontendContext *)
+  void __cdecl JS::DestroyFrontendContext(class js::FrontendContext *)
+  void __cdecl JS::RequestFrontendCompilationCancellation(class js::FrontendContext *)
+  void __cdecl JS::SetNativeStackQuota(class js::FrontendContext *, unsigned __int64)
+## js/experimental/JSStencil.h 17
+  bool __cdecl JS::GetScriptSourceText(struct JSContext *, struct js::frontend::InitialStencilAndDelazifications *, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::IsStencilCacheable(struct js::frontend::InitialStencilAndDelazifications *)
+  bool __cdecl JS::StartCollectingDelazifications(struct JSContext *, class JS::Handle<class JSObject *>, struct js::frontend::InitialStencilAndDelazifications *, enum JS::CollectDelazificationsResult &)
+  bool __cdecl JS::StartCollectingDelazifications(struct JSContext *, class JS::Handle<class JSScript *>, struct js::frontend::InitialStencilAndDelazifications *, enum JS::CollectDelazificationsResult &)
+  bool __cdecl JS::StencilIsBorrowed(struct js::frontend::InitialStencilAndDelazifications *)
+  class JSObject * __cdecl JS::InstantiateModuleStencil(struct JSContext *, class JS::InstantiateOptions const &, struct js::frontend::InitialStencilAndDelazifications *, struct JS::InstantiationStorage *)
+  class JSScript * __cdecl JS::InstantiateGlobalStencil(struct JSContext *, class JS::InstantiateOptions const &, struct js::frontend::InitialStencilAndDelazifications *, struct JS::InstantiationStorage *)
+  enum JS::TranscodeResult __cdecl JS::DecodeStencil(class js::FrontendContext *, class JS::ReadOnlyDecodeOptions const &, class mozilla::Range<unsigned char const> const &, struct js::frontend::InitialStencilAndDelazifications **)
+  enum JS::TranscodeResult __cdecl JS::DecodeStencil(struct JSContext *, class JS::ReadOnlyDecodeOptions const &, class mozilla::Range<unsigned char const> const &, struct js::frontend::InitialStencilAndDelazifications **)
+  enum JS::TranscodeResult __cdecl JS::EncodeStencil(class js::FrontendContext *, struct js::frontend::InitialStencilAndDelazifications *, class mozilla::Vector<unsigned char, 0, class mozilla::MallocAllocPolicy> &)
+  enum JS::TranscodeResult __cdecl JS::EncodeStencil(struct JSContext *, struct js::frontend::InitialStencilAndDelazifications *, class mozilla::Vector<unsigned char, 0, class mozilla::MallocAllocPolicy> &)
+  unsigned __int64 __cdecl JS::GetScriptSourceLength(struct js::frontend::InitialStencilAndDelazifications *)
+  unsigned __int64 __cdecl JS::SizeOfStencil(struct js::frontend::InitialStencilAndDelazifications *, unsigned __int64 (__cdecl *)(void const *))
+  void __cdecl JS::AbortCollectingDelazifications(class JSObject *)
+  void __cdecl JS::AbortCollectingDelazifications(class JSScript *)
+  void __cdecl JS::StencilAddRef(struct js::frontend::InitialStencilAndDelazifications *)
+  void __cdecl JS::StencilRelease(struct js::frontend::InitialStencilAndDelazifications *)
+## js/ErrorReport.h 16
+  bool __cdecl JS::CreateError(struct JSContext *, enum JSExnType, class JS::Handle<class JSObject *>, class JS::Handle<class JSString *>, unsigned int, struct JS::ColumnNumberOneOrigin, class JSErrorReport *, class JS::Handle<class JSString *>, class JS::Handle<class mozilla::Maybe<class JS::Value>>, class JS::MutableHandle<class JS::Value>)
+  public: __cdecl JS::ErrorReportBuilder::ErrorReportBuilder(struct JSContext *)
+  public: __cdecl JS::ErrorReportBuilder::~ErrorReportBuilder(void)
+  public: bool __cdecl JS::ErrorReportBuilder::init(struct JSContext *, class JS::ExceptionStack const &, enum JS::ErrorReportBuilder::SniffingBehavior)
+  public: class JSErrorNotes::iterator __cdecl JSErrorNotes::begin(void)
+  public: class JSErrorNotes::iterator __cdecl JSErrorNotes::end(void)
+  public: unsigned __int64 __cdecl JSErrorNotes::length(void)
+  public: void __cdecl JSErrorReport::initBorrowedLinebuf(char16_t const *, unsigned __int64, unsigned __int64)
+  void __cdecl JS::ReportUncatchableException(struct JSContext *)
+  void __cdecl JS_ReportErrorASCII(struct JSContext *, char const *, ...)
+  void __cdecl JS_ReportErrorNumberASCII(struct JSContext *, struct JSErrorFormatString const * (__cdecl *)(void *, unsigned int), void *, unsigned int, ...)
+  void __cdecl JS_ReportErrorNumberLatin1(struct JSContext *, struct JSErrorFormatString const * (__cdecl *)(void *, unsigned int), void *, unsigned int, ...)
+  void __cdecl JS_ReportErrorNumberUC(struct JSContext *, struct JSErrorFormatString const * (__cdecl *)(void *, unsigned int), void *, unsigned int, ...)
+  void __cdecl JS_ReportErrorNumberUTF8Array(struct JSContext *, struct JSErrorFormatString const * (__cdecl *)(void *, unsigned int), void *, unsigned int, char const **)
+  void __cdecl JS_ReportErrorNumberUTF8VA(struct JSContext *, struct JSErrorFormatString const * (__cdecl *)(void *, unsigned int), void *, unsigned int, char *)
+  void __cdecl JS_ReportErrorUTF8(struct JSContext *, char const *, ...)
+## js/Date.h 16
+  bool __cdecl JS::IsISOStyleDate(struct JSContext *, class JS::Latin1Chars const &)
+  bool __cdecl JS::ObjectIsDate(struct JSContext *, class JS::Handle<class JSObject *>, bool *)
+  class JSObject * __cdecl JS::NewDateObject(struct JSContext *, class JS::ClippedTime)
+  double __cdecl JS::DayFromTime(double)
+  double __cdecl JS::DayFromYear(double)
+  double __cdecl JS::DayWithinYear(double, double)
+  double __cdecl JS::MakeDate(double, unsigned int, unsigned int)
+  double __cdecl JS::MakeDate(double, unsigned int, unsigned int, double)
+  double __cdecl JS::MonthFromTime(double)
+  double __cdecl JS::YearFromTime(double)
+  public: class JS::RealmBehaviors & __cdecl JS::RealmBehaviors::setLocaleOverride(char const *)
+  public: class JS::RealmBehaviors & __cdecl JS::RealmBehaviors::setTimeZoneOverride(char const *)
+  public: void __cdecl JS::RealmBehaviors::copyOverrideStrings(void)
+  void __cdecl JS::ResetTimeZone(void)
+  void __cdecl JS::SetRealmReduceTimerPrecisionCallerType(class JS::Realm *, struct JS::RTPCallerTypeToken)
+  void __cdecl JS::SetReduceMicrosecondTimePrecisionCallback(double (__cdecl *)(double, struct JS::RTPCallerTypeToken, struct JSContext *))
+## js/CompilationAndEvaluation.h 14
+  bool __cdecl JS::Evaluate(struct JSContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<char16_t> &, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::Evaluate(struct JSContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<union mozilla::Utf8Unit> &, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::UpdateDebugMetadata(struct JSContext *, class JS::Handle<class JSScript *>, class JS::InstantiateOptions const &, class JS::Handle<class JS::Value>, class JS::Handle<class JSString *>, class JS::Handle<class JSScript *>, class JS::Handle<class JSScript *>)
+  bool __cdecl JS_ExecuteScript(struct JSContext *, class JS::EnvironmentChain const &, class JS::Handle<class JSScript *>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_ExecuteScript(struct JSContext *, class JS::Handle<class JSScript *>)
+  bool __cdecl JS_ExecuteScript(struct JSContext *, class JS::Handle<class JSScript *>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_Utf8BufferIsCompilableUnit(struct JSContext *, class JS::Handle<class JSObject *>, char const *, unsigned __int64)
+  class JS::ContextOptions & __cdecl JS::ContextOptionsRef(struct JSContext *)
+  class JSFunction * __cdecl JS::CompileFunction(struct JSContext *, class JS::EnvironmentChain const &, class JS::ReadOnlyCompileOptions const &, char const *, unsigned int, char const *const *, class JS::SourceText<char16_t> &)
+  class JSScript * __cdecl JS::Compile(struct JSContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<char16_t> &)
+  class JSScript * __cdecl JS::Compile(struct JSContext *, class JS::ReadOnlyCompileOptions const &, class JS::SourceText<union mozilla::Utf8Unit> &)
+  class JSScript * __cdecl JS::CompileUtf8File(struct JSContext *, class JS::ReadOnlyCompileOptions const &, struct _iobuf *)
+  class JSScript * __cdecl JS::CompileUtf8Path(struct JSContext *, class JS::ReadOnlyCompileOptions const &, char const *)
+  public: __cdecl JS::InstantiateOptions::InstantiateOptions(void)
+## js/Exception.h 14
+  bool __cdecl JS::GetPendingExceptionStack(struct JSContext *, class JS::ExceptionStack *)
+  bool __cdecl JS::StealPendingExceptionStack(struct JSContext *, class JS::ExceptionStack *)
+  bool __cdecl JS_ErrorFromException(struct JSContext *, class JS::Handle<class JSObject *>, class JS::BorrowedErrorReport &)
+  bool __cdecl JS_GetPendingException(struct JSContext *, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_IsExceptionPending(struct JSContext *)
+  bool __cdecl JS_IsThrowingOutOfMemory(struct JSContext *)
+  class JSObject * __cdecl JS::ExceptionStackOrNull(class JS::Handle<class JSObject *>)
+  public: __cdecl JS::AutoSaveExceptionState::AutoSaveExceptionState(struct JSContext *)
+  public: __cdecl JS::AutoSaveExceptionState::~AutoSaveExceptionState(void)
+  public: void __cdecl JS::AutoSaveExceptionState::drop(void)
+  public: void __cdecl JS::AutoSaveExceptionState::restore(void)
+  void __cdecl JS::SetPendingExceptionStack(struct JSContext *, class JS::ExceptionStack const &)
+  void __cdecl JS_ClearPendingException(struct JSContext *)
+  void __cdecl JS_SetPendingException(struct JSContext *, class JS::Handle<class JS::Value>, enum JS::ExceptionStackBehavior)
+## js/ProtoKey.h 14
+  private: static struct JSClass const *const JS::DataView::FixedLengthClassPtr
+  private: static struct JSClass const *const JS::DataView::ImmutableClassPtr
+  private: static struct JSClass const *const JS::DataView::ResizableClassPtr
+  public: class mozilla::Span<__int64, -1> __cdecl JS::TypedArray<9>::getData(bool *, class JS::AutoRequireNoGC const &)
+  public: class mozilla::Span<double, -1> __cdecl JS::TypedArray<7>::getData(bool *, class JS::AutoRequireNoGC const &)
+  public: class mozilla::Span<float, -1> __cdecl JS::TypedArray<6>::getData(bool *, class JS::AutoRequireNoGC const &)
+  public: class mozilla::Span<int, -1> __cdecl JS::TypedArray<4>::getData(bool *, class JS::AutoRequireNoGC const &)
+  public: class mozilla::Span<short, -1> __cdecl JS::TypedArray<2>::getData(bool *, class JS::AutoRequireNoGC const &)
+  public: class mozilla::Span<signed char, -1> __cdecl JS::TypedArray<0>::getData(bool *, class JS::AutoRequireNoGC const &)
+  public: class mozilla::Span<unsigned __int64, -1> __cdecl JS::TypedArray<10>::getData(bool *, class JS::AutoRequireNoGC const &)
+  public: class mozilla::Span<unsigned char, -1> __cdecl JS::TypedArray<1>::getData(bool *, class JS::AutoRequireNoGC const &)
+  public: class mozilla::Span<unsigned char, -1> __cdecl JS::TypedArray<8>::getData(bool *, class JS::AutoRequireNoGC const &)
+  public: class mozilla::Span<unsigned int, -1> __cdecl JS::TypedArray<5>::getData(bool *, class JS::AutoRequireNoGC const &)
+  public: class mozilla::Span<unsigned short, -1> __cdecl JS::TypedArray<3>::getData(bool *, class JS::AutoRequireNoGC const &)
+## js/ProfilingFrameIterator.h 12
+  bool __cdecl JS::IsProfilingEnabledForContext(struct JSContext *)
+  class JS::ProfiledFrameRange __cdecl JS::GetProfiledFrames(struct JSContext *, void *, unsigned __int64)
+  public: __cdecl JS::ProfilingFrameIterator::ProfilingFrameIterator(struct JSContext *, struct JS::ProfilingFrameIterator::RegisterState const &, class mozilla::Maybe<unsigned __int64> const &)
+  public: __cdecl JS::ProfilingFrameIterator::~ProfilingFrameIterator(void)
+  public: bool __cdecl JS::ProfilingFrameIterator::isWasm(void) const
+  public: class mozilla::Maybe<struct JS::ProfilingFrameIterator::Frame> __cdecl JS::ProfilingFrameIterator::getPhysicalFrameWithoutLabel(void) const
+  public: class mozilla::Maybe<struct JS::ProfilingFrameIterator::RegisterState> __cdecl JS::ProfilingFrameIterator::getCppEntryRegisters(void) const
+  public: enum JS::ProfilingFrameIterator::FrameKind __cdecl JS::ProfiledFrameHandle::frameKind(void) const
+  public: unsigned __int64 __cdecl JS::ProfiledFrameHandle::realmID(void) const
+  public: unsigned int __cdecl JS::ProfilingFrameIterator::extractStack(struct JS::ProfilingFrameIterator::Frame *, unsigned int, unsigned int) const
+  public: void __cdecl JS::ProfilingFrameIterator::operator++(void)
+  void __cdecl JS::SetJSContextProfilerSampleBufferRangeStart(struct JSContext *, unsigned __int64)
+## js/HeapAPI.h 12
+  bool __cdecl JS::UnmarkGrayGCThingRecursively(class JS::GCCellPtr)
+  bool __cdecl js::gc::EdgeNeedsSweepUnbarrieredSlow<class JSObject *>(class JSObject **)
+  bool __cdecl js::gc::detail::CellIsMarkedGrayIfKnown(class js::gc::TenuredCell const *)
+  class JS::Zone * __cdecl JS::GetNurseryCellZone(class js::gc::Cell *)
+  class JS::Zone * __cdecl JS::GetObjectZone(class JSObject *)
+  class JS::Zone * __cdecl JS::GetTenuredGCThingZone(class JS::GCCellPtr)
+  enum JS::TraceKind __cdecl JS::GCThingTraceKind(void *)
+  private: enum JS::TraceKind __cdecl JS::GCCellPtr::outOfLineKind(void) const
+  public: class JS::ProfiledFrameHandle __cdecl JS::ProfiledFrameRange::Iter::operator*(void) const
+  struct js::gc::ProfilerMemoryCounts __cdecl js::gc::GetProfilerMemoryCounts(void)
+  void __cdecl JS::IncrementalPreWriteBarrier(class JS::GCCellPtr)
+  void __cdecl js::gc::PerformIncrementalReadBarrier(class JS::GCCellPtr)
+## js/ProfilingStack.h 11
+  private: static int __cdecl js::ProfilingStackFrame::pcToOffset(class JSScript *, unsigned char *)
+  private: void __cdecl ProfilingStack::ensureCapacitySlow(void)
+  public: __cdecl ProfilingStack::~ProfilingStack(void)
+  public: class JSFunction * __cdecl js::ProfilingStackFrame::function(void) const
+  public: class JSScript * __cdecl js::ProfilingStackFrame::script(void) const
+  public: unsigned char * __cdecl js::ProfilingStackFrame::pc(void) const
+  public: unsigned int __cdecl js::ProfilingStackFrame::sourceId(void) const
+  void __cdecl JS::SetProfilingThreadCallbacks(class ProfilingStack * (__cdecl *)(char const *, void *), void (__cdecl *)(void))
+  void __cdecl js::EnableContextProfilingStack(struct JSContext *, bool)
+  void __cdecl js::RegisterContextProfilerMarkers(struct JSContext *, void (__cdecl *)(class mozilla::MarkerCategory, char const *, char const *), void (__cdecl *)(class mozilla::MarkerCategory, char const *, class mozilla::TimeStamp, char const *), void (__cdecl *)(class mozilla::MarkerCategory, char const *, unsigned __int64), void (__cdecl *)(class mozilla::MarkerCategory, char const *, unsigned __int64))
+  void __cdecl js::SetContextProfilingStack(struct JSContext *, class ProfilingStack *)
+## js/JSON.h 10
+  bool __cdecl JS::IsValidJSON(char16_t const *, unsigned int)
+  bool __cdecl JS::IsValidJSON(unsigned char const *, unsigned int)
+  bool __cdecl JS::ParseJSONWithHandler(unsigned char const *, unsigned int, class JS::JSONParseHandler *)
+  bool __cdecl JS::ToJSON(struct JSContext *, class JS::Handle<class JS::Value>, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, bool (__cdecl *)(char16_t const *, unsigned int, void *), void *)
+  bool __cdecl JS::ToJSONMaybeSafely(struct JSContext *, class JS::Handle<class JSObject *>, bool (__cdecl *)(char16_t const *, unsigned int, void *), void *)
+  bool __cdecl JS_ParseJSON(struct JSContext *, char16_t const *, unsigned int, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_ParseJSON(struct JSContext *, class JS::Handle<class JSString *>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_ParseJSON(struct JSContext *, unsigned char const *, unsigned int, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_Stringify(struct JSContext *, class JS::MutableHandle<class JS::Value>, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, bool (__cdecl *)(char16_t const *, unsigned int, void *), void *)
+  bool __cdecl JS_StringifyWithLengthHint(struct JSContext *, class JS::MutableHandle<class JS::Value>, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, bool (__cdecl *)(char16_t const *, unsigned int, void *), void *, unsigned __int64)
+## js/Conversions.h 10
+  bool __cdecl js::ToBooleanSlow(class JS::Handle<class JS::Value>)
+  bool __cdecl js::ToInt32Slow(struct JSContext *, class JS::Handle<class JS::Value>, int *)
+  bool __cdecl js::ToInt64Slow(struct JSContext *, class JS::Handle<class JS::Value>, __int64 *)
+  bool __cdecl js::ToNumberSlow(struct JSContext *, class JS::Handle<class JS::Value>, double *)
+  bool __cdecl js::ToUint16Slow(struct JSContext *, class JS::Handle<class JS::Value>, unsigned short *)
+  bool __cdecl js::ToUint32Slow(struct JSContext *, class JS::Handle<class JS::Value>, unsigned int *)
+  bool __cdecl js::ToUint64Slow(struct JSContext *, class JS::Handle<class JS::Value>, unsigned __int64 *)
+  class JSObject * __cdecl js::ToObjectSlow(struct JSContext *, class JS::Handle<class JS::Value>, bool)
+  class JSString * __cdecl js::ToStringSlow(struct JSContext *, class JS::Handle<class JS::Value>)
+  void __cdecl JS::NumberToString(double, char (&)[32])
+## js/TracingAPI.h 10
+  char const * __cdecl JS::GCTraceKindToAscii(enum JS::TraceKind)
+  public: void __cdecl JS::TracingContext::getEdgeName(char const *, char *, unsigned __int64)
+  void __cdecl JS::TraceChildren(class JSTracer *, class JS::GCCellPtr)
+  void __cdecl js::UnsafeTraceManuallyBarrieredEdge(class JSTracer *, class JSObject **, char const *)
+  void __cdecl js::gc::TraceExternalEdge(class JSTracer *, class JS::PropertyKey *, char const *)
+  void __cdecl js::gc::TraceExternalEdge(class JSTracer *, class JS::Value *, char const *)
+  void __cdecl js::gc::TraceExternalEdge(class JSTracer *, class JSFunction **, char const *)
+  void __cdecl js::gc::TraceExternalEdge(class JSTracer *, class JSObject **, char const *)
+  void __cdecl js::gc::TraceExternalEdge(class JSTracer *, class JSScript **, char const *)
+  void __cdecl js::gc::TraceExternalEdge(class JSTracer *, class JSString **, char const *)
+## js/SavedFrameAPI.h 10
+  class JSObject * __cdecl JS::ConvertSavedFrameToPlainObject(struct JSContext *, class JS::Handle<class JSObject *>, enum JS::SavedFrameSelfHosted)
+  class JSObject * __cdecl js::GetFirstSubsumedSavedFrame(struct JSContext *, struct JSPrincipals *, class JS::Handle<class JSObject *>, enum JS::SavedFrameSelfHosted)
+  enum JS::SavedFrameResult __cdecl JS::GetSavedFrameAsyncCause(struct JSContext *, struct JSPrincipals *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSString *>, enum JS::SavedFrameSelfHosted)
+  enum JS::SavedFrameResult __cdecl JS::GetSavedFrameAsyncParent(struct JSContext *, struct JSPrincipals *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSObject *>, enum JS::SavedFrameSelfHosted)
+  enum JS::SavedFrameResult __cdecl JS::GetSavedFrameColumn(struct JSContext *, struct JSPrincipals *, class JS::Handle<class JSObject *>, struct JS::TaggedColumnNumberOneOrigin *, enum JS::SavedFrameSelfHosted)
+  enum JS::SavedFrameResult __cdecl JS::GetSavedFrameFunctionDisplayName(struct JSContext *, struct JSPrincipals *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSString *>, enum JS::SavedFrameSelfHosted)
+  enum JS::SavedFrameResult __cdecl JS::GetSavedFrameLine(struct JSContext *, struct JSPrincipals *, class JS::Handle<class JSObject *>, unsigned int *, enum JS::SavedFrameSelfHosted)
+  enum JS::SavedFrameResult __cdecl JS::GetSavedFrameParent(struct JSContext *, struct JSPrincipals *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSObject *>, enum JS::SavedFrameSelfHosted)
+  enum JS::SavedFrameResult __cdecl JS::GetSavedFrameSource(struct JSContext *, struct JSPrincipals *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSString *>, enum JS::SavedFrameSelfHosted)
+  enum JS::SavedFrameResult __cdecl JS::GetSavedFrameSourceId(struct JSContext *, struct JSPrincipals *, class JS::Handle<class JSObject *>, unsigned int *, enum JS::SavedFrameSelfHosted)
+## js/RealmOptions.h 10
+  public: class JS::RealmCreationOptions & __cdecl JS::RealmCreationOptions::setCoopAndCoepEnabled(bool)
+  public: class JS::RealmCreationOptions & __cdecl JS::RealmCreationOptions::setExistingCompartment(class JS::Compartment *)
+  public: class JS::RealmCreationOptions & __cdecl JS::RealmCreationOptions::setExistingCompartment(class JSObject *)
+  public: class JS::RealmCreationOptions & __cdecl JS::RealmCreationOptions::setNewCompartmentAndZone(void)
+  public: class JS::RealmCreationOptions & __cdecl JS::RealmCreationOptions::setNewCompartmentInExistingZone(class JSObject *)
+  public: class JS::RealmCreationOptions & __cdecl JS::RealmCreationOptions::setNewCompartmentInSystemZone(void)
+  public: class JS::RealmCreationOptions & __cdecl JS::RealmCreationOptions::setSharedMemoryAndAtomicsEnabled(bool)
+  void __cdecl JS::SetRealmLocaleOverride(class JS::Realm *, char const *)
+  void __cdecl JS::SetRealmNonLive(class JS::Realm *)
+  void __cdecl JS::SetRealmTimezoneOverride(class JS::Realm *, char const *)
+## js/MemoryMetrics.h 9
+  bool __cdecl JS::AddSizeOfTab(struct JSContext *, class JS::Zone *, unsigned __int64 (__cdecl *)(void const *), class JS::ObjectPrivateVisitor *, struct JS::TabSizes *, class JS::AutoRequireNoGC const &)
+  bool __cdecl JS::CollectGlobalStats(struct JS::GlobalStats *)
+  bool __cdecl JS::CollectRuntimeStats(struct JSContext *, struct JS::RuntimeStats *, class JS::ObjectPrivateVisitor *, bool)
+  unsigned __int64 __cdecl JS::PeakSizeOfTemporary(struct JSContext const *)
+  unsigned __int64 __cdecl JS::SystemCompartmentCount(struct JSContext *)
+  unsigned __int64 __cdecl JS::SystemRealmCount(struct JSContext *)
+  unsigned __int64 __cdecl JS::UserCompartmentCount(struct JSContext *)
+  unsigned __int64 __cdecl JS::UserRealmCount(struct JSContext *)
+  unsigned __int64 __cdecl js::MemoryReportingSundriesThreshold(void)
+## js/Id.h 9
+  bool __cdecl JS::ToGetterId(struct JSContext *, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class JS::PropertyKey>)
+  bool __cdecl JS::ToSetterId(struct JSContext *, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class JS::PropertyKey>)
+  bool __cdecl JS_IdToValue(struct JSContext *, class JS::PropertyKey, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_StringToId(struct JSContext *, class JS::Handle<class JSString *>, class JS::MutableHandle<class JS::PropertyKey>)
+  bool __cdecl JS_ValueToId(struct JSContext *, class JS::Handle<class JS::Value>, class JS::MutableHandle<class JS::PropertyKey>)
+  class JS::Handle<class JS::PropertyKey> const JS::VoidHandlePropertyKey
+  class JS::PropertyKey __cdecl JS::GetWellKnownSymbolKey(struct JSContext *, enum JS::SymbolCode)
+  class JS::Symbol * __cdecl JS::GetWellKnownSymbol(struct JSContext *, enum JS::SymbolCode)
+  class JSString * __cdecl JS_AtomizeAndPinString(struct JSContext *, char const *)
+## js/Context.h 8
+  bool __cdecl JS::SetBrittleMode(struct JSContext *, bool)
+  struct JSContext * __cdecl JS_NewContext(unsigned int, struct JSRuntime *)
+  struct JSRuntime * __cdecl JS_GetParentRuntime(struct JSContext *)
+  struct JSRuntime * __cdecl JS_GetRuntime(struct JSContext *)
+  void * __cdecl JS_GetContextPrivate(struct JSContext *)
+  void __cdecl JS_DestroyContext(struct JSContext *)
+  void __cdecl JS_SetContextPrivate(struct JSContext *, void *)
+  void __cdecl JS_SetFutexCanWait(struct JSContext *)
+## js/friend/CycleCollector.h 8
+  bool __cdecl js::AreGCGrayBitsValid(struct JSRuntime *)
+  bool __cdecl js::ZoneGlobalsAreAllGray(class JS::Zone *)
+  void __cdecl JS::MaybeClearWeakRefTargets(struct JSRuntime *, bool (__cdecl *)(class JS::GCCellPtr, void *), void *)
+  void __cdecl JS_SetGrayGCRootsTracer(struct JSContext *, bool (__cdecl *)(class JSTracer *, class JS::SliceBudget &, void *), void *)
+  void __cdecl JS_SetObjectsTenuredCallback(struct JSContext *, void (__cdecl *)(class JS::GCContext *, void *), void *)
+  void __cdecl js::IterateGrayObjects(class JS::Zone *, void (__cdecl *)(void *, class JS::GCCellPtr, class JS::AutoRequireNoGC const &), void *)
+  void __cdecl js::TraceGrayWrapperTargets(class JSTracer *, class JS::Zone *)
+  void __cdecl js::TraceWeakMaps(struct js::WeakMapTracer *)
+## js/Stack.h 7
+  bool __cdecl JS::BuildStackString(struct JSContext *, struct JSPrincipals *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSString *>, unsigned __int64, enum js::StackFormat)
+  bool __cdecl JS::CaptureCurrentStack(struct JSContext *, class JS::MutableHandle<class JSObject *>, class mozilla::Variant<struct JS::AllFrames, struct JS::MaxFrames, struct JS::FirstSubsumedFrame> &&, class JS::Handle<class JSObject *>)
+  bool __cdecl JS::IsAsyncStackCaptureEnabledForRealm(struct JSContext *)
+  public: __cdecl JS::AutoSetAsyncStackForNewCalls::AutoSetAsyncStackForNewCalls(struct JSContext *, class JSObject *, char const *, enum JS::AutoSetAsyncStackForNewCalls::AsyncCallKind)
+  public: __cdecl JS::AutoSetAsyncStackForNewCalls::~AutoSetAsyncStackForNewCalls(void)
+  public: __cdecl JS::FirstSubsumedFrame::FirstSubsumedFrame(struct JSContext *, bool)
+  void __cdecl JS_SetNativeStackQuota(struct JSContext *, unsigned __int64, unsigned __int64, unsigned __int64)
+## js/Initialization.h 7
+  bool __cdecl JS::InitSelfHostedCode(struct JSContext *, class mozilla::Span<unsigned char const, -1>, bool (__cdecl *)(struct JSContext *, class mozilla::Span<unsigned char const, -1>))
+  bool __cdecl JS_SetICUMemoryFunctions(void * (__cdecl *)(void const *, unsigned __int64), void * (__cdecl *)(void const *, void *, unsigned __int64), void (__cdecl *)(void const *, void *))
+  char const * __cdecl JS::detail::InitWithFailureDiagnostic(bool, enum JS::detail::FrontendOnly)
+  enum JS::detail::InitState JS::detail::libraryInitState
+  void __cdecl JS::DisableJitBackend(void)
+  void __cdecl JS_FrontendOnlyShutDown(void)
+  void __cdecl JS_ShutDown(void)
+## js/SharedArrayBuffer.h 7
+  bool __cdecl JS::IsArrayBufferViewShared(class JSObject *)
+  bool __cdecl JS::IsSharedArrayBufferObject(class JSObject *)
+  bool __cdecl JS_IsArrayBufferViewObject(class JSObject *)
+  public: bool __cdecl JS::ArrayBufferView::isDetached(void) const
+  public: bool __cdecl JS::ArrayBufferView::isImmutable(void) const
+  public: bool __cdecl JS::ArrayBufferView::isResizable(void) const
+  public: class mozilla::Span<unsigned char, -1> __cdecl JS::ArrayBufferView::getData(bool *, class JS::AutoRequireNoGC const &)
+## js/GlobalObject.h 7
+  bool __cdecl JS_IsGlobalObject(class JSObject *)
+  class JSObject * __cdecl JS::CurrentGlobalOrNull(struct JSContext *)
+  class JSObject * __cdecl JS::GetNonCCWObjectGlobal(class JSObject *)
+  class JSObject * __cdecl JS_NewGlobalObject(struct JSContext *, struct JSClass const *, struct JSPrincipals *, enum JS::OnNewGlobalHookOption, class JS::RealmOptions const &)
+  struct JSClassOps const JS::DefaultGlobalClassOps
+  void __cdecl JS_FireOnNewGlobalObject(struct JSContext *, class JS::Handle<class JSObject *>)
+  void __cdecl JS_GlobalObjectTraceHook(class JSTracer *, class JSObject *)
+## js/Wrapper.h 7
+  bool __cdecl js::RecomputeWrappers(struct JSContext *, struct js::CompartmentFilter const &, struct js::CompartmentFilter const &)
+  class JSObject * __cdecl js::CheckedUnwrapDynamic(class JSObject *, struct JSContext *, bool)
+  class JSObject * __cdecl js::CheckedUnwrapStatic(class JSObject *)
+  class JSObject * __cdecl js::UncheckedUnwrap(class JSObject *, bool, unsigned int *)
+  class JSObject * __cdecl js::UncheckedUnwrapWithoutExpose(class JSObject *)
+  public: static class js::OpaqueCrossCompartmentWrapper const js::OpaqueCrossCompartmentWrapper::singleton
+  void __cdecl js::ReportAccessDenied(struct JSContext *)
+## js/Principals.h 7
+  struct JSSecurityCallbacks const * __cdecl JS_GetSecurityCallbacks(struct JSContext *)
+  void __cdecl JS_DropPrincipals(struct JSContext *, struct JSPrincipals *)
+  void __cdecl JS_HoldPrincipals(struct JSPrincipals *)
+  void __cdecl JS_InitDestroyPrincipalsCallback(struct JSContext *, void (__cdecl *)(struct JSPrincipals *))
+  void __cdecl JS_InitReadPrincipalsCallback(struct JSContext *, bool (__cdecl *)(struct JSContext *, struct JSStructuredCloneReader *, struct JSPrincipals **))
+  void __cdecl JS_SetSecurityCallbacks(struct JSContext *, struct JSSecurityCallbacks const *)
+  void __cdecl JS_SetTrustedPrincipals(struct JSContext *, struct JSPrincipals *)
+## js/CallAndConstruct.h 6
+  bool __cdecl JS::Construct(struct JSContext *, class JS::Handle<class JS::Value>, class JS::Handle<class JSObject *>, class JS::HandleValueArray const &, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl JS::Construct(struct JSContext *, class JS::Handle<class JS::Value>, class JS::HandleValueArray const &, class JS::MutableHandle<class JSObject *>)
+  bool __cdecl JS::IsCallable(class JSObject *)
+  bool __cdecl JS::IsConstructor(class JSObject *)
+  bool __cdecl JS_CallFunctionName(struct JSContext *, class JS::Handle<class JSObject *>, char const *, class JS::HandleValueArray const &, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS_CallFunctionValue(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::HandleValueArray const &, class JS::MutableHandle<class JS::Value>)
+## js/Array.h 6
+  bool __cdecl JS::GetArrayLength(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int *)
+  bool __cdecl JS::IsArrayObject(struct JSContext *, class JS::Handle<class JS::Value>, bool *)
+  bool __cdecl JS::IsArrayObject(struct JSContext *, class JS::Handle<class JSObject *>, bool *)
+  bool __cdecl JS::SetArrayLength(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int)
+  class JSObject * __cdecl JS::NewArrayObject(struct JSContext *, class JS::HandleValueArray const &)
+  class JSObject * __cdecl JS::NewArrayObject(struct JSContext *, unsigned __int64)
+## js/Iterator.h 6
+  bool __cdecl JS::GetIteratorRecordIterator(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::GetReturnMethod(struct JSContext *, class JS::Handle<class JS::Value>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::IteratorComplete(struct JSContext *, class JS::Handle<class JSObject *>, bool *)
+  bool __cdecl JS::IteratorNext(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::IteratorValue(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>)
+  class JSObject * __cdecl JS::GetIteratorObject(struct JSContext *, class JS::Handle<class JS::Value>, bool)
+## js/Zone.h 6
+  bool __cdecl JS_RefreshCrossCompartmentWrappers(struct JSContext *, class JS::Handle<class JSObject *>)
+  void * __cdecl JS_GetCompartmentPrivate(class JS::Compartment *)
+  void __cdecl JS_SetCompartmentPrivate(class JS::Compartment *, void *)
+  void __cdecl JS_SetDestroyCompartmentCallback(struct JSContext *, void (__cdecl *)(class JS::GCContext *, class JS::Compartment *))
+  void __cdecl JS_SetDestroyZoneCallback(struct JSContext *, void (__cdecl *)(class JS::GCContext *, class JS::Zone *))
+  void __cdecl JS_SetSizeOfIncludingThisCompartmentCallback(struct JSContext *, unsigned __int64 (__cdecl *)(unsigned __int64 (__cdecl *)(void const *), class JS::Compartment *))
+## js/friend/WindowProxy.h 6
+  bool __cdecl js::IsWindowProxy(class JSObject *)
+  bool __cdecl js::detail::IsWindowSlow(class JSObject *)
+  class JSObject * __cdecl js::ToWindowIfWindowProxy(class JSObject *)
+  class JSObject * __cdecl js::detail::ToWindowProxyIfWindowSlow(class JSObject *)
+  void __cdecl js::SetWindowProxy(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>)
+  void __cdecl js::SetWindowProxyClass(struct JSContext *, struct JSClass const *)
+## js/GCPolicyAPI.h 6
+  bool __cdecl js::gc::TraceWeakEdge<class JSObject *>(class JSTracer *, class JS::Heap<class JSObject *> *)
+  void __cdecl JS::TraceRoot(class JSTracer *, class JS::PropertyKey *, char const *)
+  void __cdecl JS::TraceRoot(class JSTracer *, class JS::Value *, char const *)
+  void __cdecl JS::TraceRoot(class JSTracer *, class JSFunction **, char const *)
+  void __cdecl JS::TraceRoot(class JSTracer *, class JSLinearString **, char const *)
+  void __cdecl JS::TraceRoot(class JSTracer *, class JSObject **, char const *)
+## js/experimental/PCCountProfiling.h 6
+  class JSString * __cdecl JS::GetPCCountScriptContents(struct JSContext *, unsigned __int64)
+  class JSString * __cdecl JS::GetPCCountScriptSummary(struct JSContext *, unsigned __int64)
+  unsigned __int64 __cdecl JS::GetPCCountScriptCount(struct JSContext *)
+  void __cdecl JS::PurgePCCounts(struct JSContext *)
+  void __cdecl JS::StartPCCountProfiling(struct JSContext *)
+  void __cdecl JS::StopPCCountProfiling(struct JSContext *)
+## js/RootingAPI.h 6
+  private: enum JS::StackKind __cdecl js::AutoCheckRecursionLimit::stackKindForCurrentPrincipal(struct JSContext *) const
+  void __cdecl JS::AddPersistentRoot(class JS::RootingContext *, enum JS::RootKind, class js::PersistentRootedBase *)
+  void __cdecl JS::HeapObjectPostWriteBarrier(class JSObject **, class JSObject *, class JSObject *)
+  void __cdecl JS::HeapObjectWriteBarriers(class JSObject **, class JSObject *, class JSObject *)
+  void __cdecl JS::HeapScriptWriteBarriers(class JSScript **, class JSScript *, class JSScript *)
+  void __cdecl JS::HeapStringWriteBarriers(class JSString **, class JSString *, class JSString *)
+## js/friend/JSMEnvironment.h 5
+  bool __cdecl JS::ExecuteInJSMEnvironment(struct JSContext *, class JS::Handle<class JSScript *>, class JS::Handle<class JSObject *>)
+  bool __cdecl JS::ExecuteInJSMEnvironment(struct JSContext *, class JS::Handle<class JSScript *>, class JS::Handle<class JSObject *>, class JS::EnvironmentChain const &)
+  bool __cdecl JS::IsJSMEnvironment(class JSObject *)
+  class JSObject * __cdecl JS::GetJSMEnvironmentOfScriptedCaller(struct JSContext *)
+  class JSObject * __cdecl JS_ExtensibleLexicalEnvironment(class JSObject *)
+## js/Interrupt.h 5
+  bool __cdecl JS_AddInterruptCallback(struct JSContext *, bool (__cdecl *)(struct JSContext *))
+  bool __cdecl JS_CheckForInterrupt(struct JSContext *)
+  bool __cdecl JS_DisableInterruptCallback(struct JSContext *)
+  void __cdecl JS_RequestInterruptCallback(struct JSContext *)
+  void __cdecl JS_ResetInterruptCallback(struct JSContext *, bool)
+## js/Value.h 5
+  class JS::Handle<class JS::Value> const JS::FalseHandleValue
+  class JS::Handle<class JS::Value> const JS::NullHandleValue
+  class JS::Handle<class JS::Value> const JS::TrueHandleValue
+  class JS::Handle<class mozilla::Maybe<class JS::Value>> const JS::NothingHandleValue
+  void __cdecl JS::HeapValueWriteBarriers(class JS::Value *, class JS::Value const &, class JS::Value const &)
+## js/MemoryFunctions.h 5
+  class JSString * __cdecl JS_NewLatin1String(struct JSContext *, class std::unique_ptr<unsigned char[], struct JS::FreePolicy>, unsigned __int64)
+  void * __cdecl JS_malloc(struct JSContext *, unsigned __int64)
+  void * __cdecl JS_string_malloc(struct JSContext *, unsigned __int64)
+  void __cdecl JS::AddAssociatedMemory(class JSObject *, unsigned __int64, enum JS::MemoryUse)
+  void __cdecl JS::RemoveAssociatedMemory(class JSObject *, unsigned __int64, enum JS::MemoryUse)
+## js/CharacterEncoding.h 5
+  class mozilla::Maybe<class std::tuple<unsigned __int64, unsigned __int64>> __cdecl JS_EncodeStringToUTF8BufferPartial(struct JSContext *, class JSString *, class mozilla::Span<char, -1>)
+  class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS::EncodeNarrowToUtf8(struct JSContext *, char const *)
+  class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS_EncodeStringToLatin1(struct JSContext *, class JSString *)
+  class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS_EncodeStringToUTF8(struct JSContext *, class JS::Handle<class JSString *>)
+  unsigned __int64 __cdecl JS_GetStringLength(class JSString *)
+## js/WeakMapPtr.h 5
+  public: bool __cdecl JS::WeakMapPtr<class JSObject *, class JSObject *>::init(struct JSContext *)
+  public: bool __cdecl JS::WeakMapPtr<class JSObject *, class JSObject *>::put(struct JSContext *, class JSObject *const &, class JSObject *const &)
+  public: class JSObject * __cdecl JS::WeakMapPtr<class JSObject *, class JSObject *>::lookup(class JSObject *const &)
+  public: void __cdecl JS::WeakMapPtr<class JSObject *, class JSObject *>::destroy(void)
+  public: void __cdecl JS::WeakMapPtr<class JSObject *, class JSObject *>::trace(class JSTracer *)
+## js/AllocationLogging.h 5
+  public: static class mozilla::Atomic<void (__cdecl *)(unsigned __int64), 0, void> js::AutoEnterOOMUnsafeRegion::annotateOOMSizeCallback
+  void (__cdecl * __cdecl JS::GetWarningReporter(struct JSContext *))(struct JSContext *, class JSErrorReport *)
+  void (__cdecl * __cdecl JS::SetDoCycleCollectionCallback(struct JSContext *, void (__cdecl *)(struct JSContext *)))(struct JSContext *)
+  void (__cdecl * __cdecl JS::SetGCSliceCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, enum JS::GCProgress, struct JS::GCDescription const &)))(struct JSContext *, enum JS::GCProgress, struct JS::GCDescription const &)
+  void (__cdecl * __cdecl JS::SetWarningReporter(struct JSContext *, void (__cdecl *)(struct JSContext *, class JSErrorReport *)))(struct JSContext *, class JSErrorReport *)
+## js/RegExp.h 4
+  bool __cdecl JS::CheckRegExpSyntax(struct JSContext *, char16_t const *, unsigned __int64, class JS::RegExpFlags, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::ExecuteRegExpNoStatics(struct JSContext *, class JS::Handle<class JSObject *>, char16_t const *, unsigned __int64, unsigned __int64 *, bool, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::ObjectIsRegExp(struct JSContext *, class JS::Handle<class JSObject *>, bool *)
+  class JSObject * __cdecl JS::NewUCRegExpObject(struct JSContext *, char16_t const *, unsigned __int64, class JS::RegExpFlags)
+## js/Object.h 4
+  bool __cdecl JS::GetBuiltinClass(struct JSContext *, class JS::Handle<class JSObject *>, enum js::ESClass *)
+  bool __cdecl JS::IsPlainObject(class JSObject *)
+  bool __cdecl JS::NativeObjectHasOwnProperties(class JSObject const *)
+  void __cdecl JS::detail::SetNativeObjectReservedSlotWithBarrier(class JSObject *, unsigned __int64, class JS::Value const &)
+## js/ArrayBufferMaybeShared.h 4
+  bool __cdecl JS::IsImmutableArrayBufferMaybeShared(class JSObject *)
+  bool __cdecl JS::IsLargeArrayBufferMaybeShared(class JSObject *)
+  bool __cdecl JS::IsResizableArrayBufferMaybeShared(class JSObject *)
+  void __cdecl JS::GetArrayBufferMaybeSharedLengthAndData(class JSObject *, unsigned __int64 *, bool *, unsigned char **)
+## js/WasmModule.h 4
+  bool __cdecl JS::IsWasmModuleObject(class JS::Handle<class JSObject *>)
+  class RefPtr<struct JS::WasmCompileArgs const> __cdecl JS::BuildCompileArgsForESM(struct JSContext *, class JS::ReadOnlyCompileOptions const &)
+  class RefPtr<struct JS::WasmModule> __cdecl JS::GetWasmModule(class JS::Handle<class JSObject *>)
+  struct JS::ESMCompileResult __cdecl JS::CompileForESM(struct JS::WasmCompileArgs const &, unsigned char const *, unsigned __int64)
+## js/UbiNodeCensus.h 4
+  bool __cdecl JS::ubi::ParseCensusOptions(struct JSContext *, struct JS::ubi::Census &, class JS::Handle<class JSObject *>, class std::unique_ptr<struct JS::ubi::CountType, struct JS::DeletePolicy<struct JS::ubi::CountType>> &)
+  class std::unique_ptr<struct JS::ubi::CountType, struct JS::DeletePolicy<struct JS::ubi::CountType>> __cdecl JS::ubi::ParseBreakdown(struct JSContext *, class JS::Handle<class JS::Value>, class JS::MutableHandle<class JS::GCVector<class JSLinearString *, 0, class js::TempAllocPolicy>>)
+  public: bool __cdecl JS::ubi::CensusHandler::operator()(struct JS::ubi::BreadthFirst<class JS::ubi::CensusHandler> &, class JS::ubi::Node, class JS::ubi::Edge const &, class JS::ubi::CensusHandler::NodeData *, bool)
+  public: void __cdecl JS::ubi::CountDeleter::operator()(class JS::ubi::CountBase *)
+## js/PropertyDescriptor.h 4
+  bool __cdecl JS_GetOwnPropertyDescriptor(struct JSContext *, class JS::Handle<class JSObject *>, char const *, class JS::MutableHandle<class mozilla::Maybe<class JS::PropertyDescriptor>>)
+  bool __cdecl JS_GetOwnPropertyDescriptorById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class mozilla::Maybe<class JS::PropertyDescriptor>>)
+  bool __cdecl JS_GetOwnUCPropertyDescriptor(struct JSContext *, class JS::Handle<class JSObject *>, char16_t const *, unsigned __int64, class JS::MutableHandle<class mozilla::Maybe<class JS::PropertyDescriptor>>)
+  bool __cdecl JS_GetPropertyDescriptorById(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class mozilla::Maybe<class JS::PropertyDescriptor>>, class JS::MutableHandle<class JSObject *>)
+## js/LocaleSensitive.h 4
+  bool __cdecl JS_SetDefaultLocale(struct JSRuntime *, char const *)
+  class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS_GetDefaultLocale(struct JSContext *)
+  struct JSLocaleCallbacks const * __cdecl JS_GetLocaleCallbacks(struct JSRuntime *)
+  void __cdecl JS_SetLocaleCallbacks(struct JSRuntime *, struct JSLocaleCallbacks const *)
+## js/AllocPolicy.h 4
+  private: void * __cdecl js::TempAllocPolicy::onOutOfMemory(unsigned __int64, enum js::AllocFunction, unsigned __int64, void *)
+  public: void __cdecl js::TempAllocPolicy::reportAllocOverflow(void) const
+  unsigned __int64 js::MallocArena
+  void __cdecl JS_ReportOutOfMemory(struct JSContext *)
+## js/RealmIterators.h 4
+  void __cdecl JS::IterateRealms(struct JSContext *, void *, void (__cdecl *)(struct JSContext *, void *, class JS::Realm *, class JS::AutoRequireNoGC const &))
+  void __cdecl JS::IterateRealmsInCompartment(struct JSContext *, class JS::Compartment *, void *, void (__cdecl *)(struct JSContext *, void *, class JS::Realm *, class JS::AutoRequireNoGC const &))
+  void __cdecl JS::IterateRealmsWithPrincipals(struct JSContext *, struct JSPrincipals *, void *, void (__cdecl *)(struct JSContext *, void *, class JS::Realm *, class JS::AutoRequireNoGC const &))
+  void __cdecl JS_IterateCompartmentsInZone(struct JSContext *, class JS::Zone *, void *, enum JS::CompartmentIterResult (__cdecl *)(struct JSContext *, void *, class JS::Compartment *))
+## js/AllocationRecording.h 3
+  bool (__cdecl * __cdecl JS::GetModuleLoadHook(struct JSRuntime *))(struct JSContext *, class JS::Handle<class JS::Value>, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>, unsigned int, struct JS::ColumnNumberOneOrigin)
+  void __cdecl JS::DisableRecordingAllocations(struct JSContext *)
+  void __cdecl JS::EnableRecordingAllocations(struct JSContext *, void (__cdecl *)(struct JS::RecordAllocationInfo &&), double)
+## js/experimental/Intl.h 3
+  bool __cdecl JS::AddMozDateTimeFormatConstructor(struct JSContext *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS::AddMozDisplayNamesConstructor(struct JSContext *, class JS::Handle<class JSObject *>)
+  bool __cdecl JS::AddMozGetCalendarInfo(struct JSContext *, class JS::Handle<class JSObject *>)
+## js/BuildId.h 3
+  bool __cdecl JS::GetOptimizedEncodingBuildId(class mozilla::Vector<char, 0, class js::SystemAllocPolicy> *)
+  bool __cdecl JS::GetScriptTranscodingBuildId(class mozilla::Vector<char, 0, class js::SystemAllocPolicy> *)
+  void __cdecl JS::SetProcessBuildIdOp(bool (__cdecl *)(class mozilla::Vector<char, 0, class js::SystemAllocPolicy> *))
+## js/WeakMap.h 3
+  bool __cdecl JS::GetWeakMapEntry(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::MutableHandle<class JS::Value>)
+  bool __cdecl JS::SetWeakMapEntry(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>)
+  class JSObject * __cdecl JS::NewWeakMapObject(struct JSContext *)
+## js/experimental/CTypes.h 3
+  bool __cdecl JS::InitCTypesClass(struct JSContext *, class JS::Handle<class JSObject *>)
+  void __cdecl JS::SetCTypesActivityCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, enum JS::CTypesActivityType))
+  void __cdecl JS::SetCTypesCallbacks(class JSObject *, struct JS::CTypesCallbacks const *)
+## js/CallArgs.h 3
+  bool __cdecl JS::detail::ComputeThis(struct JSContext *, class JS::Value *, class JS::MutableHandle<class JSObject *>)
+  class JS::Handle<class JS::Value> const JS::UndefinedHandleValue
+  public: static void __cdecl JS::CallArgs::reportMoreArgsNeeded(struct JSContext *, char const *, unsigned int, unsigned int)
+## js/HelperThreadAPI.h 3
+  char const * __cdecl JS::GetHelperThreadTaskName(class JS::HelperThreadTask *)
+  void __cdecl JS::RunHelperThreadTask(class JS::HelperThreadTask *)
+  void __cdecl JS::SetHelperThreadTaskCallback(void (__cdecl *)(class JS::HelperThreadTask *), unsigned __int64, unsigned __int64)
+## js/ScriptPrivate.h 3
+  class JS::Value __cdecl JS::GetScriptPrivate(class JSScript *)
+  class JS::Value __cdecl JS::GetScriptedCallerPrivate(struct JSContext *)
+  void __cdecl JS::SetScriptPrivateReferenceHooks(struct JSRuntime *, void (__cdecl *)(class JS::Value const &), void (__cdecl *)(class JS::Value const &))
+## js/ForOfIterator.h 3
+  public: bool __cdecl JS::ForOfIterator::init(class JS::Handle<class JS::Value>, enum JS::ForOfIterator::NonIterableBehavior)
+  public: bool __cdecl JS::ForOfIterator::next(class JS::MutableHandle<class JS::Value>, bool *)
+  public: class mozilla::Maybe<unsigned int> __cdecl JS::ForOfIterator::sizeHint(void) const
+## js/GCHashTable.h 3
+  public: static bool __cdecl js::StableCellHasher<class JSObject *>::ensureHash(class JSObject *const &, unsigned int *)
+  public: static bool __cdecl js::StableCellHasher<class JSObject *>::match(class JSObject *const &, class JSObject *const &)
+  public: static bool __cdecl js::StableCellHasher<class JSObject *>::maybeGetHash(class JSObject *const &, unsigned int *)
+## js/BigInt.h 2
+  __int64 __cdecl JS::ToBigInt64(class JS::BigInt const *)
+  unsigned __int64 __cdecl JS::ToBigUint64(class JS::BigInt const *)
+## js/Warnings.h 2
+  bool __cdecl JS::WarnASCII(struct JSContext *, char const *, ...)
+  bool __cdecl JS::WarnUTF8(struct JSContext *, char const *, ...)
+## js/ProfilingSources.h 2
+  class mozilla::Vector<struct ProfilerJSSourceData, 0, class js::SystemAllocPolicy> __cdecl js::GetProfilerScriptSources(struct JSRuntime *, bool)
+  struct ProfilerJSSourceData __cdecl js::RetrieveProfilerSourceContent(struct JSContext *, char const *)
+## js/friend/DumpFunctions.h 2
+  class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS::FormatStackDump(struct JSContext *, bool, bool, bool)
+  void __cdecl js::DumpHeap(struct JSContext *, struct _iobuf *, enum js::DumpHeapNurseryBehaviour, unsigned __int64 (__cdecl *)(void const *))
+## js/Printf.h 2
+  class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS_smprintf(char const *, ...)
+  class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS_sprintf_append(class std::unique_ptr<char[], struct JS::FreePolicy> &&, char const *, ...)
+## js/GCTypeMacros.h 2
+  public: bool __cdecl JS::PropertyKey::isWellKnownSymbol(enum JS::SymbolCode) const
+  public: static class JS::PropertyKey __cdecl JS::PropertyKey::fromPinnedString(class JSString *)
+## js/TelemetryTimers.h 2
+  struct JS::JSTimers __cdecl JS::GetJSTimers(struct JSContext *)
+  void __cdecl JS::SetMeasuringExecutionTimeEnabled(struct JSContext *, bool)
+## js/MemoryCallbacks.h 2
+  void __cdecl JS::SetOutOfMemoryCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, void *), void *)
+  void __cdecl JS::SetProcessLargeAllocationFailureCallback(void (__cdecl *)(void))
+## js/SourceText.h 2
+  void __cdecl JS::detail::ReportSourceTooLong(class js::FrontendContext *)
+  void __cdecl JS::detail::ReportSourceTooLong(struct JSContext *)
+## js/friend/UsageStatistics.h 2
+  void __cdecl JS_SetAccumulateTelemetryCallback(struct JSContext *, void (__cdecl *)(enum JSMetric, class mozilla::Variant<bool, unsigned __int64, class mozilla::BaseTimeDuration<class mozilla::TimeDurationValueCalculator>> const &))
+  void __cdecl JS_SetSetUseCounterCallback(struct JSContext *, void (__cdecl *)(class JSObject *, enum JSUseCounter))
+## js/experimental/LoggingInterface.h 1
+  bool __cdecl JS::SetLoggingInterface(struct JS::LoggingInterface &)
+## js/Equality.h 1
+  bool __cdecl JS::StrictlyEqual(struct JSContext *, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>, bool *)
+## js/CallNonGenericMethod.h 1
+  bool __cdecl JS::detail::CallMethodIfWrapped(struct JSContext *, bool (__cdecl *)(class JS::Handle<class JS::Value>), bool (__cdecl *)(struct JSContext *, class JS::CallArgs const &), class JS::CallArgs const &)
+## js/friend/Wrapper.h 1
+  bool __cdecl js::NukedObjectRealm(class JSObject *)
+## js/experimental/BindingAllocs.h 1
+  class JSObject * __cdecl JS_NewObjectWithGivenProtoAndUseAllocSite(struct JSContext *, struct JSClass const *, class JS::Handle<class JSObject *>)
+## js/UbiNodeShortestPaths.h 1
+  public: class std::unique_ptr<struct JS::ubi::BackEdge, struct JS::DeletePolicy<struct JS::ubi::BackEdge>> __cdecl JS::ubi::BackEdge::clone(void) const
+## js/ProfilingCategory.h 1
+  struct JS::ProfilingCategoryPairInfo const & __cdecl JS::GetProfilingCategoryPairInfo(enum JS::ProfilingCategoryPair)
+## js/friend/ErrorMessages.h 1
+  struct JSErrorFormatString const * __cdecl js::GetErrorMessage(void *, unsigned int)
+## js/Utility.h 1
+  unsigned __int64 js::ArrayBufferContentsArena
+## js/Printer.h 1
+  unsigned __int64 js::StringBufferArena
+## js/StreamConsumer.h 1
+  void __cdecl JS::InitConsumeStreamCallback(struct JSContext *, bool (__cdecl *)(struct JSContext *, class JS::Handle<class JSObject *>, enum JS::MimeType, class JS::StreamConsumer *), void (__cdecl *)(struct JSContext *, unsigned __int64))
+## js/friend/DOMProxy.h 1
+  void __cdecl JS::SetDOMProxyInformation(void const *, enum JS::DOMProxyShadowsResult (__cdecl *)(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>), void const *)
+## js/DOMEventDispatch.h 1
+  void __cdecl JS::SetDispatchDOMEventCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, char const *))
+## js/WaitCallbacks.h 1
+  void __cdecl JS::SetWaitCallback(struct JSRuntime *, void * (__cdecl *)(unsigned char *), void (__cdecl *)(void *), unsigned __int64)
+## js/friend/XrayJitInfo.h 1
+  void __cdecl JS::SetXrayJitInfo(struct JS::XrayJitInfo *)
+## js/ErrorInterceptor.h 1
+  void __cdecl JS_SetErrorInterceptorCallback(struct JSRuntime *, struct JSErrorInterceptor *)
+## js/TraceKind.h 1
+  void __cdecl JS_TraceShapeCycleCollectorChildren(class JSTracer *, class js::Shape *)
+## js/friend/StackLimits.h 1
+  void __cdecl js::ReportOverRecursed(struct JSContext *)
+## js/friend/PerformanceHint.h 1
+  void __cdecl js::SetRealmIsDyingHint(class JSObject *)
+## js/experimental/SourceHook.h 1
+  void __cdecl js::SetSourceHook(struct JSContext *, class std::unique_ptr<class js::SourceHook, struct std::default_delete<class js::SourceHook>>)
+## js/ValueArray.h 1
+  void __cdecl js::TraceValueArray(class JSTracer *, unsigned __int64, class JS::Value *)

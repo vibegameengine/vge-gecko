@@ -1,0 +1,19 @@
+mk_add_options MOZ_OBJDIR=C:/Projects/gecko-obj-bedrock
+ac_add_options --enable-project=vge/bedrock
+
+ac_add_options --disable-webrtc
+ac_add_options --disable-accessibility
+ac_add_options --disable-crashreporter
+ac_add_options --disable-backgroundtasks
+ac_add_options --disable-eme
+ac_add_options --disable-webspeech
+ac_add_options --disable-jxl
+ac_add_options --disable-parental-controls
+ac_add_options --disable-necko-wifi
+ac_add_options --disable-geckodriver
+ac_add_options --disable-webdriver
+ac_add_options --disable-sandbox
+ac_add_options --disable-tests
+ac_add_options --disable-jit
+
+ac_add_options --with-ccache=sccache

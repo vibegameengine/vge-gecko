@@ -1,0 +1,4 @@
+CXXFLAGS += [
+    "-I%s/Inc" % CONFIG["VGE_V8_DIR"],
+    "-FI%s/vge/bedrock/VgeV8Config.h" % TOPSRCDIR,
+]

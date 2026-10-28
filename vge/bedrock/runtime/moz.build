@@ -1,0 +1,22 @@
+EXPORTS.vge.bedrock += [
+    "VgeBedrockRuntime.h",
+]
+
+SOURCES += [
+    "VgeBedrockRuntime.cpp",
+]
+
+include("/ipc/chromium/chromium-config.mozbuild")
+include("/vge/bedrock/v8.mozbuild")
+
+LOCAL_INCLUDES += [
+    "/docshell/base",
+    "/dom/base",
+    "/layout/base",
+    "/layout/generic",
+    "/toolkit/xre",
+    "/vge/bedrock/jsapi",
+    "/xpcom/build",
+]
+
+FINAL_LIBRARY = "xul"

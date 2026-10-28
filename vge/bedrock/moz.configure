@@ -1,0 +1,27 @@
+imply_option("MOZ_APP_VENDOR", "VibeGameEngine")
+imply_option("MOZ_APP_ID", "{f52755bb-b118-41a6-8bd2-1d67d04cb1b1}")
+imply_option("MOZ_APP_UA_NAME", "VgeBedrock")
+imply_option("MOZ_APP_PROFILE", "VgeBedrock")
+imply_option("MOZ_PLACES", True)
+
+option(
+    env="VGE_V8_DIR",
+    nargs=1,
+    default="C:/Users/pavel/.vge/V8/v8_11.8.172",
+    help="The VGE V8 build: Inc/ headers and Lib/Win64MD/wee8.lib",
+)
+
+
+@depends("VGE_V8_DIR")
+@imports("os")
+def vge_v8_dir(value):
+    path = value[0]
+    if not os.path.isfile(os.path.join(path, "Lib", "Win64MD", "wee8.lib")):
+        die("VGE_V8_DIR does not contain Lib/Win64MD/wee8.lib: %s" % path)
+    return path
+
+
+set_config("VGE_V8_DIR", vge_v8_dir)
+set_config("VGE_JSAPI_V8", True)
+
+include("../../toolkit/moz.configure")

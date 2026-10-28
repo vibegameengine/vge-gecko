@@ -1,0 +1,15 @@
+SOURCES += [
+    "/js/src/vtune/ittnotify_static.c",
+]
+
+SOURCES["/js/src/vtune/ittnotify_static.c"].flags += [
+    "-Wno-varargs",
+    "-Wno-sign-compare",
+    "-Wno-unknown-pragmas",
+]
+
+LOCAL_INCLUDES += [
+    "/js/src",
+]
+
+FINAL_LIBRARY = "js"

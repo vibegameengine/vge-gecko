@@ -55,6 +55,7 @@ def main(output):
         "mobile/ios",
         "comm/mail",
         "comm/suite",
+        "vge/bedrock",
     ), (
         "Cannot determine location of Remote Settings "
         f"dumps for platform {buildconfig.substs['MOZ_BUILD_APP']}"

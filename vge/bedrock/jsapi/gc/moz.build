@@ -1,0 +1,33 @@
+GeneratedFile(
+    "StatsPhasesGeneratedEnum.inc",
+    script="/js/src/gc/GenerateStatsPhases.py",
+    entry_point="generateHeader",
+)
+GeneratedFile(
+    "StatsPhasesGenerated.inc",
+    script="/js/src/gc/GenerateStatsPhases.py",
+    entry_point="generateCpp",
+)
+
+SOURCES += [
+    "VgeJsCensus.cpp",
+    "VgeJsGc.cpp",
+    "VgeJsGcState.cpp",
+    "VgeJsHeapGraph.cpp",
+    "VgeJsMemoryMetrics.cpp",
+    "VgeJsPrefs.cpp",
+    "VgeJsProfiling.cpp",
+    "VgeJsRuntimeMisc.cpp",
+    "VgeJsTracing.cpp",
+    "VgeJsUbi.cpp",
+]
+
+include("/vge/bedrock/v8.mozbuild")
+
+LOCAL_INCLUDES += [
+    "!.",
+    "/vge/bedrock/jsapi",
+    "/vge/bedrock/jsapi/scripts",
+]
+
+FINAL_LIBRARY = "js"

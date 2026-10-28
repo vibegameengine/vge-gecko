@@ -1,0 +1,109 @@
+js/Proxy.h	bool __cdecl js::NukeCrossCompartmentWrappers(struct JSContext *, struct js::CompartmentFilter const &, class JS::Realm *, enum js::NukeReferencesToWindow, enum js::NukeReferencesFromTarget)
+js/Proxy.h	class JSObject * __cdecl JS_TransplantObject(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>)
+js/Proxy.h	class JSObject * __cdecl js::NewProxyObject(struct JSContext *, class js::BaseProxyHandler const *, class JS::Handle<class JS::Value>, class JSObject *, class js::ProxyOptions const &)
+js/Proxy.h	public: static class js::CrossCompartmentWrapper const js::CrossCompartmentWrapper::singleton
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::boxedValue_unbox(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::call(struct JSContext *, class JS::Handle<class JSObject *>, class JS::CallArgs const &) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::construct(struct JSContext *, class JS::Handle<class JSObject *>, class JS::CallArgs const &) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::enter(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, unsigned int, bool, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::enumerate(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::get(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class JS::Value>) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::getBuiltinClass(struct JSContext *, class JS::Handle<class JSObject *>, enum js::ESClass *) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::getElements(struct JSContext *, class JS::Handle<class JSObject *>, unsigned int, unsigned int, class js::ElementAdder *) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::getOwnEnumerablePropertyKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::getPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSObject *>) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::has(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::hasOwn(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::isArray(struct JSContext *, class JS::Handle<class JSObject *>, enum JS::IsArrayAnswer *) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::isCallable(class JSObject *) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::isConstructor(class JSObject *) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::nativeCall(struct JSContext *, bool (__cdecl *)(class JS::Handle<class JS::Value>), bool (__cdecl *)(struct JSContext *, class JS::CallArgs const &), class JS::CallArgs const &) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::set(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::setImmutablePrototype(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::BaseProxyHandler::setPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::boxedValue_unbox(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::call(struct JSContext *, class JS::Handle<class JSObject *>, class JS::CallArgs const &) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::construct(struct JSContext *, class JS::Handle<class JSObject *>, class JS::CallArgs const &) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::defineProperty(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::PropertyDescriptor>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::delete_(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::enumerate(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::get(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class JS::Value>) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::getOwnEnumerablePropertyKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::getOwnPropertyDescriptor(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class mozilla::Maybe<class JS::PropertyDescriptor>>) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::getPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSObject *>) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::getPrototypeIfOrdinary(struct JSContext *, class JS::Handle<class JSObject *>, bool *, class JS::MutableHandle<class JSObject *>) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::has(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::hasOwn(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::isExtensible(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::nativeCall(struct JSContext *, bool (__cdecl *)(class JS::Handle<class JS::Value>), bool (__cdecl *)(struct JSContext *, class JS::CallArgs const &), class JS::CallArgs const &) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::ownPropertyKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::preventExtensions(struct JSContext *, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::set(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::setImmutablePrototype(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::CrossCompartmentWrapper::setPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::boxedValue_unbox(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::call(struct JSContext *, class JS::Handle<class JSObject *>, class JS::CallArgs const &) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::construct(struct JSContext *, class JS::Handle<class JSObject *>, class JS::CallArgs const &) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::defineProperty(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::PropertyDescriptor>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::delete_(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::enumerate(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::get(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class JS::Value>) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::getBuiltinClass(struct JSContext *, class JS::Handle<class JSObject *>, enum js::ESClass *) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::getOwnEnumerablePropertyKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::getOwnPropertyDescriptor(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::MutableHandle<class mozilla::Maybe<class JS::PropertyDescriptor>>) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::getPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JSObject *>) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::getPrototypeIfOrdinary(struct JSContext *, class JS::Handle<class JSObject *>, bool *, class JS::MutableHandle<class JSObject *>) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::has(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::hasOwn(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::isArray(struct JSContext *, class JS::Handle<class JSObject *>, enum JS::IsArrayAnswer *) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::isCallable(class JSObject *) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::isConstructor(class JSObject *) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::isExtensible(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::nativeCall(struct JSContext *, bool (__cdecl *)(class JS::Handle<class JS::Value>), bool (__cdecl *)(struct JSContext *, class JS::CallArgs const &), class JS::CallArgs const &) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::ownPropertyKeys(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::StackGCVector<class JS::PropertyKey, class js::TempAllocPolicy>>) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::preventExtensions(struct JSContext *, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::set(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::setImmutablePrototype(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::ForwardingProxyHandler::setPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::boxedValue_unbox(struct JSContext *, class JS::Handle<class JSObject *>, class JS::MutableHandle<class JS::Value>) const
+js/Proxy.h	public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::defineProperty(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>, class JS::Handle<class JS::PropertyDescriptor>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::getBuiltinClass(struct JSContext *, class JS::Handle<class JSObject *>, enum js::ESClass *) const
+js/Proxy.h	public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::isArray(struct JSContext *, class JS::Handle<class JSObject *>, enum JS::IsArrayAnswer *) const
+js/Proxy.h	public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::isExtensible(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::nativeCall(struct JSContext *, bool (__cdecl *)(class JS::Handle<class JS::Value>), bool (__cdecl *)(struct JSContext *, class JS::CallArgs const &), class JS::CallArgs const &) const
+js/Proxy.h	public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::preventExtensions(struct JSContext *, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::setImmutablePrototype(struct JSContext *, class JS::Handle<class JSObject *>, bool *) const
+js/Proxy.h	public: virtual bool __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::setPrototype(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>, class JS::ObjectOpResult &) const
+js/Proxy.h	public: virtual char const * __cdecl js::CrossCompartmentWrapper::className(struct JSContext *, class JS::Handle<class JSObject *>) const
+js/Proxy.h	public: virtual char const * __cdecl js::ForwardingProxyHandler::className(struct JSContext *, class JS::Handle<class JSObject *>) const
+js/Proxy.h	public: virtual class JSString * __cdecl js::BaseProxyHandler::fun_toString(struct JSContext *, class JS::Handle<class JSObject *>, bool) const
+js/Proxy.h	public: virtual class JSString * __cdecl js::CrossCompartmentWrapper::fun_toString(struct JSContext *, class JS::Handle<class JSObject *>, bool) const
+js/Proxy.h	public: virtual class JSString * __cdecl js::ForwardingProxyHandler::fun_toString(struct JSContext *, class JS::Handle<class JSObject *>, bool) const
+js/Proxy.h	public: virtual class js::RegExpShared * __cdecl js::BaseProxyHandler::regexp_toShared(struct JSContext *, class JS::Handle<class JSObject *>) const
+js/Proxy.h	public: virtual class js::RegExpShared * __cdecl js::CrossCompartmentWrapper::regexp_toShared(struct JSContext *, class JS::Handle<class JSObject *>) const
+js/Proxy.h	public: virtual class js::RegExpShared * __cdecl js::ForwardingProxyHandler::regexp_toShared(struct JSContext *, class JS::Handle<class JSObject *>) const
+js/Proxy.h	public: virtual class js::RegExpShared * __cdecl js::SecurityWrapper<class js::CrossCompartmentWrapper>::regexp_toShared(struct JSContext *, class JS::Handle<class JSObject *>) const
+js/Proxy.h	public: virtual unsigned __int64 __cdecl js::BaseProxyHandler::objectMoved(class JSObject *, class JSObject *) const
+js/Proxy.h	public: virtual void __cdecl js::BaseProxyHandler::finalize(class JS::GCContext *, class JSObject *) const
+js/Proxy.h	public: virtual void __cdecl js::BaseProxyHandler::trace(class JSTracer *, class JSObject *) const
+js/Proxy.h	struct JSClass const js::ProxyClass
+js/Proxy.h	struct JSClassOps const js::ProxyClassOps
+js/Proxy.h	struct js::ClassExtension const js::ProxyClassExtension
+js/Proxy.h	struct js::ObjectOps const js::ProxyObjectOps
+js/Proxy.h	void __cdecl js::NukeNonCCWProxy(struct JSContext *, class JS::Handle<class JSObject *>)
+js/Proxy.h	void __cdecl js::detail::SetValueInProxy(class JS::Value *, class JS::Value const &)
+js/Wrapper.h	bool __cdecl js::RecomputeWrappers(struct JSContext *, struct js::CompartmentFilter const &, struct js::CompartmentFilter const &)
+js/Wrapper.h	class JSObject * __cdecl js::CheckedUnwrapDynamic(class JSObject *, struct JSContext *, bool)
+js/Wrapper.h	class JSObject * __cdecl js::CheckedUnwrapStatic(class JSObject *)
+js/Wrapper.h	class JSObject * __cdecl js::UncheckedUnwrap(class JSObject *, bool, unsigned int *)
+js/Wrapper.h	class JSObject * __cdecl js::UncheckedUnwrapWithoutExpose(class JSObject *)
+js/Wrapper.h	public: static class js::OpaqueCrossCompartmentWrapper const js::OpaqueCrossCompartmentWrapper::singleton
+js/Wrapper.h	void __cdecl js::ReportAccessDenied(struct JSContext *)
+js/friend/WindowProxy.h	bool __cdecl js::IsWindowProxy(class JSObject *)
+js/friend/WindowProxy.h	bool __cdecl js::detail::IsWindowSlow(class JSObject *)
+js/friend/WindowProxy.h	class JSObject * __cdecl js::ToWindowIfWindowProxy(class JSObject *)
+js/friend/WindowProxy.h	class JSObject * __cdecl js::detail::ToWindowProxyIfWindowSlow(class JSObject *)
+js/friend/WindowProxy.h	void __cdecl js::SetWindowProxy(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JSObject *>)
+js/friend/WindowProxy.h	void __cdecl js::SetWindowProxyClass(struct JSContext *, struct JSClass const *)
+js/friend/Wrapper.h	bool __cdecl js::NukedObjectRealm(class JSObject *)
+js/friend/DOMProxy.h	void __cdecl JS::SetDOMProxyInformation(void const *, enum JS::DOMProxyShadowsResult (__cdecl *)(struct JSContext *, class JS::Handle<class JSObject *>, class JS::Handle<class JS::PropertyKey>), void const *)

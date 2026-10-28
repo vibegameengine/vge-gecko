@@ -1,0 +1,18 @@
+SOURCES += [
+    "VgeJsCTypes.cpp",
+    "VgeJsDebug.cpp",
+    "VgeJsErrors.cpp",
+    "VgeJsModules.cpp",
+    "VgeJsSavedFrames.cpp",
+    "VgeJsScripts.cpp",
+    "VgeJsStencil.cpp",
+    "VgeJsWasm.cpp",
+]
+
+include("/vge/bedrock/v8.mozbuild")
+
+LOCAL_INCLUDES += [
+    "/vge/bedrock/jsapi",
+]
+
+FINAL_LIBRARY = "js"

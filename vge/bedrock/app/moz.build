@@ -1,0 +1,16 @@
+GeckoProgram("VgeBedrockTest", linkage="dependent")
+
+SOURCES += [
+    "VgeBedrockTest.cpp",
+]
+
+LOCAL_INCLUDES += [
+    "/toolkit/xre",
+]
+
+if CONFIG["CC_TYPE"] == "clang-cl":
+    WIN32_EXE_LDFLAGS += ["-ENTRY:wmainCRTStartup"]
+
+OS_LIBS += [
+    "ntdll",
+]

@@ -1,0 +1,72 @@
+<!doctype html>
+<html><head><style>
+  body { margin: 0; font: 16px sans-serif; }
+  #bar { display: flex; gap: 10px; padding: 8px; width: 400px; background: #222; }
+  .cell { flex: 1; height: 40px; background: #4a4; }
+  #wide { flex: 2; }
+  p { margin: 12px 8px; width: 200px; }
+  .hud { position: absolute; left: 600px; top: 20px; padding: 4px; }
+  .pressed { width: 220px !important; }
+</style></head>
+<body>
+  <div id="bar"><div class="cell"></div><div class="cell" id="wide"></div><div class="cell"></div></div>
+  <p id="text">Gecko layout inside VgeBedrockRuntime, wrapping onto more than one line.</p>
+  <script>
+    window.vgeRegistry = new FinalizationRegistry((held) => {
+      console.log("finalization registry cleanup:", held);
+      document.documentElement.setAttribute("data-vge-finalized", held);
+    });
+    (() => {
+      window.vgeRegistry.register({ payload: new Array(64).fill(7) }, "dropped-object");
+    })();
+
+    const bar = document.getElementById("bar");
+    const extra = document.createElement("div");
+    extra.className = "cell";
+    extra.id = "added-by-v8";
+    bar.appendChild(extra);
+
+    const hud = document.createElement("div");
+    hud.id = "hud";
+    hud.setAttribute("class", "hud");
+    hud.style.width = "150px";
+    hud.style.height = "30px";
+    hud.textContent = "HP 100";
+    document.body.appendChild(hud);
+
+    document.getElementById("text").style.width = "300px";
+
+    console.log("engine:", typeof window.document, "children of #bar:", bar.childNodes.length,
+                "hud:", hud.textContent, "is HTMLDivElement:", hud instanceof HTMLDivElement,
+                "same wrapper:", document.getElementById("hud") === hud,
+                "first child:", bar.childNodes[0].className, "class list:", hud.classList[0]);
+
+    const log = [];
+    hud.addEventListener("click", function (event) {
+      log.push("listener " + event.type + " " + (event instanceof MouseEvent) + " " + (this === hud));
+      hud.classList.add("pressed");
+    });
+    hud.onclick = (event) => { log.push("onclick " + event.target.id); };
+    hud.click();
+
+    const label = document.createElement("span");
+    label.id = "label";
+    hud.append(" / ", label, "!");
+    label.textContent = "MP 20";
+
+    setTimeout((a, b) => {
+      log.push("timeout " + (a + b));
+      requestAnimationFrame((time) => {
+        log.push("frame " + (typeof time));
+        hud.style.height = "60px";
+        Promise.resolve().then(() => {
+          log.push("microtask");
+          console.log("events:", log.join(" | "));
+          console.log("hud text:", hud.textContent);
+          document.documentElement.setAttribute("data-vge-done", "");
+        });
+      });
+    }, 10, 2, 3);
+  </script>
+  <script src="layout-smoke-external.js"></script>
+</body></html>

@@ -1,0 +1,15 @@
+SOURCES += [
+    "VgeJsObjectOps.cpp",
+    "VgeJsProxies.cpp",
+    "VgeJsProxyHandlers.cpp",
+    "VgeJsWrappers.cpp",
+]
+
+include("/vge/bedrock/v8.mozbuild")
+
+LOCAL_INCLUDES += [
+    "/js/src",
+    "/vge/bedrock/jsapi",
+]
+
+FINAL_LIBRARY = "js"

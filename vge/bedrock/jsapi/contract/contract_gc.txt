@@ -1,0 +1,310 @@
+js/CompileOptions.h	private: static bool JS::Prefs::atomics_wait_async_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_arraybuffer_immutable_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_async_iterator_helpers_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_atomics_pause_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_capture_oom_stack_trace_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_defer_import_eval_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_error_stack_trace_limit_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_export_star_default_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_import_bytes_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_inline_simple_field_initializers_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_intl_locale_info_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_iterator_chunking_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_iterator_includes_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_iterator_join_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_iterator_range_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_iterator_sequencing_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_joint_iteration_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_legacy_regexp_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_promise_allkeyed_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_regexp_buffer_boundaries_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_source_phase_imports_test262_module_source_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_symbols_as_weakmap_keys_
+js/CompileOptions.h	private: static bool JS::Prefs::experimental_weakrefs_expose_cleanupSome_
+js/CompileOptions.h	private: static bool JS::Prefs::extra_gc_poisoning_
+js/CompileOptions.h	private: static bool JS::Prefs::fuzzingSafe_
+js/CompileOptions.h	private: static bool JS::Prefs::objectfuse_for_all_protos_
+js/CompileOptions.h	private: static bool JS::Prefs::objectfuse_for_global_
+js/CompileOptions.h	private: static bool JS::Prefs::objectfuse_for_js_builtin_ctors_protos_
+js/CompileOptions.h	private: static bool JS::Prefs::property_error_message_fix_
+js/CompileOptions.h	private: static bool JS::Prefs::site_based_pretenuring_
+js/CompileOptions.h	private: static bool JS::Prefs::wasm_custom_page_sizes_
+js/CompileOptions.h	private: static bool JS::Prefs::wasm_disable_huge_memory_
+js/CompileOptions.h	private: static bool JS::Prefs::wasm_moz_intgemm_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::dom_alloc_site_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::ducktyped_errors_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::experimental_error_capture_stack_trace_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::experimental_error_iserror_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::experimental_import_text_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::experimental_self_hosted_cache_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::experimental_source_phase_imports_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::experimental_wasm_esm_integration_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::tests_fuzzing_unsafe_pref_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::use_fdlibm_for_sin_cos_tan_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_baseline_debug_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_branch_hinting_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_call_ref_inlining_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_compact_imports_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_components_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_direct_inlining_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_exception_force_stack_trace_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_js_promise_integration_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_lazy_tiering_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_lazy_tiering_synchronous_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_memory_control_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_memory_debugging_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_relaxed_simd_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_stack_switching_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_test_serialization_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_trace_api_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_unroll_loops_
+js/CompileOptions.h	private: static class mozilla::Atomic<bool, 0, void> JS::Prefs::wasm_wide_arithmetic_
+js/CompileOptions.h	private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::tests_uint32_pref_
+js/CompileOptions.h	private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_call_ref_inlining_percent_
+js/CompileOptions.h	private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_cont_stack_arena_capacity_
+js/CompileOptions.h	private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_cont_stack_max_vmem_
+js/CompileOptions.h	private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_cont_stack_size_
+js/CompileOptions.h	private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_inlining_level_
+js/CompileOptions.h	private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_lazy_tiering_level_
+js/CompileOptions.h	private: static class mozilla::Atomic<unsigned int, 0, void> JS::Prefs::wasm_unroll_factor_
+js/CompileOptions.h	private: static unsigned int JS::Prefs::ion_regalloc_
+js/CompileOptions.h	private: static void __cdecl JS::Prefs::reportIgnoredFuzzingUnsafePref(char const *)
+js/GCAPI.h	bool __cdecl JS::AddGCNurseryCollectionCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, enum JS::GCNurseryProgress, enum JS::GCReason, void *), void *)
+js/GCAPI.h	bool __cdecl JS::AtomsZoneIsCollecting(struct JSRuntime *)
+js/GCAPI.h	bool __cdecl JS::IncrementalGCHasForegroundWork(struct JSContext *)
+js/GCAPI.h	bool __cdecl JS::InternalGCReason(enum JS::GCReason)
+js/GCAPI.h	bool __cdecl JS::IsAtomsZone(class JS::Zone *)
+js/GCAPI.h	bool __cdecl JS::IsIncrementalGCInProgress(struct JSContext *)
+js/GCAPI.h	bool __cdecl JS::IsIncrementalGCInProgress(struct JSRuntime *)
+js/GCAPI.h	bool __cdecl JS::WasIncrementalGC(struct JSRuntime *)
+js/GCAPI.h	bool __cdecl JS_AddExtraGCRootsTracer(struct JSContext *, void (__cdecl *)(class JSTracer *, void *), void *)
+js/GCAPI.h	bool __cdecl JS_AddFinalizeCallback(struct JSContext *, void (__cdecl *)(class JS::GCContext *, enum JSFinalizeStatus, void *), void *)
+js/GCAPI.h	bool __cdecl JS_AddWeakPointerCompartmentCallback(struct JSContext *, void (__cdecl *)(class JSTracer *, class JS::Compartment *, void *), void *)
+js/GCAPI.h	bool __cdecl JS_AddWeakPointerZonesCallback(struct JSContext *, void (__cdecl *)(class JSTracer *, void *), void *)
+js/GCAPI.h	bool __cdecl JS_UpdateWeakPointerAfterGC(class JSTracer *, class JS::Heap<class JSObject *> *)
+js/GCAPI.h	bool __cdecl JS_UpdateWeakPointerAfterGCUnbarriered(class JSTracer *, class JSObject **)
+js/GCAPI.h	char const * __cdecl JS::ExplainGCAbortReason(unsigned int)
+js/GCAPI.h	char const * __cdecl JS::ExplainGCReason(enum JS::GCReason)
+js/GCAPI.h	char const * __cdecl JS::GetGCPhaseName(unsigned int)
+js/GCAPI.h	class JSObject * __cdecl js::gc::NewMemoryInfoObject(struct JSContext *)
+js/GCAPI.h	class JSString * __cdecl JS_NewMaybeExternalStringLatin1(struct JSContext *, unsigned char const *, unsigned __int64, struct JSExternalStringCallbacks const *, bool *)
+js/GCAPI.h	class JSString * __cdecl JS_NewMaybeExternalStringUTF8(struct JSContext *, class JS::UTF8Chars const &, struct JSExternalStringCallbacks const *, bool *)
+js/GCAPI.h	class JSString * __cdecl JS_NewMaybeExternalUCString(struct JSContext *, char16_t const *, unsigned __int64, struct JSExternalStringCallbacks const *, bool *)
+js/GCAPI.h	class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS::MinorGcToJSON(struct JSContext *)
+js/GCAPI.h	enum JS::GCReason __cdecl JS::WantEagerMinorGC(struct JSRuntime *)
+js/GCAPI.h	private: bool __cdecl JS::SliceBudget::checkOverBudget(void)
+js/GCAPI.h	public: __cdecl JS::AutoAssertNoGC::AutoAssertNoGC(struct JSContext *)
+js/GCAPI.h	public: __cdecl JS::AutoAssertNoGC::~AutoAssertNoGC(void)
+js/GCAPI.h	public: __cdecl JS::SliceBudget::SliceBudget(struct JS::TimeBudget, class mozilla::Atomic<bool, 0, void> *)
+js/GCAPI.h	public: __cdecl JS::SliceBudget::SliceBudget(struct JS::WorkBudget)
+js/GCAPI.h	public: char16_t * __cdecl JS::GCDescription::formatSliceMessage(struct JSContext *) const
+js/GCAPI.h	public: char16_t * __cdecl JS::GCDescription::formatSummaryMessage(struct JSContext *) const
+js/GCAPI.h	public: class mozilla::TimeStamp __cdecl JS::GCDescription::endTime(struct JSContext *) const
+js/GCAPI.h	public: class mozilla::TimeStamp __cdecl JS::GCDescription::lastSliceEnd(struct JSContext *) const
+js/GCAPI.h	public: class mozilla::TimeStamp __cdecl JS::GCDescription::lastSliceStart(struct JSContext *) const
+js/GCAPI.h	public: class mozilla::TimeStamp __cdecl JS::GCDescription::startTime(struct JSContext *) const
+js/GCAPI.h	public: class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS::GCDescription::formatJSONProfiler(struct JSContext *) const
+js/GCAPI.h	public: class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS::GCDescription::sliceToJSONProfiler(struct JSContext *) const
+js/GCAPI.h	public: class std::unique_ptr<class JS::dbg::GarbageCollectionEvent, struct JS::DeletePolicy<class JS::dbg::GarbageCollectionEvent>> __cdecl JS::GCDescription::toGCEvent(struct JSContext *) const
+js/GCAPI.h	unsigned int __cdecl JS_GetGCParameter(struct JSContext *, enum JSGCParamKey)
+js/GCAPI.h	void __cdecl JS::AbortIncrementalGC(struct JSContext *)
+js/GCAPI.h	void __cdecl JS::ClearKeptObjects(struct JSContext *)
+js/GCAPI.h	void __cdecl JS::FinishIncrementalGC(struct JSContext *, enum JS::GCReason)
+js/GCAPI.h	void __cdecl JS::IncrementalGCSlice(struct JSContext *, enum JS::GCReason, class JS::SliceBudget const &)
+js/GCAPI.h	void __cdecl JS::MaybeRunNurseryCollection(struct JSRuntime *, enum JS::GCReason)
+js/GCAPI.h	void __cdecl JS::NonIncrementalGC(struct JSContext *, enum JS::GCOptions, enum JS::GCReason)
+js/GCAPI.h	void __cdecl JS::PrepareForFullGC(struct JSContext *)
+js/GCAPI.h	void __cdecl JS::PrepareForIncrementalGC(struct JSContext *)
+js/GCAPI.h	void __cdecl JS::PrepareZoneForGC(struct JSContext *, class JS::Zone *)
+js/GCAPI.h	void __cdecl JS::RemoveGCNurseryCollectionCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, enum JS::GCNurseryProgress, enum JS::GCReason, void *), void *)
+js/GCAPI.h	void __cdecl JS::RunNurseryCollection(struct JSRuntime *, enum JS::GCReason, class mozilla::BaseTimeDuration<class mozilla::TimeDurationValueCalculator>)
+js/GCAPI.h	void __cdecl JS::SetCreateGCSliceBudgetCallback(struct JSContext *, class JS::SliceBudget (__cdecl *)(enum JS::GCReason, __int64))
+js/GCAPI.h	void __cdecl JS::SetHostCleanupFinalizationRegistryCallback(struct JSContext *, void (__cdecl *)(class JSFunction *, class JSObject *, void *), void *)
+js/GCAPI.h	void __cdecl JS::SetLowMemoryState(struct JSContext *, bool)
+js/GCAPI.h	void __cdecl JS::StartIncrementalGC(struct JSContext *, enum JS::GCOptions, enum JS::GCReason, class JS::SliceBudget const &)
+js/GCAPI.h	void __cdecl JS_GC(struct JSContext *, enum JS::GCReason)
+js/GCAPI.h	void __cdecl JS_MaybeGC(struct JSContext *)
+js/GCAPI.h	void __cdecl JS_RemoveFinalizeCallback(struct JSContext *, void (__cdecl *)(class JS::GCContext *, enum JSFinalizeStatus, void *))
+js/GCAPI.h	void __cdecl JS_ResetGCParameter(struct JSContext *, enum JSGCParamKey)
+js/GCAPI.h	void __cdecl JS_SetGCCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, enum JSGCStatus, enum JS::GCReason, void *), void *)
+js/GCAPI.h	void __cdecl JS_SetGCParameter(struct JSContext *, enum JSGCParamKey, unsigned int)
+js/GCAPI.h	void __cdecl js::gc::SetPerformanceHint(struct JSContext *, enum js::gc::PerformanceHint)
+?	js_call_js_normalize_latin1
+?	js_call_js_normalize_utf16
+?	js_new_ucstring_copy_n
+?	js_new_ucstring_copy_n_dont_deflate
+js/UbiNode.h	bool __cdecl JS::ubi::ConstructSavedFrameStackSlow(struct JSContext *, class JS::ubi::StackFrame &, class JS::MutableHandle<class JSObject *>)
+js/UbiNode.h	private: virtual char16_t const * __cdecl JS::ubi::Concrete<void>::typeName(void) const
+js/UbiNode.h	private: virtual class JS::Compartment * __cdecl JS::ubi::Concrete<void>::compartment(void) const
+js/UbiNode.h	private: virtual class JS::Realm * __cdecl JS::ubi::Concrete<void>::realm(void) const
+js/UbiNode.h	private: virtual class JS::Zone * __cdecl JS::ubi::Concrete<void>::zone(void) const
+js/UbiNode.h	private: virtual class JS::Zone * __cdecl JS::ubi::TracerConcrete<class JSObject>::zone(void) const
+js/UbiNode.h	private: virtual class std::unique_ptr<class JS::ubi::EdgeRange, struct JS::DeletePolicy<class JS::ubi::EdgeRange>> __cdecl JS::ubi::Concrete<void>::edges(struct JSContext *, bool) const
+js/UbiNode.h	private: virtual enum JS::ubi::CoarseType __cdecl JS::ubi::Concrete<void>::coarseType(void) const
+js/UbiNode.h	private: virtual unsigned __int64 __cdecl JS::ubi::Concrete<void>::size(unsigned __int64 (__cdecl *)(void const *)) const
+js/UbiNode.h	public: __cdecl JS::ubi::RootList::RootList(struct JSContext *, bool)
+js/UbiNode.h	public: bool __cdecl JS::ubi::RootList::addRoot(class JS::ubi::Node, char16_t const *)
+js/UbiNode.h	public: static char16_t const *const JS::ubi::Concrete<class JS::ubi::RootList>::concreteTypeName
+js/UbiNode.h	public: static char16_t const *const JS::ubi::Concrete<class JSObject>::concreteTypeName
+js/UbiNode.h	public: static void __cdecl JS::ubi::Concrete<class JSObject>::construct(void *, class JSObject *)
+js/UbiNode.h	public: struct std::pair<bool, class JS::AutoCheckCannotGC> __cdecl JS::ubi::RootList::init(class mozilla::HashSet<class JS::Compartment *, struct mozilla::DefaultHasher<class JS::Compartment *, void>, class js::SystemAllocPolicy> &)
+js/UbiNode.h	public: struct std::pair<bool, class JS::AutoCheckCannotGC> __cdecl JS::ubi::RootList::init(void)
+js/UbiNode.h	public: unsigned __int64 __cdecl JS::ubi::AtomOrTwoByteChars::copyToBuffer(class mozilla::RangedPtr<char16_t>, unsigned __int64)
+js/UbiNode.h	public: unsigned __int64 __cdecl JS::ubi::AtomOrTwoByteChars::length(void)
+js/UbiNode.h	public: virtual bool __cdecl JS::ubi::Concrete<class JSObject>::hasAllocationStack(void) const
+js/UbiNode.h	public: virtual char const * __cdecl JS::ubi::Concrete<class JSObject>::jsObjectClassName(void) const
+js/UbiNode.h	public: virtual class JS::Compartment * __cdecl JS::ubi::Concrete<class JSObject>::compartment(void) const
+js/UbiNode.h	public: virtual class JS::Realm * __cdecl JS::ubi::Concrete<class JSObject>::realm(void) const
+js/UbiNode.h	public: virtual class JS::ubi::StackFrame __cdecl JS::ubi::Concrete<class JSObject>::allocationStack(void) const
+js/UbiNode.h	public: virtual class std::unique_ptr<class JS::ubi::EdgeRange, struct JS::DeletePolicy<class JS::ubi::EdgeRange>> __cdecl JS::ubi::Concrete<class JS::ubi::RootList>::edges(struct JSContext *, bool) const
+js/UbiNode.h	public: virtual class std::unique_ptr<class JS::ubi::EdgeRange, struct JS::DeletePolicy<class JS::ubi::EdgeRange>> __cdecl JS::ubi::TracerConcrete<class JSObject>::edges(struct JSContext *, bool) const
+js/UbiNode.h	public: virtual unsigned __int64 __cdecl JS::ubi::Concrete<class JSObject>::size(unsigned __int64 (__cdecl *)(void const *)) const
+js/UbiNode.h	void __cdecl JS::ubi::SetConstructUbiNodeForDOMObjectCallback(struct JSContext *, void (__cdecl *)(void *, class JSObject *))
+js/ProfilingFrameIterator.h	bool __cdecl JS::IsProfilingEnabledForContext(struct JSContext *)
+js/ProfilingFrameIterator.h	class JS::ProfiledFrameRange __cdecl JS::GetProfiledFrames(struct JSContext *, void *, unsigned __int64)
+js/ProfilingFrameIterator.h	public: __cdecl JS::ProfilingFrameIterator::ProfilingFrameIterator(struct JSContext *, struct JS::ProfilingFrameIterator::RegisterState const &, class mozilla::Maybe<unsigned __int64> const &)
+js/ProfilingFrameIterator.h	public: __cdecl JS::ProfilingFrameIterator::~ProfilingFrameIterator(void)
+js/ProfilingFrameIterator.h	public: bool __cdecl JS::ProfilingFrameIterator::isWasm(void) const
+js/ProfilingFrameIterator.h	public: class mozilla::Maybe<struct JS::ProfilingFrameIterator::Frame> __cdecl JS::ProfilingFrameIterator::getPhysicalFrameWithoutLabel(void) const
+js/ProfilingFrameIterator.h	public: class mozilla::Maybe<struct JS::ProfilingFrameIterator::RegisterState> __cdecl JS::ProfilingFrameIterator::getCppEntryRegisters(void) const
+js/ProfilingFrameIterator.h	public: enum JS::ProfilingFrameIterator::FrameKind __cdecl JS::ProfiledFrameHandle::frameKind(void) const
+js/ProfilingFrameIterator.h	public: unsigned __int64 __cdecl JS::ProfiledFrameHandle::realmID(void) const
+js/ProfilingFrameIterator.h	public: unsigned int __cdecl JS::ProfilingFrameIterator::extractStack(struct JS::ProfilingFrameIterator::Frame *, unsigned int, unsigned int) const
+js/ProfilingFrameIterator.h	public: void __cdecl JS::ProfilingFrameIterator::operator++(void)
+js/ProfilingFrameIterator.h	void __cdecl JS::SetJSContextProfilerSampleBufferRangeStart(struct JSContext *, unsigned __int64)
+js/HeapAPI.h	bool __cdecl JS::UnmarkGrayGCThingRecursively(class JS::GCCellPtr)
+js/HeapAPI.h	bool __cdecl js::gc::EdgeNeedsSweepUnbarrieredSlow<class JSObject *>(class JSObject **)
+js/HeapAPI.h	bool __cdecl js::gc::detail::CellIsMarkedGrayIfKnown(class js::gc::TenuredCell const *)
+js/HeapAPI.h	class JS::Zone * __cdecl JS::GetNurseryCellZone(class js::gc::Cell *)
+js/HeapAPI.h	class JS::Zone * __cdecl JS::GetObjectZone(class JSObject *)
+js/HeapAPI.h	class JS::Zone * __cdecl JS::GetTenuredGCThingZone(class JS::GCCellPtr)
+js/HeapAPI.h	enum JS::TraceKind __cdecl JS::GCThingTraceKind(void *)
+js/HeapAPI.h	private: enum JS::TraceKind __cdecl JS::GCCellPtr::outOfLineKind(void) const
+js/HeapAPI.h	public: class JS::ProfiledFrameHandle __cdecl JS::ProfiledFrameRange::Iter::operator*(void) const
+js/HeapAPI.h	struct js::gc::ProfilerMemoryCounts __cdecl js::gc::GetProfilerMemoryCounts(void)
+js/HeapAPI.h	void __cdecl JS::IncrementalPreWriteBarrier(class JS::GCCellPtr)
+js/HeapAPI.h	void __cdecl js::gc::PerformIncrementalReadBarrier(class JS::GCCellPtr)
+js/ProfilingStack.h	private: static int __cdecl js::ProfilingStackFrame::pcToOffset(class JSScript *, unsigned char *)
+js/ProfilingStack.h	private: void __cdecl ProfilingStack::ensureCapacitySlow(void)
+js/ProfilingStack.h	public: __cdecl ProfilingStack::~ProfilingStack(void)
+js/ProfilingStack.h	public: class JSFunction * __cdecl js::ProfilingStackFrame::function(void) const
+js/ProfilingStack.h	public: class JSScript * __cdecl js::ProfilingStackFrame::script(void) const
+js/ProfilingStack.h	public: unsigned char * __cdecl js::ProfilingStackFrame::pc(void) const
+js/ProfilingStack.h	public: unsigned int __cdecl js::ProfilingStackFrame::sourceId(void) const
+js/ProfilingStack.h	void __cdecl JS::SetProfilingThreadCallbacks(class ProfilingStack * (__cdecl *)(char const *, void *), void (__cdecl *)(void))
+js/ProfilingStack.h	void __cdecl js::EnableContextProfilingStack(struct JSContext *, bool)
+js/ProfilingStack.h	void __cdecl js::RegisterContextProfilerMarkers(struct JSContext *, void (__cdecl *)(class mozilla::MarkerCategory, char const *, char const *), void (__cdecl *)(class mozilla::MarkerCategory, char const *, class mozilla::TimeStamp, char const *), void (__cdecl *)(class mozilla::MarkerCategory, char const *, unsigned __int64), void (__cdecl *)(class mozilla::MarkerCategory, char const *, unsigned __int64))
+js/ProfilingStack.h	void __cdecl js::SetContextProfilingStack(struct JSContext *, class ProfilingStack *)
+js/TracingAPI.h	char const * __cdecl JS::GCTraceKindToAscii(enum JS::TraceKind)
+js/TracingAPI.h	public: void __cdecl JS::TracingContext::getEdgeName(char const *, char *, unsigned __int64)
+js/TracingAPI.h	void __cdecl JS::TraceChildren(class JSTracer *, class JS::GCCellPtr)
+js/TracingAPI.h	void __cdecl js::UnsafeTraceManuallyBarrieredEdge(class JSTracer *, class JSObject **, char const *)
+js/TracingAPI.h	void __cdecl js::gc::TraceExternalEdge(class JSTracer *, class JS::PropertyKey *, char const *)
+js/TracingAPI.h	void __cdecl js::gc::TraceExternalEdge(class JSTracer *, class JS::Value *, char const *)
+js/TracingAPI.h	void __cdecl js::gc::TraceExternalEdge(class JSTracer *, class JSFunction **, char const *)
+js/TracingAPI.h	void __cdecl js::gc::TraceExternalEdge(class JSTracer *, class JSObject **, char const *)
+js/TracingAPI.h	void __cdecl js::gc::TraceExternalEdge(class JSTracer *, class JSScript **, char const *)
+js/TracingAPI.h	void __cdecl js::gc::TraceExternalEdge(class JSTracer *, class JSString **, char const *)
+js/MemoryMetrics.h	bool __cdecl JS::AddSizeOfTab(struct JSContext *, class JS::Zone *, unsigned __int64 (__cdecl *)(void const *), class JS::ObjectPrivateVisitor *, struct JS::TabSizes *, class JS::AutoRequireNoGC const &)
+js/MemoryMetrics.h	bool __cdecl JS::CollectGlobalStats(struct JS::GlobalStats *)
+js/MemoryMetrics.h	bool __cdecl JS::CollectRuntimeStats(struct JSContext *, struct JS::RuntimeStats *, class JS::ObjectPrivateVisitor *, bool)
+js/MemoryMetrics.h	unsigned __int64 __cdecl JS::PeakSizeOfTemporary(struct JSContext const *)
+js/MemoryMetrics.h	unsigned __int64 __cdecl JS::SystemCompartmentCount(struct JSContext *)
+js/MemoryMetrics.h	unsigned __int64 __cdecl JS::SystemRealmCount(struct JSContext *)
+js/MemoryMetrics.h	unsigned __int64 __cdecl JS::UserCompartmentCount(struct JSContext *)
+js/MemoryMetrics.h	unsigned __int64 __cdecl JS::UserRealmCount(struct JSContext *)
+js/MemoryMetrics.h	unsigned __int64 __cdecl js::MemoryReportingSundriesThreshold(void)
+js/Context.h	bool __cdecl JS::SetBrittleMode(struct JSContext *, bool)
+js/Context.h	struct JSContext * __cdecl JS_NewContext(unsigned int, struct JSRuntime *)
+js/Context.h	struct JSRuntime * __cdecl JS_GetParentRuntime(struct JSContext *)
+js/Context.h	struct JSRuntime * __cdecl JS_GetRuntime(struct JSContext *)
+js/Context.h	void * __cdecl JS_GetContextPrivate(struct JSContext *)
+js/Context.h	void __cdecl JS_DestroyContext(struct JSContext *)
+js/Context.h	void __cdecl JS_SetContextPrivate(struct JSContext *, void *)
+js/Context.h	void __cdecl JS_SetFutexCanWait(struct JSContext *)
+js/friend/CycleCollector.h	bool __cdecl js::AreGCGrayBitsValid(struct JSRuntime *)
+js/friend/CycleCollector.h	bool __cdecl js::ZoneGlobalsAreAllGray(class JS::Zone *)
+js/friend/CycleCollector.h	void __cdecl JS::MaybeClearWeakRefTargets(struct JSRuntime *, bool (__cdecl *)(class JS::GCCellPtr, void *), void *)
+js/friend/CycleCollector.h	void __cdecl JS_SetGrayGCRootsTracer(struct JSContext *, bool (__cdecl *)(class JSTracer *, class JS::SliceBudget &, void *), void *)
+js/friend/CycleCollector.h	void __cdecl JS_SetObjectsTenuredCallback(struct JSContext *, void (__cdecl *)(class JS::GCContext *, void *), void *)
+js/friend/CycleCollector.h	void __cdecl js::IterateGrayObjects(class JS::Zone *, void (__cdecl *)(void *, class JS::GCCellPtr, class JS::AutoRequireNoGC const &), void *)
+js/friend/CycleCollector.h	void __cdecl js::TraceGrayWrapperTargets(class JSTracer *, class JS::Zone *)
+js/friend/CycleCollector.h	void __cdecl js::TraceWeakMaps(struct js::WeakMapTracer *)
+js/Initialization.h	bool __cdecl JS::InitSelfHostedCode(struct JSContext *, class mozilla::Span<unsigned char const, -1>, bool (__cdecl *)(struct JSContext *, class mozilla::Span<unsigned char const, -1>))
+js/Initialization.h	bool __cdecl JS_SetICUMemoryFunctions(void * (__cdecl *)(void const *, unsigned __int64), void * (__cdecl *)(void const *, void *, unsigned __int64), void (__cdecl *)(void const *, void *))
+js/Initialization.h	char const * __cdecl JS::detail::InitWithFailureDiagnostic(bool, enum JS::detail::FrontendOnly)
+js/Initialization.h	enum JS::detail::InitState JS::detail::libraryInitState
+js/Initialization.h	void __cdecl JS::DisableJitBackend(void)
+js/Initialization.h	void __cdecl JS_FrontendOnlyShutDown(void)
+js/Initialization.h	void __cdecl JS_ShutDown(void)
+js/Zone.h	bool __cdecl JS_RefreshCrossCompartmentWrappers(struct JSContext *, class JS::Handle<class JSObject *>)
+js/Zone.h	void * __cdecl JS_GetCompartmentPrivate(class JS::Compartment *)
+js/Zone.h	void __cdecl JS_SetCompartmentPrivate(class JS::Compartment *, void *)
+js/Zone.h	void __cdecl JS_SetDestroyCompartmentCallback(struct JSContext *, void (__cdecl *)(class JS::GCContext *, class JS::Compartment *))
+js/Zone.h	void __cdecl JS_SetDestroyZoneCallback(struct JSContext *, void (__cdecl *)(class JS::GCContext *, class JS::Zone *))
+js/Zone.h	void __cdecl JS_SetSizeOfIncludingThisCompartmentCallback(struct JSContext *, unsigned __int64 (__cdecl *)(unsigned __int64 (__cdecl *)(void const *), class JS::Compartment *))
+js/GCPolicyAPI.h	bool __cdecl js::gc::TraceWeakEdge<class JSObject *>(class JSTracer *, class JS::Heap<class JSObject *> *)
+js/GCPolicyAPI.h	void __cdecl JS::TraceRoot(class JSTracer *, class JS::PropertyKey *, char const *)
+js/GCPolicyAPI.h	void __cdecl JS::TraceRoot(class JSTracer *, class JS::Value *, char const *)
+js/GCPolicyAPI.h	void __cdecl JS::TraceRoot(class JSTracer *, class JSFunction **, char const *)
+js/GCPolicyAPI.h	void __cdecl JS::TraceRoot(class JSTracer *, class JSLinearString **, char const *)
+js/GCPolicyAPI.h	void __cdecl JS::TraceRoot(class JSTracer *, class JSObject **, char const *)
+js/experimental/PCCountProfiling.h	class JSString * __cdecl JS::GetPCCountScriptContents(struct JSContext *, unsigned __int64)
+js/experimental/PCCountProfiling.h	class JSString * __cdecl JS::GetPCCountScriptSummary(struct JSContext *, unsigned __int64)
+js/experimental/PCCountProfiling.h	unsigned __int64 __cdecl JS::GetPCCountScriptCount(struct JSContext *)
+js/experimental/PCCountProfiling.h	void __cdecl JS::PurgePCCounts(struct JSContext *)
+js/experimental/PCCountProfiling.h	void __cdecl JS::StartPCCountProfiling(struct JSContext *)
+js/experimental/PCCountProfiling.h	void __cdecl JS::StopPCCountProfiling(struct JSContext *)
+js/RootingAPI.h	private: enum JS::StackKind __cdecl js::AutoCheckRecursionLimit::stackKindForCurrentPrincipal(struct JSContext *) const
+js/RootingAPI.h	void __cdecl JS::AddPersistentRoot(class JS::RootingContext *, enum JS::RootKind, class js::PersistentRootedBase *)
+js/RootingAPI.h	void __cdecl JS::HeapObjectPostWriteBarrier(class JSObject **, class JSObject *, class JSObject *)
+js/RootingAPI.h	void __cdecl JS::HeapObjectWriteBarriers(class JSObject **, class JSObject *, class JSObject *)
+js/RootingAPI.h	void __cdecl JS::HeapScriptWriteBarriers(class JSScript **, class JSScript *, class JSScript *)
+js/RootingAPI.h	void __cdecl JS::HeapStringWriteBarriers(class JSString **, class JSString *, class JSString *)
+js/Interrupt.h	bool __cdecl JS_AddInterruptCallback(struct JSContext *, bool (__cdecl *)(struct JSContext *))
+js/Interrupt.h	bool __cdecl JS_CheckForInterrupt(struct JSContext *)
+js/Interrupt.h	bool __cdecl JS_DisableInterruptCallback(struct JSContext *)
+js/Interrupt.h	void __cdecl JS_RequestInterruptCallback(struct JSContext *)
+js/Interrupt.h	void __cdecl JS_ResetInterruptCallback(struct JSContext *, bool)
+js/MemoryFunctions.h	class JSString * __cdecl JS_NewLatin1String(struct JSContext *, class std::unique_ptr<unsigned char[], struct JS::FreePolicy>, unsigned __int64)
+js/MemoryFunctions.h	void * __cdecl JS_malloc(struct JSContext *, unsigned __int64)
+js/MemoryFunctions.h	void * __cdecl JS_string_malloc(struct JSContext *, unsigned __int64)
+js/MemoryFunctions.h	void __cdecl JS::AddAssociatedMemory(class JSObject *, unsigned __int64, enum JS::MemoryUse)
+js/MemoryFunctions.h	void __cdecl JS::RemoveAssociatedMemory(class JSObject *, unsigned __int64, enum JS::MemoryUse)
+js/AllocationLogging.h	public: static class mozilla::Atomic<void (__cdecl *)(unsigned __int64), 0, void> js::AutoEnterOOMUnsafeRegion::annotateOOMSizeCallback
+js/AllocationLogging.h	void (__cdecl * __cdecl JS::GetWarningReporter(struct JSContext *))(struct JSContext *, class JSErrorReport *)
+js/AllocationLogging.h	void (__cdecl * __cdecl JS::SetDoCycleCollectionCallback(struct JSContext *, void (__cdecl *)(struct JSContext *)))(struct JSContext *)
+js/AllocationLogging.h	void (__cdecl * __cdecl JS::SetGCSliceCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, enum JS::GCProgress, struct JS::GCDescription const &)))(struct JSContext *, enum JS::GCProgress, struct JS::GCDescription const &)
+js/AllocationLogging.h	void (__cdecl * __cdecl JS::SetWarningReporter(struct JSContext *, void (__cdecl *)(struct JSContext *, class JSErrorReport *)))(struct JSContext *, class JSErrorReport *)
+js/UbiNodeCensus.h	bool __cdecl JS::ubi::ParseCensusOptions(struct JSContext *, struct JS::ubi::Census &, class JS::Handle<class JSObject *>, class std::unique_ptr<struct JS::ubi::CountType, struct JS::DeletePolicy<struct JS::ubi::CountType>> &)
+js/UbiNodeCensus.h	class std::unique_ptr<struct JS::ubi::CountType, struct JS::DeletePolicy<struct JS::ubi::CountType>> __cdecl JS::ubi::ParseBreakdown(struct JSContext *, class JS::Handle<class JS::Value>, class JS::MutableHandle<class JS::GCVector<class JSLinearString *, 0, class js::TempAllocPolicy>>)
+js/UbiNodeCensus.h	public: bool __cdecl JS::ubi::CensusHandler::operator()(struct JS::ubi::BreadthFirst<class JS::ubi::CensusHandler> &, class JS::ubi::Node, class JS::ubi::Edge const &, class JS::ubi::CensusHandler::NodeData *, bool)
+js/UbiNodeCensus.h	public: void __cdecl JS::ubi::CountDeleter::operator()(class JS::ubi::CountBase *)
+js/AllocPolicy.h	private: void * __cdecl js::TempAllocPolicy::onOutOfMemory(unsigned __int64, enum js::AllocFunction, unsigned __int64, void *)
+js/AllocPolicy.h	public: void __cdecl js::TempAllocPolicy::reportAllocOverflow(void) const
+js/AllocPolicy.h	unsigned __int64 js::MallocArena
+js/AllocPolicy.h	void __cdecl JS_ReportOutOfMemory(struct JSContext *)
+js/AllocationRecording.h	bool (__cdecl * __cdecl JS::GetModuleLoadHook(struct JSRuntime *))(struct JSContext *, class JS::Handle<class JS::Value>, class JS::Handle<class JSObject *>, class JS::Handle<class JS::Value>, class JS::Handle<class JS::Value>, unsigned int, struct JS::ColumnNumberOneOrigin)
+js/AllocationRecording.h	void __cdecl JS::DisableRecordingAllocations(struct JSContext *)
+js/AllocationRecording.h	void __cdecl JS::EnableRecordingAllocations(struct JSContext *, void (__cdecl *)(struct JS::RecordAllocationInfo &&), double)
+js/GCHashTable.h	public: static bool __cdecl js::StableCellHasher<class JSObject *>::ensureHash(class JSObject *const &, unsigned int *)
+js/GCHashTable.h	public: static bool __cdecl js::StableCellHasher<class JSObject *>::match(class JSObject *const &, class JSObject *const &)
+js/GCHashTable.h	public: static bool __cdecl js::StableCellHasher<class JSObject *>::maybeGetHash(class JSObject *const &, unsigned int *)
+js/ProfilingSources.h	class mozilla::Vector<struct ProfilerJSSourceData, 0, class js::SystemAllocPolicy> __cdecl js::GetProfilerScriptSources(struct JSRuntime *, bool)
+js/ProfilingSources.h	struct ProfilerJSSourceData __cdecl js::RetrieveProfilerSourceContent(struct JSContext *, char const *)
+js/friend/DumpFunctions.h	class std::unique_ptr<char[], struct JS::FreePolicy> __cdecl JS::FormatStackDump(struct JSContext *, bool, bool, bool)
+js/friend/DumpFunctions.h	void __cdecl js::DumpHeap(struct JSContext *, struct _iobuf *, enum js::DumpHeapNurseryBehaviour, unsigned __int64 (__cdecl *)(void const *))
+js/GCTypeMacros.h	public: bool __cdecl JS::PropertyKey::isWellKnownSymbol(enum JS::SymbolCode) const
+js/GCTypeMacros.h	public: static class JS::PropertyKey __cdecl JS::PropertyKey::fromPinnedString(class JSString *)
+js/TelemetryTimers.h	struct JS::JSTimers __cdecl JS::GetJSTimers(struct JSContext *)
+js/TelemetryTimers.h	void __cdecl JS::SetMeasuringExecutionTimeEnabled(struct JSContext *, bool)
+js/MemoryCallbacks.h	void __cdecl JS::SetOutOfMemoryCallback(struct JSContext *, void (__cdecl *)(struct JSContext *, void *), void *)
+js/MemoryCallbacks.h	void __cdecl JS::SetProcessLargeAllocationFailureCallback(void (__cdecl *)(void))
+js/friend/UsageStatistics.h	void __cdecl JS_SetAccumulateTelemetryCallback(struct JSContext *, void (__cdecl *)(enum JSMetric, class mozilla::Variant<bool, unsigned __int64, class mozilla::BaseTimeDuration<class mozilla::TimeDurationValueCalculator>> const &))
+js/friend/UsageStatistics.h	void __cdecl JS_SetSetUseCounterCallback(struct JSContext *, void (__cdecl *)(class JSObject *, enum JSUseCounter))
+js/experimental/LoggingInterface.h	bool __cdecl JS::SetLoggingInterface(struct JS::LoggingInterface &)
+js/UbiNodeShortestPaths.h	public: class std::unique_ptr<struct JS::ubi::BackEdge, struct JS::DeletePolicy<struct JS::ubi::BackEdge>> __cdecl JS::ubi::BackEdge::clone(void) const
+js/ProfilingCategory.h	struct JS::ProfilingCategoryPairInfo const & __cdecl JS::GetProfilingCategoryPairInfo(enum JS::ProfilingCategoryPair)
+js/TraceKind.h	void __cdecl JS_TraceShapeCycleCollectorChildren(class JSTracer *, class js::Shape *)
+js/friend/StackLimits.h	void __cdecl js::ReportOverRecursed(struct JSContext *)
+js/friend/PerformanceHint.h	void __cdecl js::SetRealmIsDyingHint(class JSObject *)

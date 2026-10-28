@@ -276,83 +276,88 @@ EXPORTS.js.shadow += [
     "../public/shadow/Zone.h",
 ]
 
-UNIFIED_SOURCES += [
-    "jsapi.cpp",
-    "jsfriendapi.cpp",
-]
+if CONFIG["VGE_JSAPI_V8"]:
+    DIRS += ["build"]
+    if CONFIG["JS_HAS_INTL_API"]:
+        DIRS += ["builtin/intl/collator_glue"]
+else:
+    UNIFIED_SOURCES += [
+        "jsapi.cpp",
+        "jsfriendapi.cpp",
+    ]
 
-# Must be in SOURCES so that Glean symbols from xul will take priority over the
-# no-op symbols implemented in jsglean.cpp
-SOURCES += [
-    "jsglean.cpp",
-]
-
-if CONFIG["MOZ_INSTRUMENTS"]:
-    OS_LIBS += ["-framework CoreFoundation"]
+    # Must be in SOURCES so that Glean symbols from xul will take priority over the
+    # no-op symbols implemented in jsglean.cpp
     SOURCES += [
-        "devtools/Instruments.cpp",
+        "jsglean.cpp",
     ]
 
-DIRS += [
-    "build",
-    "builtin",
-    "debugger",
-    "ds",
-    "frontend",
-    "gc",
-    "irregexp",
-    "jit",
-    "proxy",
-    "threading",
-    "util",
-    "vm",
-    "wasm",
-    "xsum",
-    "builtin/normalizer_glue",
-]
+    if CONFIG["MOZ_INSTRUMENTS"]:
+        OS_LIBS += ["-framework CoreFoundation"]
+        SOURCES += [
+            "devtools/Instruments.cpp",
+        ]
 
-# Glean integration
-if CONFIG["JS_STANDALONE"]:
-    # For MetricTypes.h and related headers
-    include("/toolkit/components/glean/glean.mozbuild")
-
-    glean_parser_flags = [CONFIG["MOZ_APP_VERSION"]]
-    tags_yamls = [
-        "/toolkit/components/glean/tags.yaml",
-    ]
-    GeneratedFile(
-        "JsSrcMetrics.h",
-        script="/toolkit/components/glean/build_scripts/glean_parser_ext/run_glean_parser.py",
-        flags=glean_parser_flags,
-        inputs=["metrics.yaml"] + tags_yamls,
-    )
-    EXPORTS.mozilla.glean += ["!JsSrcMetrics.h"]
-
-if CONFIG["JS_HAS_CTYPES"]:
-    DIRS += ["ctypes"]
-
-if CONFIG["MOZ_VTUNE"]:
-    DIRS += ["vtune"]
-
-if CONFIG["JS_HAS_INTL_API"]:
     DIRS += [
-        "builtin/intl",
-        "builtin/temporal",
-        "builtin/intl/collator_glue",
-        "builtin/intl/locale_glue",
-        "irregexp/properties_glue",
+        "build",
+        "builtin",
+        "debugger",
+        "ds",
+        "frontend",
+        "gc",
+        "irregexp",
+        "jit",
+        "proxy",
+        "threading",
+        "util",
+        "vm",
+        "wasm",
+        "xsum",
+        "builtin/normalizer_glue",
     ]
 
-CXXFLAGS += CONFIG["MOZ_ZLIB_CFLAGS"]
+    # Glean integration
+    if CONFIG["JS_STANDALONE"]:
+        # For MetricTypes.h and related headers
+        include("/toolkit/components/glean/glean.mozbuild")
 
-# Bug 1722102 - This should never be enabled in Release without explicit
-# security and SpiderMonkey review.
-# See https://bugzilla.mozilla.org/show_bug.cgi?id=1722102#c16
-if CONFIG["ENABLE_WASM_MOZ_INTGEMM"]:
-    DIRS += ["intgemm"]
+        glean_parser_flags = [CONFIG["MOZ_APP_VERSION"]]
+        tags_yamls = [
+            "/toolkit/components/glean/tags.yaml",
+        ]
+        GeneratedFile(
+            "JsSrcMetrics.h",
+            script="/toolkit/components/glean/build_scripts/glean_parser_ext/run_glean_parser.py",
+            flags=glean_parser_flags,
+            inputs=["metrics.yaml"] + tags_yamls,
+        )
+        EXPORTS.mozilla.glean += ["!JsSrcMetrics.h"]
 
-if CONFIG["JS_JITSPEW"]:
-    DIRS += ["zydis"]
+    if CONFIG["JS_HAS_CTYPES"]:
+        DIRS += ["ctypes"]
+
+    if CONFIG["MOZ_VTUNE"]:
+        DIRS += ["vtune"]
+
+    if CONFIG["JS_HAS_INTL_API"]:
+        DIRS += [
+            "builtin/intl",
+            "builtin/temporal",
+            "builtin/intl/collator_glue",
+            "builtin/intl/locale_glue",
+            "irregexp/properties_glue",
+        ]
+
+    CXXFLAGS += CONFIG["MOZ_ZLIB_CFLAGS"]
+
+    # Bug 1722102 - This should never be enabled in Release without explicit
+    # security and SpiderMonkey review.
+    # See https://bugzilla.mozilla.org/show_bug.cgi?id=1722102#c16
+    if CONFIG["ENABLE_WASM_MOZ_INTGEMM"]:
+        DIRS += ["intgemm"]
+
+    if CONFIG["JS_JITSPEW"]:
+        DIRS += ["zydis"]
 
 FINAL_LIBRARY = "js"
 
