@@ -127,6 +127,9 @@ extern JS_PUBLIC_API bool CheckGrayMarkingState(JSRuntime* rt);
 
 extern JS_PUBLIC_API void ReleaseTaskHandles(JSContext* cx);
 
+extern JS_PUBLIC_API void SetBlackGlobalCallback(JSContext* cx,
+                                                 bool (*callback)(JSObject*));
+
 }  // namespace js
 
 #endif  // js_friend_CycleCollector_h

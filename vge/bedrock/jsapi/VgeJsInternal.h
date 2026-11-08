@@ -211,6 +211,7 @@ struct JSRuntime {
   mozilla::LinkedList<js::PersistentRootedBase>
       heapRoots[size_t(JS::RootKind::Limit)];
   std::vector<std::pair<JSTraceDataOp, void*>> blackRootTracers;
+  bool (*blackGlobalCallback)(JSObject*) = nullptr;
   JSGrayRootsTracer grayRootTracer = nullptr;
   void* grayRootTracerData = nullptr;
   std::vector<std::pair<JSGCCallback, void*>> gcCallbacks;

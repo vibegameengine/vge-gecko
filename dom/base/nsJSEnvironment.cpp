@@ -48,6 +48,7 @@
 #include "js/PropertySpec.h"
 #include "js/SliceBudget.h"
 #include "js/Wrapper.h"
+#include "js/friend/CycleCollector.h"
 #include "jsapi.h"
 #include "mozilla/Attributes.h"
 #include "mozilla/AutoRestore.h"
@@ -1814,6 +1815,11 @@ void nsJSContext::EnsureStatics() {
   jsapi.Init();
 
   sPrevGCSliceCallback = JS::SetGCSliceCallback(jsapi.cx(), DOMGCSliceCallback);
+
+  js::SetBlackGlobalCallback(jsapi.cx(), [](JSObject* aGlobal) {
+    nsGlobalWindowInner* window = xpc::WindowOrNull(aGlobal);
+    return window && window->IsCurrentInnerWindow() && window->GetDocShell();
+  });
 
   JS::SetCreateGCSliceBudgetCallback(jsapi.cx(), CreateGCSliceBudget);
 

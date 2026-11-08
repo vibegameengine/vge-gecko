@@ -447,16 +447,20 @@ JS_PUBLIC_API void JS::NonIncrementalGC(JSContext* cx, JS::GCOptions options,
 JS_PUBLIC_API void JS::StartIncrementalGC(JSContext* cx, JS::GCOptions options,
                                           JS::GCReason reason,
                                           const JS::SliceBudget& budget) {
-  RunFullGC(cx, options, reason);
+  switch (reason) {
+    case JS::GCReason::CC_FINISHED:
+    case JS::GCReason::FULL_GC_TIMER:
+    case JS::GCReason::INTER_SLICE_GC:
+    case JS::GCReason::PAGE_HIDE:
+    case JS::GCReason::USER_INACTIVE:
+      return;
+    default:
+      RunFullGC(cx, options, reason);
+  }
 }
 
 JS_PUBLIC_API void JS::IncrementalGCSlice(JSContext* cx, JS::GCReason reason,
-                                          const JS::SliceBudget& budget) {
-  GcState& state = StateOf(cx->runtime);
-  if (state.v8Marking) {
-    RunFullGC(cx, state.currentOptions, reason);
-  }
-}
+                                          const JS::SliceBudget& budget) {}
 
 JS_PUBLIC_API bool JS::IncrementalGCHasForegroundWork(JSContext* cx) {
   GcState* state = MaybeStateOf(cx->runtime);
@@ -554,25 +558,7 @@ JS_PUBLIC_API void JS_GC(JSContext* cx, JS::GCReason reason) {
   RunFullGC(cx, JS::GCOptions::Normal, reason);
 }
 
-JS_PUBLIC_API void JS_MaybeGC(JSContext* cx) {
-  EnsureHooks(cx);
-  GcState& state = StateOf(cx->runtime);
-  if (state.v8Marking) {
-    RunFullGC(cx, state.currentOptions, JS::GCReason::EAGER_ALLOC_TRIGGER);
-    return;
-  }
-  size_t used = V8HeapUsed(cx->isolate);
-  size_t base = size_t(StoredParam(state, JSGC_ALLOCATION_THRESHOLD)) << 20;
-  double growth = StoredParam(state, HighFrequency(state)
-                                         ? JSGC_HIGH_FREQUENCY_SMALL_HEAP_GROWTH
-                                         : JSGC_LOW_FREQUENCY_HEAP_GROWTH) /
-                  100.0;
-  size_t trigger =
-      std::max(base, size_t(double(state.heapAfterCycle) * growth));
-  if (used >= trigger) {
-    RunFullGC(cx, JS::GCOptions::Normal, JS::GCReason::EAGER_ALLOC_TRIGGER);
-  }
-}
+JS_PUBLIC_API void JS_MaybeGC(JSContext* cx) { EnsureHooks(cx); }
 
 JS_PUBLIC_API void JS_SetGCCallback(JSContext* cx, JSGCCallback cb,
                                     void* data) {

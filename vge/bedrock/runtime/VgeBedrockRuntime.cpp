@@ -38,7 +38,15 @@
 #include "mozilla/dom/HTMLBodyElement.h"
 #include "nsFrameLoader.h"
 #include "nsFrameLoaderOwner.h"
+#include "nsStreamUtils.h"
+#include <atomic>
+#include <thread>
+#include <windows.h>
+#include "mozilla/StackWalk.h"
+#include "mozilla/StackWalkThread.h"
+#include "nsIThreadInternal.h"
 #include "nsGkAtoms.h"
+#include "prenv.h"
 #include "nsGlobalWindowOuter.h"
 #include "nsIBrowserDOMWindow.h"
 #include "nsIFocusManager.h"
@@ -214,6 +222,61 @@ void PrintFrameGeometry(Document* aDocument) {
   }
 }
 
+class StallProbe final : public nsIThreadObserver {
+ public:
+  NS_DECL_THREADSAFE_ISUPPORTS
+
+  NS_IMETHOD OnDispatchedEvent() override { return NS_OK; }
+  NS_IMETHOD OnProcessNextEvent(nsIThreadInternal*, bool) override {
+    mLastTick = GetTickCount64();
+    return NS_OK;
+  }
+  NS_IMETHOD AfterProcessNextEvent(nsIThreadInternal*, bool) override {
+    mLastTick = GetTickCount64();
+    return NS_OK;
+  }
+
+  void Start() {
+    DuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
+                    GetCurrentProcess(), &mMainThread, 0, FALSE,
+                    DUPLICATE_SAME_ACCESS);
+    mLastTick = GetTickCount64();
+    std::thread([this] { Watch(); }).detach();
+  }
+
+ private:
+  ~StallProbe() = default;
+
+  static void PrintFrame(uint32_t aFrameNumber, void* aPC, void* aSP,
+                         void* aClosure) {
+    MozCodeAddressDetails details;
+    MozDescribeCodeAddress(aPC, &details);
+    char line[512];
+    MozFormatCodeAddressDetails(line, sizeof(line), aFrameNumber, aPC,
+                                &details);
+    printf("stall %s\n", line);
+  }
+
+  void Watch() {
+    uint64_t reportedTick = 0;
+    for (;;) {
+      Sleep(3);
+      uint64_t tick = mLastTick;
+      uint64_t age = GetTickCount64() - tick;
+      if (age >= 25 && reportedTick != tick) {
+        reportedTick = tick;
+        printf("stall begin %llums\n", (unsigned long long)age);
+        MozStackWalkThread(PrintFrame, 28, nullptr, mMainThread, nullptr);
+      }
+    }
+  }
+
+  std::atomic<uint64_t> mLastTick{0};
+  HANDLE mMainThread = nullptr;
+};
+
+NS_IMPL_ISUPPORTS(StallProbe, nsIThreadObserver)
+
 class SingleWindowOpener final : public nsIBrowserDOMWindow {
  public:
   NS_DECL_ISUPPORTS
@@ -343,6 +406,14 @@ int RunWindow(const char* aUrl, int aWidth, int aHeight) {
     return 1;
   }
   printf("stage: window open\n");
+  if (PR_GetEnv("VGE_STALL_PROBE")) {
+    RefPtr<StallProbe> probe = new StallProbe();
+    nsCOMPtr<nsIThreadInternal> mainThread =
+        do_QueryInterface(NS_GetCurrentThread());
+    mainThread->AddObserver(probe);
+    probe->Start();
+    probe.forget().leak();
+  }
   bool reported = false;
   SpinEventLoopUntil("vge-bedrock-window"_ns, [&] {
     nsCOMPtr<nsIDocShell> current;
@@ -360,6 +431,24 @@ int RunWindow(const char* aUrl, int aWidth, int aHeight) {
       printf("stage: window page loaded, title: %s\n",
              NS_ConvertUTF16toUTF8(title).get());
       PrintFrameGeometry(document);
+      if (const char* probePath = PR_GetEnv("VGE_FRAME_PROBE")) {
+        nsCOMPtr<nsIFile> probeFile;
+        nsCOMPtr<nsIInputStream> probeStream;
+        nsCString probeSource;
+        if (NS_SUCCEEDED(XRE_GetFileFromPath(probePath,
+                                             getter_AddRefs(probeFile))) &&
+            NS_SUCCEEDED(NS_NewLocalFileInputStream(
+                getter_AddRefs(probeStream), probeFile)) &&
+            NS_SUCCEEDED(
+                NS_ConsumeStream(probeStream, UINT32_MAX, probeSource))) {
+          RefPtr<Element> script =
+              document->CreateHTMLElement(nsGkAtoms::script);
+          script->SetTextContent(NS_ConvertUTF8toUTF16(probeSource),
+                                 IgnoreErrors());
+          document->GetRootElement()->AppendChildTo(script, true,
+                                                    IgnoreErrors());
+        }
+      }
       gfx::gfxConfig::ForEachFeature(
           [](const char* aName, const char* aDescription,
              gfx::FeatureState& aFeature) {

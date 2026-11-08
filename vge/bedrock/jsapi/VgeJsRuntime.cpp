@@ -188,6 +188,18 @@ void TraceAllRoots(JSRuntime* aRuntime, JSTracer* aTracer) {
   TraceEnteredRealmGlobals(aRuntime, aTracer);
 }
 
+void TraceBlackGlobals(JSRuntime* aRuntime, JSTracer* aTracer) {
+  if (!aRuntime->blackGlobalCallback) {
+    return;
+  }
+  for (JS::Realm* realm : aRuntime->realms) {
+    if (realm->global && !realm->contextDead &&
+        aRuntime->blackGlobalCallback(realm->global)) {
+      JS::TraceRoot(aTracer, &realm->global, "live window global");
+    }
+  }
+}
+
 bool IsMinorGC(v8::GCType aType) {
   return aType & (v8::kGCTypeScavenge | v8::kGCTypeMinorMarkSweep);
 }
@@ -330,6 +342,12 @@ void GCPrologue(v8::Isolate* aIsolate, v8::GCType aType,
     HoldYoungCells(rt);
     return;
   }
+  if (aType & v8::kGCTypeIncrementalMarking) {
+    RootMarker marker(rt);
+    TraceAllRoots(rt, &marker);
+    TraceBlackGlobals(rt, &marker);
+    return;
+  }
   if (!(aType & v8::kGCTypeMarkSweepCompact) || rt->inGC) {
     return;
   }
@@ -341,6 +359,7 @@ void GCPrologue(v8::Isolate* aIsolate, v8::GCType aType,
   }
   RootMarker marker(rt);
   TraceAllRoots(rt, &marker);
+  TraceBlackGlobals(rt, &marker);
 }
 
 void GCEpilogue(v8::Isolate* aIsolate, v8::GCType aType,
@@ -591,6 +610,9 @@ const char* JS::detail::InitWithFailureDiagnostic(
       "--harmony-string-is-well-formed --harmony-import-attributes "
       "--harmony-json-parse-with-source --harmony-regexp-unicode-sets";
   v8::V8::SetFlagsFromString(kUnfrozenFlags, sizeof(kUnfrozenFlags) - 1);
+  if (const char* extraFlags = getenv("VGE_V8_FLAGS")) {
+    v8::V8::SetFlagsFromString(extraFlags);
+  }
   sPlatform = NewEventLoopPlatform();
   HMODULE thisModule = nullptr;
   char modulePath[MAX_PATH];
@@ -672,6 +694,10 @@ void JS_DestroyContext(JSContext* aCx) {
   ReleaseCellChunks(rt);
   tlsContext.set(nullptr);
   delete aCx;
+}
+
+void js::SetBlackGlobalCallback(JSContext* aCx, bool (*aCallback)(JSObject*)) {
+  aCx->runtime->blackGlobalCallback = aCallback;
 }
 
 void js::ReleaseTaskHandles(JSContext* aCx) {
