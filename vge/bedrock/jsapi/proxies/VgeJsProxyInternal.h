@@ -42,6 +42,7 @@ struct RuntimeState {
   JSRuntime* runtime = nullptr;
   v8::Global<v8::ObjectTemplate> plainTemplate;
   v8::Global<v8::ObjectTemplate> callableTemplate;
+  v8::Global<v8::ObjectTemplate> undetectableTemplate;
   v8::Global<v8::Context> intrinsics;
   v8::Global<v8::Function> reflect[kReflectCount];
   std::unordered_map<ObjectCell*, ProxyRecord> proxies;

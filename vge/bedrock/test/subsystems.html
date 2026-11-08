@@ -71,6 +71,12 @@
         oscillator.start();
         return context.startRendering().then((buffer) => buffer.length);
       },
+      documentAll: async () => {
+        if (typeof document.all !== "undefined" || document.all) {
+          throw new Error("document.all is detectable");
+        }
+        return document.all.length > 0;
+      },
       intl: async () => new Intl.NumberFormat("de-DE").format(1234.5) + " " + /\p{L}/u.test("я"),
       webAssembly: async () => {
         const bytes = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 7, 1, 96, 2, 127, 127, 1, 127, 3, 2, 1, 0,

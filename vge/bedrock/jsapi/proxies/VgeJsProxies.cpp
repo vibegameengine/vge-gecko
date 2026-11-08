@@ -470,10 +470,12 @@ void CallAsFunction(const v8::FunctionCallbackInfo<v8::Value>& aInfo) {
   aInfo.GetReturnValue().Set(ToV8(cx, args.rval().get()));
 }
 
-v8::Local<v8::ObjectTemplate> ProxyTemplate(JSContext* aCx, bool aCallable) {
+v8::Local<v8::ObjectTemplate> ProxyTemplate(JSContext* aCx, bool aCallable,
+                                            bool aUndetectable) {
   RuntimeState& st = State();
   v8::Global<v8::ObjectTemplate>& slot =
-      aCallable ? st.callableTemplate : st.plainTemplate;
+      aUndetectable ? st.undetectableTemplate
+                    : (aCallable ? st.callableTemplate : st.plainTemplate);
   if (slot.IsEmpty()) {
     v8::Local<v8::ObjectTemplate> tpl = v8::ObjectTemplate::New(aCx->isolate);
     tpl->SetInternalFieldCount(2);
@@ -483,8 +485,11 @@ v8::Local<v8::ObjectTemplate> ProxyTemplate(JSContext* aCx, bool aCallable) {
     tpl->SetHandler(v8::IndexedPropertyHandlerConfiguration(
         IndexedGetter, IndexedSetter, IndexedQuery, IndexedDeleter,
         IndexedEnumerator, IndexedDefiner, IndexedDescriptor));
-    if (aCallable) {
+    if (aCallable || aUndetectable) {
       tpl->SetCallAsFunctionHandler(CallAsFunction);
+    }
+    if (aUndetectable) {
+      tpl->MarkAsUndetectable();
     }
     slot.Reset(aCx->isolate, tpl);
   }
@@ -939,7 +944,9 @@ JSObject* vge::jsapi::NewProxyCell(JSContext* aCx,
   AutoV8 v8(aCx);
   v8::TryCatch tryCatch(aCx->isolate);
   v8::Local<v8::Object> obj;
-  if (!ProxyTemplate(aCx, callable)->NewInstance(v8.context()).ToLocal(&obj)) {
+  if (!ProxyTemplate(aCx, callable, shape->base.clasp->emulatesUndefined())
+           ->NewInstance(v8.context())
+           .ToLocal(&obj)) {
     v8.Check(tryCatch);
     return nullptr;
   }

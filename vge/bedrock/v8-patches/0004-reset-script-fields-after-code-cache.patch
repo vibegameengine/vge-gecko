@@ -1,0 +1,16 @@
+diff --git a/src/codegen/compiler.cc b/src/codegen/compiler.cc
+index 972898e..92ae486 100644
+--- a/src/codegen/compiler.cc
++++ b/src/codegen/compiler.cc
+@@ -3596,6 +3596,11 @@ MaybeHandle<SharedFunctionInfo> GetSharedFunctionInfoForScriptImpl(
+         is_compiled_scope = result->is_compiled_scope(isolate);
+         if (is_compiled_scope.is_compiled()) {
+           consuming_code_cache_succeeded = true;
++          {
++            DisallowGarbageCollection no_gc;
++            SetScriptFieldsFromDetails(isolate, Script::cast(result->script()),
++                                       script_details, &no_gc);
++          }
+           // Promote to per-isolate compilation cache.
+           compilation_cache->PutScript(source, language_mode, result);
+         }
