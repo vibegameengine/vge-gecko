@@ -916,16 +916,6 @@ void SwapProxies(JSContext* aCx, JS::HandleObject aA, JS::HandleObject aB) {
   }
 }
 
-void NukeProxy(JSContext* aCx, JS::HandleObject aProxy) {
-  JS::RootedObject dead(aCx, JS_NewDeadWrapper(aCx, aProxy));
-  MOZ_RELEASE_ASSERT(dead, "vge jsapi: dead proxy allocation failed");
-  js::detail::ProxyDataLayout* target = js::detail::GetProxyDataLayout(aProxy);
-  js::detail::ProxyDataLayout* source = js::detail::GetProxyDataLayout(dead);
-  target->handler = source->handler;
-  target->values()->privateSlot = source->values()->privateSlot;
-  target->expando = nullptr;
-}
-
 }
 
 using namespace vge::jsapi;

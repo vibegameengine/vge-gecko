@@ -24,11 +24,16 @@
 #include "mozilla/dom/Element.h"
 #include "mozilla/dom/LoadURIOptionsBinding.h"
 #include "mozilla/mscom/ProcessRuntime.h"
+#include "gfxConfig.h"
+#include "gfxFeature.h"
+#include "gfxTelemetry.h"
 #include "gfxPlatform.h"
 #include "mozilla/AutoSQLiteLifetime.h"
 #include "mozilla/Services.h"
 #include "mozilla/gfx/GPUProcessManager.h"
+#include "nsIAppWindow.h"
 #include "nsIObserverService.h"
+#include "nsIWebBrowserChrome.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsAppShellCID.h"
 #include "nsArrayEnumerator.h"
@@ -197,20 +202,79 @@ void PrintFrameGeometry(Document* aDocument) {
   }
 }
 
+int RunWindow(const char* aUrl, int aWidth, int aHeight) {
+  nsCOMPtr<nsIAppShellService> appShell =
+      do_GetService(NS_APPSHELLSERVICE_CONTRACTID);
+  nsCOMPtr<nsIAppWindow> window;
+  if (NS_FAILED(appShell->CreateTopLevelWindow(
+          nullptr, nullptr, nsIWebBrowserChrome::CHROME_ALL, aWidth, aHeight,
+          getter_AddRefs(window)))) {
+    printf("CreateTopLevelWindow failed\n");
+    return 1;
+  }
+  nsCOMPtr<nsIDocShell> docShell;
+  window->GetDocShell(getter_AddRefs(docShell));
+  nsCOMPtr<nsIBaseWindow> baseWindow = do_QueryInterface(window);
+  baseWindow->SetVisibility(true);
+  nsCOMPtr<nsIURI> uri;
+  if (NS_FAILED(NS_NewURI(getter_AddRefs(uri), aUrl))) {
+    printf("bad page url %s\n", aUrl);
+    return 1;
+  }
+  dom::LoadURIOptions options;
+  options.mTriggeringPrincipal = nsContentUtils::GetSystemPrincipal();
+  nsCOMPtr<nsIWebNavigation> navigation = do_QueryInterface(docShell);
+  if (NS_FAILED(navigation->LoadURI(uri, options))) {
+    printf("LoadURI failed\n");
+    return 1;
+  }
+  printf("stage: window open\n");
+  bool reported = false;
+  SpinEventLoopUntil("vge-bedrock-window"_ns, [&] {
+    nsCOMPtr<nsIDocShell> current;
+    window->GetDocShell(getter_AddRefs(current));
+    if (!current) {
+      return true;
+    }
+    Document* document = current->GetDocument();
+    if (!reported && document &&
+        document->GetReadyStateEnum() == Document::READYSTATE_COMPLETE &&
+        !NS_IsAboutBlank(document->GetDocumentURI())) {
+      reported = true;
+      nsAutoString title;
+      document->GetTitle(title);
+      printf("stage: window page loaded, title: %s\n",
+             NS_ConvertUTF16toUTF8(title).get());
+      PrintFrameGeometry(document);
+      gfx::gfxConfig::ForEachFeature(
+          [](const char* aName, const char* aDescription,
+             gfx::FeatureState& aFeature) {
+            printf("gfx feature %s: %s %s\n", aName,
+                   gfx::FeatureStatusToString(aFeature.GetValue()),
+                   aFeature.GetFailureMessage() ? aFeature.GetFailureMessage()
+                                                : "");
+          });
+    }
+    return false;
+  });
+  return 0;
+}
+
 int RunLayoutTest(const char* aPagePath, int aWidth, int aHeight) {
   nsCOMPtr<nsIAppShellService> appShell =
       do_GetService(NS_APPSHELLSERVICE_CONTRACTID);
-  nsCOMPtr<nsIWindowlessBrowser> browser;
-  if (NS_FAILED(appShell->CreateWindowlessBrowser(false, 0,
-                                                  getter_AddRefs(browser)))) {
-    printf("CreateWindowlessBrowser failed\n");
+  nsCOMPtr<nsIAppWindow> window;
+  if (NS_FAILED(appShell->CreateTopLevelWindow(
+          nullptr, nullptr, nsIWebBrowserChrome::CHROME_ALL, aWidth, aHeight,
+          getter_AddRefs(window)))) {
+    printf("CreateTopLevelWindow failed\n");
     return 1;
   }
-  printf("stage: windowless browser\n");
+  printf("stage: window\n");
   nsCOMPtr<nsIDocShell> docShell;
-  browser->GetDocShell(getter_AddRefs(docShell));
-  nsCOMPtr<nsIBaseWindow> baseWindow = do_QueryInterface(docShell);
-  baseWindow->SetPositionAndSize(0, 0, aWidth, aHeight, 0);
+  window->GetDocShell(getter_AddRefs(docShell));
+  nsCOMPtr<nsIBaseWindow> baseWindow = do_QueryInterface(window);
+  baseWindow->SetVisibility(true);
 
   nsCOMPtr<nsIURI> uri;
   if (!strncmp(aPagePath, "http", 4)) {
@@ -305,11 +369,11 @@ int RunLayoutTest(const char* aPagePath, int aWidth, int aHeight) {
   root = nullptr;
   document = nullptr;
   navigation = nullptr;
-  baseWindow = nullptr;
   docShell = nullptr;
-  browser->Close();
-  browser = nullptr;
-  printf("stage: browser closed\n");
+  baseWindow->Destroy();
+  baseWindow = nullptr;
+  window = nullptr;
+  printf("stage: window closed\n");
   for (int round = 0; round < 10 && !sPageRealmDestroyed; round++) {
     printf("stage: collect round %d\n", round);
     NS_ProcessPendingEvents(nullptr, PR_MillisecondsToInterval(100));
@@ -374,9 +438,12 @@ int VgeBedrock_RunLayoutTest(int aArgc, char** aArgv) {
     nsCOMPtr<nsIObserverService> observers = services::GetObserverService();
     observers->NotifyObservers(nullptr, "profile-do-change", u"startup");
     observers->NotifyObservers(nullptr, "profile-after-change", u"startup");
+    Preferences::SetBool("webgl.allow-in-parent", true);
     gfxPlatform::GetPlatform();
     gfx::GPUProcessManager::Get()->EnsureProtocolsReady();
-    result = vge::bedrock::RunLayoutTest(aArgv[1], 1280, 720);
+    result = aArgc > 2 && !strcmp(aArgv[1], "--window")
+                 ? vge::bedrock::RunWindow(aArgv[2], 1280, 800)
+                 : vge::bedrock::RunLayoutTest(aArgv[1], 1280, 720);
     observers->NotifyObservers(nullptr, "profile-before-change", u"shutdown");
     observers->NotifyObservers(nullptr, "profile-before-change-qm",
                                u"shutdown");

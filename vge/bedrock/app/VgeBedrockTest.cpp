@@ -30,7 +30,6 @@ LONG WINAPI PrintCrashStack(EXCEPTION_POINTERS* aInfo) {
 }
 
 int main(int argc, char** argv) {
-  _putenv("MOZ_HEADLESS=1");
   _putenv("MOZ_FORCE_DISABLE_E10S=1");
   SetUnhandledExceptionFilter(PrintCrashStack);
   return VgeBedrock_RunLayoutTest(argc, argv);

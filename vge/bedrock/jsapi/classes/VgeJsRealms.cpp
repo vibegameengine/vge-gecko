@@ -1234,6 +1234,14 @@ bool JS_IsDeadWrapper(JSObject* aObj) {
          js::GetProxyHandler(aObj)->family() == &DeadObjectHandler::family;
 }
 
+namespace vge::jsapi::proxy {
+
+void NukeProxy(JSContext* aCx, JS::HandleObject aProxy) {
+  NukeProxyCell(aProxy);
+}
+
+}
+
 JSObject* JS_NewDeadWrapper(JSContext* aCx, JSObject* aOrigObj) {
   JS::RootedValue priv(aCx, JS::Int32Value(DeadFlagsFor(aOrigObj)));
   return js::NewProxyObject(aCx, &sDeadObjectHandler, priv, nullptr);
