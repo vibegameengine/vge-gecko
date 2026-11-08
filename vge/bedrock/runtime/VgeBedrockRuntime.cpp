@@ -41,6 +41,7 @@
 #include "nsGkAtoms.h"
 #include "nsGlobalWindowOuter.h"
 #include "nsIBrowserDOMWindow.h"
+#include "nsIFocusManager.h"
 #include "nsQueryObject.h"
 #include "nsIWindowCreator.h"
 #include "nsIWindowWatcher.h"
@@ -235,7 +236,6 @@ SingleWindowOpener::CreateContentWindow(
     mozilla::dom::BrowsingContext** aResult) {
   RefPtr<mozilla::dom::BrowsingContext> context =
       mContent->GetBrowsingContext();
-  printf("stage: opener where=%d\n", int(aWhere));
   context.forget(aResult);
   return NS_OK;
 }
@@ -305,9 +305,14 @@ already_AddRefed<nsIDocShell> CreateContentDocShell(nsIAppWindow* aWindow) {
   RefPtr<nsFrameLoaderOwner> owner = do_QueryObject(frame);
   RefPtr<nsFrameLoader> loader = owner->GetFrameLoader();
   nsCOMPtr<nsIDocShell> content = loader->GetDocShell(IgnoreErrors());
+  content->GetBrowsingContext()->SetExplicitActive(
+      dom::ExplicitActiveStatus::Active, IgnoreErrors());
   nsCOMPtr<nsIBrowserDOMWindow> opener = new SingleWindowOpener(content);
   nsGlobalWindowOuter::Cast(chromeDocument->GetWindow())
       ->SetBrowserDOMWindowOuter(opener);
+  nsCOMPtr<nsIFocusManager> focusManager =
+      do_GetService("@mozilla.org/focus-manager;1");
+  focusManager->SetFocus(frame, nsIFocusManager::FLAG_NOSCROLL);
   return content.forget();
 }
 

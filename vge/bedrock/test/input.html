@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<body>
+  <p id="state">waiting</p>
+  <script>
+    const report = (name) => console.log("input", name, "hasFocus", document.hasFocus(),
+                                         "visibility", document.visibilityState);
+    window.addEventListener("focus", () => report("focus"));
+    window.addEventListener("blur", () => report("blur"));
+    window.addEventListener("keydown", (event) => report("keydown " + event.code));
+    window.addEventListener("pointerdown", () => report("pointerdown"));
+    let frames = 0;
+    const tick = () => { frames++; requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+    setInterval(() => report("frames " + frames), 1000);
+  </script>
+</body>
+</html>
