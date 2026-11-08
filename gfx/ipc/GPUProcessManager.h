@@ -106,6 +106,7 @@ class GPUProcessManager final : public GPUProcessHost::Listener {
   // - NS_ERROR_ABORT if on Android and we are in the background. This is a
   // temporary error that we should recover from when in the foreground.
   nsresult EnsureGPUReady();
+  bool EnsureProtocolsReady();
 
   bool IsGPUReady() const;
 
@@ -326,7 +327,6 @@ class GPUProcessManager final : public GPUProcessHost::Listener {
   void EnsureVsyncIOThread();
   void ShutdownVsyncIOThread();
 
-  bool EnsureProtocolsReady();
   bool EnsureCompositorManagerChild();
   bool EnsureImageBridgeChild();
   bool EnsureVRManager();

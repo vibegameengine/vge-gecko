@@ -24,6 +24,11 @@
 #include "mozilla/dom/Element.h"
 #include "mozilla/dom/LoadURIOptionsBinding.h"
 #include "mozilla/mscom/ProcessRuntime.h"
+#include "gfxPlatform.h"
+#include "mozilla/AutoSQLiteLifetime.h"
+#include "mozilla/Services.h"
+#include "mozilla/gfx/GPUProcessManager.h"
+#include "nsIObserverService.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsAppShellCID.h"
 #include "nsArrayEnumerator.h"
@@ -331,6 +336,7 @@ int VgeBedrock_RunLayoutTest(int aArgc, char** aArgv) {
   char stackTop;
   profiler_init(&stackTop);
   mscom::ProcessRuntime mscom;
+  AutoSQLiteLifetime sqliteLifetime;
 
   vge::bedrock::RuntimeDirProvider dirProvider;
   int result = 1;
@@ -347,7 +353,15 @@ int VgeBedrock_RunLayoutTest(int aArgc, char** aArgv) {
     }
     printf("stage: xpcom ready\n");
     Preferences::SetBool("devtools.console.stdout.content", true);
+    nsCOMPtr<nsIObserverService> observers = services::GetObserverService();
+    observers->NotifyObservers(nullptr, "profile-do-change", u"startup");
+    observers->NotifyObservers(nullptr, "profile-after-change", u"startup");
+    gfxPlatform::GetPlatform();
+    gfx::GPUProcessManager::Get()->EnsureProtocolsReady();
     result = vge::bedrock::RunLayoutTest(aArgv[1], 1280, 720);
+    observers->NotifyObservers(nullptr, "profile-before-change", u"shutdown");
+    observers->NotifyObservers(nullptr, "profile-before-change-qm",
+                               u"shutdown");
   }
   NS_ShutdownXPCOM(nullptr);
   profiler_shutdown();
