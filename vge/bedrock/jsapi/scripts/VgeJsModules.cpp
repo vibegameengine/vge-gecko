@@ -187,6 +187,35 @@ JSObject* NewRequestObject(JSContext* aCx, const std::u16string& aSpecifier,
   return request;
 }
 
+v8::Local<v8::Private> ModuleHolderKey(v8::Isolate* aIsolate) {
+  return v8::Private::ForApi(
+      aIsolate, v8::String::NewFromUtf8Literal(aIsolate, "vge.moduleHolder"));
+}
+
+bool HoldModuleFromRecord(JSContext* aCx, v8::Local<v8::Object> aRecord,
+                          v8::Local<v8::Module> aModule) {
+  v8::Isolate* isolate = aCx->isolate;
+  v8::Local<v8::Context> context = aRecord->GetCreationContextChecked();
+  v8::Local<v8::ObjectTemplate> holderTemplate =
+      v8::ObjectTemplate::New(isolate);
+  holderTemplate->SetInternalFieldCount(1);
+  v8::Local<v8::Object> holder;
+  if (!holderTemplate->NewInstance(context).ToLocal(&holder)) {
+    return false;
+  }
+  holder->SetInternalField(0, reinterpret_cast<v8::Local<v8::Value>&>(aModule));
+  return aRecord->SetPrivate(context, ModuleHolderKey(isolate), holder)
+      .FromMaybe(false);
+}
+
+void ReleaseModuleFromRecord(JSContext* aCx, v8::Local<v8::Object> aRecord) {
+  v8::Isolate* isolate = aCx->isolate;
+  aRecord
+      ->DeletePrivate(aRecord->GetCreationContextChecked(),
+                      ModuleHolderKey(isolate))
+      .Check();
+}
+
 JSObject* NewModuleRecord(JSContext* aCx, ModuleData* aData) {
   JS::Rooted<JSObject*> object(
       aCx, NewClassObject(aCx, &ModuleObjectClass, nullptr));
@@ -198,7 +227,12 @@ JSObject* NewModuleRecord(JSContext* aCx, ModuleData* aData) {
   aData->self = object;
   if (!aData->module.IsEmpty()) {
     v8::HandleScope scope(aCx->isolate);
-    aData->hash = aData->module.Get(aCx->isolate)->GetIdentityHash();
+    v8::Local<v8::Module> module = aData->module.Get(aCx->isolate);
+    if (!HoldModuleFromRecord(aCx, ToV8(aCx, object.get()), module)) {
+      return nullptr;
+    }
+    aData->module.SetWeak();
+    aData->hash = module->GetIdentityHash();
     gModulesByHash.emplace(aData->hash, aData);
   }
   return object;
@@ -1073,6 +1107,11 @@ void JS::ClearModuleEnvironment(JSObject* moduleObj) {
   }
   data->cleared = true;
   ForgetModule(data);
+  if (!data->module.IsEmpty()) {
+    JSContext* cx = CurrentContext();
+    v8::HandleScope scope(cx->isolate);
+    ReleaseModuleFromRecord(cx, ToV8(cx, moduleObj));
+  }
   data->module.Reset();
   data->syntheticDefault = JS::UndefinedValue();
 }

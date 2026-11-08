@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<body>
+  <div id="host" style="width: 100px"><span id="child"></span></div>
+  <script>
+    const iterations = 1000000;
+    const host = document.getElementById("host");
+    const child = document.getElementById("child");
+    let sink = 0;
+    function measure(name, body) {
+      const start = performance.now();
+      body();
+      const elapsed = performance.now() - start;
+      console.log("bench", name, (elapsed * 1e6 / iterations).toFixed(1), "ns");
+    }
+    measure("js-call", () => { const f = (a) => a + 1; for (let i = 0; i < iterations; i++) sink = f(sink); });
+    measure("get-string-id", () => { for (let i = 0; i < iterations; i++) sink += host.id.length; });
+    measure("set-string-id", () => { for (let i = 0; i < iterations; i++) host.id = "host"; });
+    measure("get-wrapper-firstChild", () => { for (let i = 0; i < iterations; i++) sink += host.firstChild === child ? 1 : 0; });
+    measure("get-int-nodeType", () => { for (let i = 0; i < iterations; i++) sink += host.nodeType; });
+    measure("method-getAttribute", () => { for (let i = 0; i < iterations; i++) sink += host.getAttribute("id").length; });
+    measure("method-setAttribute", () => { for (let i = 0; i < iterations; i++) host.setAttribute("data-a", "b"); });
+    measure("method-contains", () => { for (let i = 0; i < iterations; i++) sink += host.contains(child) ? 1 : 0; });
+    console.log("bench sink", sink);
+    document.documentElement.setAttribute("data-vge-failures", "");
+    document.documentElement.setAttribute("data-vge-done", "");
+  </script>
+</body>
+</html>

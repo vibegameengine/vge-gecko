@@ -72,6 +72,12 @@ LOCAL_INCLUDES += [
     "!/dist/include/mozilla/dom",
 ]
 
+include("/vge/bedrock/v8.mozbuild")
+
+LOCAL_INCLUDES += [
+    "/vge/bedrock/jsapi",
+]
+
 LOCAL_INCLUDES += [
     "/dom/base",
     "/dom/battery",

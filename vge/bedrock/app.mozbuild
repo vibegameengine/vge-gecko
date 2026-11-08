@@ -128,8 +128,6 @@ DIRS += [
     "/%s" % CONFIG["MOZ_BRANDING_DIRECTORY"],
     "/vge/bedrock/ittnotify",
     "/vge/bedrock/jsapi",
-    "/vge/bedrock/v8",
-    "/vge/bedrock/bindings",
     "/vge/bedrock/runtime",
     "/vge/bedrock/app",
 ]

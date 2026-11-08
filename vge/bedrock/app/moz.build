@@ -14,3 +14,6 @@ if CONFIG["CC_TYPE"] == "clang-cl":
 OS_LIBS += [
     "ntdll",
 ]
+
+if CONFIG["OS_ARCH"] == "WINNT":
+    LINK_FLAGS["CETCOMPAT"] = []

@@ -8,6 +8,7 @@
 #include "js/TracingAPI.h"
 #include "cppgc/heap-state.h"
 #include "libplatform/libplatform.h"
+#include "v8-gray-marking.h"
 #include "mozilla/Maybe.h"
 #include "mozilla/ThreadLocal.h"
 
@@ -93,6 +94,7 @@ void WeakCellCallback(const v8::WeakCallbackInfo<CellTail>& aInfo) {
   CellTail* tail = aInfo.GetParameter();
   tail->handle.Reset();
   if (tail->anchor) {
+    NoteDeadAnchoredCell(tail);
     return;
   }
   switch (tail->kind) {
@@ -181,11 +183,36 @@ void TraceAllRoots(JSRuntime* aRuntime, JSTracer* aTracer) {
   for (auto& [op, data] : aRuntime->blackRootTracers) {
     op(aTracer, data);
   }
-  if (aRuntime->grayRootTracer) {
-    JS::SliceBudget budget = JS::SliceBudget::unlimited();
-    aRuntime->grayRootTracer(aTracer, budget, aRuntime->grayRootTracerData);
-  }
   TraceEnteredRealmGlobals(aRuntime, aTracer);
+}
+
+bool IsMinorGC(v8::GCType aType) {
+  return aType & (v8::kGCTypeScavenge | v8::kGCTypeMinorMarkSweep);
+}
+
+void HoldYoungCells(JSRuntime* aRuntime) {
+  for (CellTail* tail : aRuntime->youngTails) {
+    if (!tail->handle.IsEmpty()) {
+      tail->handle.ClearWeak();
+    }
+  }
+}
+
+void ReleaseYoungCells(JSRuntime* aRuntime) {
+  for (auto it = aRuntime->youngTails.begin();
+       it != aRuntime->youngTails.end();) {
+    CellTail* tail = *it;
+    if (tail->handle.IsEmpty()) {
+      it = aRuntime->youngTails.erase(it);
+      continue;
+    }
+    MakeWeak(tail);
+    if (v8::IsGlobalInYoungGeneration(tail->handle)) {
+      ++it;
+    } else {
+      it = aRuntime->youngTails.erase(it);
+    }
+  }
 }
 
 void RealmContextDied(const v8::WeakCallbackInfo<JS::Realm>& aInfo) {
@@ -196,12 +223,29 @@ void RealmContextDied(const v8::WeakCallbackInfo<JS::Realm>& aInfo) {
   realm->runtime->dyingRealms.push_back(realm);
 }
 
-void FinalizeAnchoredCell(JSRuntime* aRuntime, ObjectCell* aCell) {
+void RunClassFinalizer(JSRuntime* aRuntime, ObjectCell* aCell) {
+  if (aCell->tail.classFinalized) {
+    return;
+  }
+  aCell->tail.classFinalized = true;
   const JSClass* clasp = aCell->shape->base.clasp;
   if (clasp->hasFinalize()) {
     clasp->doFinalize(reinterpret_cast<JS::GCContext*>(aRuntime),
                       aCell->asObject());
   }
+}
+
+void FinalizeDeadAnchoredCells(JSRuntime* aRuntime) {
+  std::vector<ObjectCell*> dead;
+  dead.swap(aRuntime->deadAnchored);
+  for (ObjectCell* cell : dead) {
+    RunClassFinalizer(aRuntime, cell);
+  }
+}
+
+void FinalizeAnchoredCell(JSRuntime* aRuntime, ObjectCell* aCell) {
+  RunClassFinalizer(aRuntime, aCell);
+  std::erase(aRuntime->deadAnchored, aCell);
   aCell->tail.anchor = nullptr;
   aCell->tail.handle.Reset();
   FreeObjectCell(aCell);
@@ -279,7 +323,12 @@ void SweepDyingRealms(JSRuntime* aRuntime) {
 void GCPrologue(v8::Isolate* aIsolate, v8::GCType aType,
                 v8::GCCallbackFlags aFlags, void* aData) {
   JSRuntime* rt = static_cast<JSRuntime*>(aData);
-  if (rt->inGC) {
+  if (IsMinorGC(aType)) {
+    rt->gcNumber++;
+    HoldYoungCells(rt);
+    return;
+  }
+  if (!(aType & v8::kGCTypeMarkSweepCompact) || rt->inGC) {
     return;
   }
   rt->inGC = true;
@@ -295,9 +344,15 @@ void GCPrologue(v8::Isolate* aIsolate, v8::GCType aType,
 void GCEpilogue(v8::Isolate* aIsolate, v8::GCType aType,
                 v8::GCCallbackFlags aFlags, void* aData) {
   JSRuntime* rt = static_cast<JSRuntime*>(aData);
-  if (aType & v8::kGCTypeMarkSweepCompact) {
-    RefreshTracedNodes(rt);
+  if (IsMinorGC(aType)) {
+    ReleaseYoungCells(rt);
+    return;
   }
+  if (!(aType & v8::kGCTypeMarkSweepCompact)) {
+    return;
+  }
+  RefreshTracedNodes(rt);
+  ReleaseYoungCells(rt);
   if (!rt->inGC) {
     return;
   }
@@ -322,6 +377,7 @@ void GCEpilogue(v8::Isolate* aIsolate, v8::GCType aType,
     for (auto& [cb, data] : rt->finalizeCallbacks) {
       cb(gcx, JSFINALIZE_GROUP_START, data);
     }
+    FinalizeDeadAnchoredCells(rt);
     FinalizePendingCells(rt);
     for (auto& [cb, data] : rt->finalizeCallbacks) {
       cb(gcx, JSFINALIZE_GROUP_END, data);
@@ -352,11 +408,17 @@ void SetTraced(v8::Isolate* aIsolate, CellTail* aTail,
   Runtime()->tracedTails.insert(aTail);
 }
 
+void NoteDeadAnchoredCell(CellTail* aTail) {
+  Runtime()->deadAnchored.push_back(reinterpret_cast<ObjectCell*>(
+      reinterpret_cast<uint8_t*>(aTail) - offsetof(ObjectCell, tail)));
+}
+
 void ForgetTraced(CellTail* aTail) {
   new (&aTail->traced) v8::TracedReference<v8::Value>();
   aTail->tracedEpoch = 0;
   if (JSRuntime* rt = Runtime()) {
     rt->tracedTails.erase(aTail);
+    rt->youngTails.erase(aTail);
   }
 }
 

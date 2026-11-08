@@ -1,5 +1,6 @@
 mk_add_options MOZ_OBJDIR=C:/Projects/gecko-obj-bedrock
 ac_add_options --enable-project=vge/bedrock
+export VGE_V8_DIR=C:/Projects/v8-build/dist
 
 ac_add_options --disable-webrtc
 ac_add_options --disable-accessibility

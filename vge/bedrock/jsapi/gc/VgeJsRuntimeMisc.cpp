@@ -452,7 +452,7 @@ JS_PUBLIC_API void js::DumpHeap(JSContext* cx, FILE* fp,
   }
   v8::HandleScope scope(cx->isolate);
   const v8::HeapSnapshot* snapshot =
-      TakeColoredSnapshot(cx, v8::HeapProfiler::HeapSnapshotOptions());
+      TakeReportSnapshot(cx, v8::HeapProfiler::HeapSnapshotOptions());
   if (!snapshot) {
     return;
   }
@@ -473,7 +473,8 @@ JS_PUBLIC_API void js::DumpHeap(JSContext* cx, FILE* fp,
     for (int e = 0; e < node->GetChildrenCount(); e++) {
       const v8::HeapGraphEdge* edge = node->GetChild(e);
       v8::String::Utf8Value edgeName(cx->isolate, edge->GetName());
-      fprintf(fp, "> %u %s\n", edge->GetToNode()->GetId(),
+      fprintf(fp, "> %u %s%s\n", edge->GetToNode()->GetId(),
+              edge->GetType() == v8::HeapGraphEdge::kWeak ? "weak:" : "",
               *edgeName ? *edgeName : "");
     }
   }

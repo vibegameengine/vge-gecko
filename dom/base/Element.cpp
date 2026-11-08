@@ -244,9 +244,8 @@ namespace mozilla::dom {
                       (sizeof(void*) == 4 && a <= sizeOn32),          \
                   "DOM size changed");                                \
   };                                                                  \
-  Check##type##Size<sizeof(type),                                     \
-                    opt_size_64 + EXTRA_DOM_NODE_BYTES + 8,           \
-                    opt_size_32 + EXTRA_DOM_NODE_BYTES + 4>           \
+  Check##type##Size<sizeof(type), opt_size_64 + EXTRA_DOM_NODE_BYTES, \
+                    opt_size_32 + EXTRA_DOM_NODE_BYTES>               \
       g##type##CES;
 
 // Note that mozjemalloc uses a 16 byte quantum, so 64, 80 and 128 are

@@ -17,4 +17,10 @@ UNIFIED_SOURCES += [
 
 include("/vge/bedrock/v8.mozbuild")
 
+OS_LIBS += [
+    "%s/Lib/Win64MD/wee8" % CONFIG["VGE_V8_DIR"],
+    "dbghelp",
+    "winmm",
+]
+
 FINAL_LIBRARY = "js"

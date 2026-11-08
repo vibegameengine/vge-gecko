@@ -41,6 +41,62 @@
                 "same wrapper:", document.getElementById("hud") === hud,
                 "first child:", bar.childNodes[0].className, "class list:", hud.classList[0]);
 
+    (() => {
+      const cycleNode = document.createElement("div");
+      cycleNode.addEventListener("vge-cycle", () => { cycleNode.dataset.seen = "yes"; });
+      cycleNode.dispatchEvent(new Event("vge-cycle"));
+      window.vgeCycleSeen = cycleNode.dataset.seen;
+      document.documentElement.addEventListener("vge-cycle", () => cycleNode);
+    })();
+
+    var vgeClassicVar = "classic-var";
+    const vgeClassicLexical = "classic-lexical";
+    window.vgeClassicGlobal = globalThis;
+    const moduleRan = new Promise((resolve) => { window.vgeModuleRan = resolve; });
+    const moduleScript = document.createElement("script");
+    moduleScript.type = "module";
+    moduleScript.textContent = `
+      const sameGlobal = globalThis === window.vgeClassicGlobal && self === window.vgeClassicGlobal;
+      window.vgeModuleRan("same global: " + sameGlobal + " var: " + vgeClassicVar +
+                          " lexical: " + vgeClassicLexical + " module this: " + (this === undefined));
+    `;
+    document.head.appendChild(moduleScript);
+
+    const memberChecks = (async () => {
+      const checks = [];
+      const blob = new Blob(["abc", new Uint8Array([100])], { type: "text/plain" });
+      checks.push("promise " + (blob.text() instanceof Promise) + " " + (await blob.text()));
+      const custom = new CustomEvent("dictionary", { detail: 7, bubbles: true });
+      checks.push("dictionary " + custom.detail + " " + custom.bubbles);
+      const plain = new Event("constructed");
+      checks.push("new Event " + plain.type + " " + (plain instanceof Event));
+      const point = new DOMPoint(1, 2);
+      const matrixFromList = new DOMMatrix([1, 0, 0, 1, 5, 6]);
+      const matrixFromString = new DOMMatrix("translate(3px, 4px)");
+      checks.push("overload " + matrixFromList.e + " " + matrixFromString.f + " " + point.y);
+      const headers = new Headers({ a: "1", b: "2" });
+      checks.push("iterable " + [...headers].map(([k, v]) => k + "=" + v).join("&"));
+      checks.push("static " + URL.canParse("http://example.test/") + " " + CSS.escape("a b"));
+      hud.dataset.vgeNamed = "named";
+      checks.push("named " + hud.getAttribute("data-vge-named") + " " + bar.children.namedItem("wide").id);
+      checks.push("sequence " + document.createRange().getClientRects().length +
+                  " " + hud.getAttributeNames().join(","));
+      checks.push("setlike " + typeof document.fonts.size + " " + (document.fonts.ready instanceof Promise));
+      try {
+        hud.insertBefore(1, 2);
+        checks.push("type error missing");
+      } catch (error) {
+        checks.push("type error " + (error instanceof TypeError));
+      }
+      try {
+        document.createElement("1 bad");
+        checks.push("dom exception missing");
+      } catch (error) {
+        checks.push("dom exception " + (error instanceof DOMException) + " " + error.name);
+      }
+      return checks.join(" | ");
+    })();
+
     const log = [];
     hud.addEventListener("click", function (event) {
       log.push("listener " + event.type + " " + (event instanceof MouseEvent) + " " + (this === hud));
@@ -63,7 +119,39 @@
           log.push("microtask");
           console.log("events:", log.join(" | "));
           console.log("hud text:", hud.textContent);
-          document.documentElement.setAttribute("data-vge-done", "");
+          Promise.all([moduleRan, memberChecks]).then(([moduleResult, memberResult]) => {
+            moduleScript.remove();
+            console.log("cycle listener ran:", window.vgeCycleSeen);
+            console.log("module:", moduleResult);
+            console.log("members:", memberResult);
+            const failures = [];
+            const expectEqual = (name, actual, expected) => {
+              if (actual !== expected) {
+                failures.push(name + " got [" + actual + "] want [" + expected + "]");
+              }
+            };
+            expectEqual("instanceof", hud instanceof HTMLDivElement, true);
+            expectEqual("wrapper identity", document.getElementById("hud") === hud, true);
+            expectEqual("proto", Object.getPrototypeOf(hud) === HTMLDivElement.prototype, true);
+            expectEqual("window identity", window === globalThis, true);
+            expectEqual("hud text", hud.textContent, "HP 100 / MP 20!");
+            expectEqual("events", log.join(" | "),
+                        "listener click true true | onclick hud | timeout 5 | frame number | microtask");
+            expectEqual("cycle listener", window.vgeCycleSeen, "yes");
+            expectEqual("module", moduleResult,
+                        "same global: true var: classic-var lexical: classic-lexical module this: true");
+            expectEqual("members", memberResult,
+                        "promise true abcd | dictionary 7 true | new Event constructed true | overload 5 4 2 | " +
+                        "iterable a=1&b=2 | static true a\\ b | named named wide | " +
+                        "sequence 0 id,class,style,data-vge-named | setlike number true | " +
+                        "type error true | dom exception true InvalidCharacterError");
+            document.documentElement.setAttribute("data-vge-failures", failures.join("; "));
+            document.documentElement.setAttribute("data-vge-done", "");
+          }, (error) => {
+            console.log("check failed:", String(error), error && error.stack);
+            document.documentElement.setAttribute("data-vge-failures", "check failed: " + String(error));
+            document.documentElement.setAttribute("data-vge-done", "");
+          });
         });
       });
     }, 10, 2, 3);

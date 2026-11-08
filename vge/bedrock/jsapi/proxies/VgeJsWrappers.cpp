@@ -446,6 +446,10 @@ JS_PUBLIC_API void js::SetWindowProxy(JSContext* cx,
   v8::Maybe<bool> set =
       g->SetPrivate(ctx, WindowProxyKey(isolate), ToV8(cx, windowProxy.get()));
   MOZ_RELEASE_ASSERT(set.FromMaybe(false));
+  v8::Maybe<bool> defined = g->DefineOwnProperty(
+      ctx, v8::String::NewFromUtf8Literal(isolate, "globalThis"),
+      ToV8(cx, windowProxy.get()), v8::DontEnum);
+  MOZ_RELEASE_ASSERT(defined.FromMaybe(false));
 }
 
 JS_PUBLIC_API bool js::IsWindowProxy(JSObject* obj) {

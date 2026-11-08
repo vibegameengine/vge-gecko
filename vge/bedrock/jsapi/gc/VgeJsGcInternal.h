@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -24,6 +25,7 @@
 #include "js/friend/CycleCollector.h"
 #include "js/friend/UsageStatistics.h"
 #include "mozilla/TimeStamp.h"
+#include "v8-gray-marking.h"
 #include "v8-profiler.h"
 #include "v8-unwinder.h"
 
@@ -102,6 +104,7 @@ struct GcState {
   size_t minorAfter = 0;
   JS::GCReason lastMinorReason = JS::GCReason::NO_REASON;
 
+  std::unique_ptr<v8::GrayMarkingClient> grayMarkingClient;
   bool grayBitsValid = false;
   std::vector<JS::GCCellPtr> coloredCells;
   std::vector<JS::GCCellPtr> grayCells;
@@ -162,9 +165,8 @@ void EnsureHooks(JSContext* aCx);
 void RunFullGC(JSContext* aCx, JS::GCOptions aOptions, JS::GCReason aReason);
 void InvalidateGrayBits(GcState& aState);
 void InvalidateUbiGraph(GcState& aState);
-void ForgetDeadColoredCells(GcState& aState);
-bool ComputeGrayBits(JSContext* aCx);
-const v8::HeapSnapshot* TakeColoredSnapshot(
+void InstallGrayMarkingClient(GcState& aState);
+const v8::HeapSnapshot* TakeReportSnapshot(
     JSContext* aCx, const v8::HeapProfiler::HeapSnapshotOptions& aOptions);
 bool BuildFullCellGraph(JSContext* aCx);
 

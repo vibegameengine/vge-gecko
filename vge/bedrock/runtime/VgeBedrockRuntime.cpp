@@ -43,8 +43,6 @@
 #include "nsPresContext.h"
 #include "nsSimpleEnumerator.h"
 #include "nsXULAppAPI.h"
-#include "vge/bedrock/VgeBedrockScriptHook.h"
-#include "vge/bedrock/VgeBedrockV8.h"
 
 using namespace mozilla;
 using mozilla::dom::Document;
@@ -228,12 +226,24 @@ int RunLayoutTest(const char* aPagePath, int aWidth, int aHeight) {
            (TimeStamp::Now() - waitStart).ToSeconds() > 5.0;
   });
   Element* root = document->GetRootElement();
-  printf("stage: page %s\n",
-         root && root->HasAttribute(u"data-vge-done"_ns) ? "done" : "timed out");
+  bool pageDone = root && root->HasAttribute(u"data-vge-done"_ns);
+  printf("stage: page %s\n", pageDone ? "done" : "timed out");
+  nsAutoString pageFailures;
+  if (root) {
+    root->GetAttribute(u"data-vge-failures"_ns, pageFailures);
+  }
+  bool pagePassed = pageDone && root->HasAttribute(u"data-vge-failures"_ns) &&
+                    pageFailures.IsEmpty();
+  printf("page checks: %s\n",
+         pagePassed ? "passed" : NS_ConvertUTF16toUTF8(pageFailures).get());
   document->FlushPendingNotifications(FlushType::Layout);
   PrintFrameGeometry(document);
 
   nsJSContext::GarbageCollectNow(JS::GCReason::API);
+  TimeStamp liveCycleCollectStart = TimeStamp::Now();
+  nsJSContext::CycleCollectNow(CCReason::API);
+  printf("cycle collection with live page: %.1f ms\n",
+         (TimeStamp::Now() - liveCycleCollectStart).ToMilliseconds());
   TimeStamp cleanupStart = TimeStamp::Now();
   SpinEventLoopUntil("vge-bedrock-finalization-cleanup"_ns, [&] {
     Element* element = document->GetRootElement();
@@ -242,7 +252,8 @@ int RunLayoutTest(const char* aPagePath, int aWidth, int aHeight) {
   });
   nsAutoString finalized;
   root = document->GetRootElement();
-  if (root && root->HasAttribute(u"data-vge-finalized"_ns)) {
+  bool finalizationRan = root && root->HasAttribute(u"data-vge-finalized"_ns);
+  if (finalizationRan) {
     root->GetAttribute(u"data-vge-finalized"_ns, finalized);
     printf("finalization registry cleanup: ran, held value %s\n",
            NS_ConvertUTF16toUTF8(finalized).get());
@@ -264,12 +275,14 @@ int RunLayoutTest(const char* aPagePath, int aWidth, int aHeight) {
   browser->Close();
   browser = nullptr;
   printf("stage: browser closed\n");
-  ShutdownPageScripts();
   for (int round = 0; round < 10 && !sPageRealmDestroyed; round++) {
     printf("stage: collect round %d\n", round);
     NS_ProcessPendingEvents(nullptr, PR_MillisecondsToInterval(100));
     nsJSContext::GarbageCollectNow(JS::GCReason::API);
+    TimeStamp cycleCollectStart = TimeStamp::Now();
     nsJSContext::CycleCollectNow(CCReason::API);
+    printf("cycle collection: %.1f ms\n",
+           (TimeStamp::Now() - cycleCollectStart).ToMilliseconds());
     nsJSContext::GarbageCollectNow(JS::GCReason::API);
   }
   bool listed = false;
@@ -278,7 +291,9 @@ int RunLayoutTest(const char* aPagePath, int aWidth, int aHeight) {
   }
   printf("page realm destroy callbacks: %u\n", sPageRealmDestroyed);
   printf("page realm still listed: %s\n", listed ? "yes" : "no");
-  return 0;
+  bool passed = pagePassed && finalizationRan && sPageRealmDestroyed && !listed;
+  printf("test result: %s\n", passed ? "PASS" : "FAIL");
+  return passed ? 0 : 1;
 }
 
 }
@@ -316,11 +331,10 @@ int VgeBedrock_RunLayoutTest(int aArgc, char** aArgv) {
       return 1;
     }
     printf("stage: xpcom ready\n");
-    Preferences::SetBool("vge.bedrock.v8_page_scripts", true);
+    Preferences::SetBool("devtools.console.stdout.content", true);
     result = vge::bedrock::RunLayoutTest(aArgv[1], 1280, 720);
   }
   NS_ShutdownXPCOM(nullptr);
-  vge::bedrock::V8Engine::Shutdown();
   profiler_shutdown();
   XRE_DeinitCommandLine();
   return result;

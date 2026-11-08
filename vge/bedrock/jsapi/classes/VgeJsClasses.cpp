@@ -488,6 +488,12 @@ bool IdIsAsciiName(jsid aId, const char* aName) { return IdIsName(aId, aName); }
 
 ClassesState& State(JSContext* aCx) { return StateFor(aCx->runtime); }
 
+void PushNoResolve(JSContext* aCx, JSObject* aObj, jsid aId) {
+  State(aCx).resolving.emplace_back(aObj, aId);
+}
+
+void PopNoResolve(JSContext* aCx) { State(aCx).resolving.pop_back(); }
+
 RealmExtra& RealmData(JS::Realm* aRealm) {
   ClassesState& state = StateFor(aRealm->runtime);
   RealmExtra*& extra = state.realms[aRealm];

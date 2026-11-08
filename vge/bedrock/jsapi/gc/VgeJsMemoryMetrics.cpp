@@ -96,7 +96,7 @@ size_t Measure(JSContext* aCx, JS::ObjectPrivateVisitor* aOpv,
   v8::HandleScope scope(isolate);
   v8::HeapProfiler* profiler = isolate->GetHeapProfiler();
   const v8::HeapSnapshot* snapshot =
-      TakeColoredSnapshot(aCx, v8::HeapProfiler::HeapSnapshotOptions());
+      TakeReportSnapshot(aCx, v8::HeapProfiler::HeapSnapshotOptions());
   if (!snapshot) {
     return 0;
   }

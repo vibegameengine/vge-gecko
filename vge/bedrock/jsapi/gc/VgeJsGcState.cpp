@@ -211,7 +211,6 @@ void Epilogue(v8::Isolate* aIsolate, v8::GCType aType,
     state.minorNumber++;
     state.lastMinorEnd = mozilla::TimeStamp::Now();
     state.minorAfter = V8HeapUsed(aIsolate);
-    ForgetDeadColoredCells(state);
     for (auto& [cb, data] : state.nurseryCallbacks) {
       if (cx) {
         cb(cx, JS::GCNurseryProgress::GC_NURSERY_COLLECTION_END,
@@ -262,6 +261,7 @@ void EnsureHooks(JSContext* aCx) {
   rt->gcCallback = Trampoline;
   rt->gcCallbackData = &state;
   rt->weakPointerSweep = SweepWeakPointers;
+  InstallGrayMarkingClient(state);
 }
 
 size_t V8HeapUsed(v8::Isolate* aIsolate) {
@@ -286,7 +286,6 @@ void RunFullGC(JSContext* aCx, JS::GCOptions aOptions, JS::GCReason aReason) {
         state.lowMemory ? v8::MemoryPressureLevel::kModerate
                         : v8::MemoryPressureLevel::kNone);
   }
-  ComputeGrayBits(aCx);
   state.drivingGc = wasDriving;
 }
 

@@ -680,6 +680,7 @@ JSObject* JS_NewGlobalObject(JSContext* aCx, const JSClass* aClass,
   RealmExtra& extra = RealmData(realm);
   extra.innerGlobal.Reset(isolate, inner);
   CaptureRealmIntrinsics(aCx, realm, ctx);
+  DeleteGlobal(ctx, inner, "console");
   if (IsDeselectedConstructor(realm, JSProto_SharedArrayBuffer)) {
     DeleteGlobal(ctx, inner, "SharedArrayBuffer");
   }

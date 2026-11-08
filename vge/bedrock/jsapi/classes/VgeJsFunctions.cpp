@@ -79,6 +79,12 @@ bool IsBuiltinOf(JSObject* aFun, v8::Global<v8::Function> RealmExtra::*aMember) 
 
 }
 
+void DirectSlowPath(const v8::FunctionCallbackInfo<v8::Value>& aInfo) {
+  NativeFunctionCallback(aInfo);
+}
+
+void DirectThrowPending(JSContext* aCx) { ThrowPendingToV8(aCx); }
+
 JS::Symbol* WellKnownSymbol(JSContext* aCx, JS::SymbolCode aCode) {
   v8::Isolate* isolate = aCx->isolate;
   v8::EscapableHandleScope scope(isolate);
@@ -227,7 +233,10 @@ JSFunction* NewNativeFunctionImpl(JSContext* aCx, JSNative aNative,
     return nullptr;
   }
   v8::Local<v8::Function> fn;
-  if (!v8::Function::New(ctx, NativeFunctionCallback, holder, int(aNargs),
+  v8::FunctionCallback callback = aInfo && aInfo->vgeDirect
+                                      ? aInfo->vgeDirect
+                                      : NativeFunctionCallback;
+  if (!v8::Function::New(ctx, callback, holder, int(aNargs),
                          constructor ? v8::ConstructorBehavior::kAllow
                                      : v8::ConstructorBehavior::kThrow)
            .ToLocal(&fn)) {

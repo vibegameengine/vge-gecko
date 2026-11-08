@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+<body>
+  <div id="host"></div>
+  <script>
+    const host = document.getElementById("host");
+    for (let i = 0; i < 50000; i++) {
+      const node = document.createElement("div");
+      node.expando = { owner: node, index: i };
+      node.addEventListener("click", () => node.expando.index);
+      host.appendChild(node);
+    }
+    document.documentElement.setAttribute("data-vge-failures", "");
+    document.documentElement.setAttribute("data-vge-done", "");
+  </script>
+</body>
+</html>

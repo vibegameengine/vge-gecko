@@ -127,9 +127,6 @@ class JS_HAZ_ROOTED nsWrapperCache {
    */
   JSObject* GetWrapperMaybeDead() const { return mWrapper; }
 
-  void* GetVgeV8Wrapper() const { return mVgeV8Wrapper; }
-  void SetVgeV8Wrapper(void* aWrapper) { mVgeV8Wrapper = aWrapper; }
-
 #ifdef DEBUG
  private:
   static bool HasJSObjectMovedOp(JSObject* aWrapper);
@@ -396,7 +393,6 @@ class JS_HAZ_ROOTED nsWrapperCache {
   enum { kWrapperFlagsMask = WRAPPER_BIT_PRESERVED };
 
   JSObject* mWrapper = nullptr;
-  void* mVgeV8Wrapper = nullptr;
 
   // Rust code needs to read and write some flags atomically, but we don't want
   // to make the wrapper flags atomic whole-sale because main-thread code would

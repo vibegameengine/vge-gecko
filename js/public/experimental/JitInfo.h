@@ -15,6 +15,12 @@
 #include "js/RootingAPI.h"  // JS::{,Mutable}Handle, JS::Rooted
 #include "js/Value.h"       // JS::Value, JSValueType
 
+namespace v8 {
+class Value;
+template <typename T>
+class FunctionCallbackInfo;
+}
+
 namespace js {
 
 namespace jit {
@@ -307,10 +313,12 @@ class JSJitInfo {
    */
   uint32_t slotIndex : SlotIndexBits;
 
+  void (*vgeDirect)(const v8::FunctionCallbackInfo<v8::Value>&);
+
   static constexpr size_t maxSlotIndex = (1 << SlotIndexBits) - 1;
 };
 
-static_assert(sizeof(JSJitInfo) == (sizeof(void*) + 2 * sizeof(uint32_t)),
+static_assert(sizeof(JSJitInfo) == (2 * sizeof(void*) + 2 * sizeof(uint32_t)),
               "There are several thousand instances of JSJitInfo stored in "
               "a binary. Please don't increase its space requirements without "
               "verifying that there is no other way forward (better packing, "

@@ -1,5 +1,7 @@
 #include "VgeJsGcInternal.h"
 
+#include <algorithm>
+
 #include "mozilla/ScopeExit.h"
 #include "js/Proxy.h"
 #include "js/Wrapper.h"
@@ -41,7 +43,6 @@ class HeapGraph {
       mIndex.emplace(node, uint32_t(i));
       mNodes.push_back(node);
     }
-    mBlack.assign(count, 0);
     mCellState.assign(count, 0);
     mCells.assign(count, JS::GCCellPtr());
     mStamp.assign(count, 0);
@@ -115,57 +116,6 @@ class HeapGraph {
     return mCells[aIndex];
   }
 
-  void MarkBlackFrom(uint32_t aStart) {
-    if (mBlack[aStart]) {
-      return;
-    }
-    std::vector<uint32_t> stack;
-    mBlack[aStart] = 1;
-    stack.push_back(aStart);
-    while (!stack.empty()) {
-      uint32_t n = stack.back();
-      stack.pop_back();
-      const v8::HeapGraphNode* node = mNodes[n];
-      int children = node->GetChildrenCount();
-      for (int i = 0; i < children; i++) {
-        const v8::HeapGraphEdge* edge = node->GetChild(i);
-        if (edge->GetType() == v8::HeapGraphEdge::kWeak) {
-          continue;
-        }
-        auto it = mIndex.find(edge->GetToNode());
-        if (it == mIndex.end() || mBlack[it->second]) {
-          continue;
-        }
-        mBlack[it->second] = 1;
-        stack.push_back(it->second);
-      }
-    }
-  }
-
-  void MarkBlackFromRoot() {
-    const v8::HeapGraphNode* root = mSnapshot->GetRoot();
-    auto it = mIndex.find(root);
-    if (it == mIndex.end()) {
-      return;
-    }
-    mBlack[it->second] = 1;
-    int children = root->GetChildrenCount();
-    for (int i = 0; i < children; i++) {
-      const v8::HeapGraphEdge* edge = root->GetChild(i);
-      const v8::HeapGraphNode* to = edge->GetToNode();
-      if (edge->GetType() == v8::HeapGraphEdge::kWeak ||
-          to->GetType() != v8::HeapGraphNode::kSynthetic) {
-        continue;
-      }
-      auto child = mIndex.find(to);
-      if (child != mIndex.end()) {
-        MarkBlackFrom(child->second);
-      }
-    }
-  }
-
-  bool IsBlackNode(uint32_t aIndex) const { return mBlack[aIndex]; }
-
   int32_t RootIndex() const {
     auto it = mIndex.find(mSnapshot->GetRoot());
     return it == mIndex.end() ? -1 : int32_t(it->second);
@@ -195,7 +145,7 @@ class HeapGraph {
           continue;
         }
         uint32_t m = it->second;
-        if (mStamp[m] == mGeneration || mBlack[m]) {
+        if (mStamp[m] == mGeneration) {
           continue;
         }
         mStamp[m] = mGeneration;
@@ -208,33 +158,12 @@ class HeapGraph {
     }
   }
 
-  std::vector<uint32_t> NodesNamed(const char* aName) {
-    std::vector<uint32_t> out;
-    v8::HandleScope scope(mCx->isolate);
-    for (uint32_t i = 0; i < mNodes.size(); i++) {
-      const v8::HeapGraphNode* node = mNodes[i];
-      if (node->GetType() != v8::HeapGraphNode::kObject) {
-        continue;
-      }
-      v8::String::Utf8Value name(mCx->isolate, node->GetName());
-      if (*name && strcmp(*name, aName) == 0) {
-        out.push_back(i);
-      }
-    }
-    return out;
-  }
-
-  v8::Local<v8::Value> ValueAt(uint32_t aIndex) {
-    return mProfiler->FindObjectById(mNodes[aIndex]->GetId());
-  }
-
  private:
   JSContext* mCx;
   v8::HeapProfiler* mProfiler;
   const v8::HeapSnapshot* mSnapshot;
   std::vector<const v8::HeapGraphNode*> mNodes;
   std::unordered_map<const v8::HeapGraphNode*, uint32_t> mIndex;
-  std::vector<uint8_t> mBlack;
   std::vector<uint8_t> mCellState;
   std::vector<JS::GCCellPtr> mCells;
   std::vector<uint32_t> mStamp;
@@ -263,73 +192,182 @@ uint64_t GcCount(GcState& aState) {
   return aState.majorNumber + aState.minorNumber;
 }
 
-void CollectWeakMaps(JSContext* aCx, GcState& aState, HeapGraph& aGraph,
-                     std::vector<uint32_t>& aWeakMapNodes,
-                     std::vector<uint32_t>& aWeakRefNodes) {
-  v8::Isolate* isolate = aCx->isolate;
-  for (uint32_t index : aWeakMapNodes) {
-    v8::HandleScope scope(isolate);
-    v8::Local<v8::Value> value = aGraph.ValueAt(index);
-    if (value.IsEmpty() || !value->IsWeakMap()) {
+class GrayRootTracer final : public JS::CallbackTracer {
+ public:
+  GrayRootTracer(JSRuntime* aRuntime, v8::GrayRootMarker& aMarker)
+      : JS::CallbackTracer(aRuntime, JS::TracerKind::Callback,
+                           JS::WeakMapTraceAction::TraceKeysAndValues),
+        mMarker(aMarker) {}
+
+  bool onChild(JS::GCCellPtr aThing, const char* aName) override {
+    CellTail* tail = LiveTail(aThing);
+    if (tail) {
+      mMarker.Mark(tail->handle);
+    }
+    return true;
+  }
+
+ private:
+  v8::GrayRootMarker& mMarker;
+};
+
+using CellsByAddress = std::unordered_map<uintptr_t, JS::GCCellPtr>;
+
+CellsByAddress ColorMarkedCells(GcState& aState,
+                                const v8::GrayMarkingResult& aResult) {
+  CellsByAddress cells;
+  for (ObjectCell* cell : aState.runtime->objectCells) {
+    if (cell->tail.handle.IsEmpty()) {
       continue;
     }
-    JS::GCCellPtr map = CellForV8Value(aCx, value);
-    JSObject* mapObj =
-        map ? &map.as<JSObject>() : ObjectFromV8(aCx, value.As<v8::Object>());
-    bool keyValue = false;
-    v8::Local<v8::Array> entries;
-    if (!value.As<v8::Object>()->PreviewEntries(&keyValue).ToLocal(&entries) ||
-        !keyValue) {
+    uintptr_t address = aResult.AddressOf(cell->tail.handle);
+    if (!aResult.IsMarked(address)) {
       continue;
     }
-    v8::Local<v8::Context> ctx = aCx->v8Context();
-    if (ctx.IsEmpty()) {
-      ctx = value.As<v8::Object>()->GetCreationContextChecked();
-    }
-    uint32_t length = entries->Length();
-    for (uint32_t i = 0; i + 1 < length; i += 2) {
-      v8::Local<v8::Value> key;
-      v8::Local<v8::Value> val;
-      if (!entries->Get(ctx, i).ToLocal(&key) ||
-          !entries->Get(ctx, i + 1).ToLocal(&val)) {
-        continue;
-      }
-      JS::GCCellPtr keyCell;
-      if (key->IsObject()) {
-        keyCell = JS::GCCellPtr(ObjectFromV8(aCx, key.As<v8::Object>()));
-      } else if (key->IsSymbol()) {
-        keyCell = JS::GCCellPtr(SymbolFromV8(aCx, key.As<v8::Symbol>()));
-      }
-      JS::GCCellPtr valueCell;
-      if (val->IsObject()) {
-        valueCell = JS::GCCellPtr(ObjectFromV8(aCx, val.As<v8::Object>()));
-      } else if (val->IsSymbol()) {
-        valueCell = JS::GCCellPtr(SymbolFromV8(aCx, val.As<v8::Symbol>()));
-      }
-      if (keyCell) {
-        aState.weakMapEntries.push_back({mapObj, keyCell, valueCell});
+    JS::GCCellPtr thing(cell->asObject());
+    Color(aState, thing, aResult.IsGray(address));
+    cells.emplace(address, thing);
+    const JSClass* clasp = cell->shape ? cell->shape->base.clasp : nullptr;
+    if (clasp && (clasp->flags & JSCLASS_IS_GLOBAL)) {
+      uintptr_t inner = aResult.InnerGlobalOfProxy(address);
+      if (inner) {
+        cells.emplace(inner, thing);
       }
     }
   }
-  for (uint32_t index : aWeakRefNodes) {
-    v8::HandleScope scope(isolate);
-    JS::GCCellPtr ref = aGraph.CellAt(index);
-    v8::Local<v8::Value> value = aGraph.ValueAt(index);
-    if (value.IsEmpty() || !value->IsWeakRef() || !ref) {
+  return cells;
+}
+
+void CollectWeakEntries(GcState& aState, const v8::GrayMarkingResult& aResult,
+                        const CellsByAddress& aCells,
+                        std::vector<v8::GrayMarkingEdge>& aEdges) {
+  size_t count = 0;
+  const v8::GrayMarkingEphemeron* ephemerons = aResult.Ephemerons(&count);
+  for (size_t i = 0; i < count; i++) {
+    const v8::GrayMarkingEphemeron& entry = ephemerons[i];
+    auto key = aCells.find(entry.key);
+    auto value = aCells.find(entry.value);
+    auto map = entry.owner ? aCells.find(entry.owner) : aCells.end();
+    if (key != aCells.end() && value != aCells.end() &&
+        (!entry.owner || map != aCells.end())) {
+      JSObject* mapObj = entry.owner ? &map->second.as<JSObject>() : nullptr;
+      aState.weakMapEntries.push_back({mapObj, key->second, value->second});
       continue;
     }
-    std::vector<uint32_t> targets;
-    aGraph.CellChildren(index, targets);
-    for (uint32_t t : targets) {
-      JS::GCCellPtr target = aGraph.CellAt(t);
-      if (target && target.is<JSObject>()) {
-        aState.weakRefTargets.emplace_back(&ref.as<JSObject>(),
-                                           &target.as<JSObject>());
-      }
+    if (aResult.IsGray(entry.key)) {
+      aEdges.push_back({entry.key, entry.value});
+    }
+    if (aResult.IsGray(entry.table)) {
+      aEdges.push_back({entry.table, entry.value});
+    }
+  }
+  const v8::GrayMarkingWeakRef* refs = aResult.WeakRefs(&count);
+  for (size_t i = 0; i < count; i++) {
+    auto ref = aCells.find(refs[i].ref);
+    auto target = aCells.find(refs[i].target);
+    if (ref != aCells.end() && target != aCells.end()) {
+      aState.weakRefTargets.emplace_back(&ref->second.as<JSObject>(),
+                                         &target->second.as<JSObject>());
     }
   }
 }
 
+void CollectCellEdges(GcState& aState, const v8::GrayMarkingResult& aResult,
+                      const CellsByAddress& aCells,
+                      std::vector<v8::GrayMarkingEdge>& aEdges) {
+  size_t nodeCount = 0;
+  const uintptr_t* nodes = aResult.GrayObjects(&nodeCount);
+  auto indexOf = [&](uintptr_t aAddress) {
+    return uint32_t(std::lower_bound(nodes, nodes + nodeCount, aAddress) -
+                    nodes);
+  };
+  std::vector<uint32_t> offsets(nodeCount + 1, 0);
+  for (const v8::GrayMarkingEdge& edge : aEdges) {
+    offsets[indexOf(edge.from) + 1]++;
+  }
+  for (size_t i = 0; i < nodeCount; i++) {
+    offsets[i + 1] += offsets[i];
+  }
+  std::vector<uint32_t> targets(aEdges.size());
+  std::vector<uint32_t> fill(offsets.begin(), offsets.end() - 1);
+  for (const v8::GrayMarkingEdge& edge : aEdges) {
+    targets[fill[indexOf(edge.from)]++] = indexOf(edge.to);
+  }
+  std::vector<JS::GCCellPtr> cellAt(nodeCount);
+  for (size_t i = 0; i < nodeCount; i++) {
+    auto it = aCells.find(nodes[i]);
+    if (it != aCells.end()) {
+      cellAt[i] = it->second;
+    }
+  }
+  std::vector<uint32_t> stamp(nodeCount, 0);
+  std::vector<uint32_t> stack;
+  uint32_t generation = 0;
+  for (uint32_t start = 0; start < nodeCount; start++) {
+    JS::GCCellPtr from = cellAt[start];
+    if (!from) {
+      continue;
+    }
+    generation++;
+    stamp[start] = generation;
+    stack.push_back(start);
+    std::vector<JS::GCCellPtr> edges;
+    while (!stack.empty()) {
+      uint32_t n = stack.back();
+      stack.pop_back();
+      for (uint32_t e = offsets[n]; e < offsets[n + 1]; e++) {
+        uint32_t m = targets[e];
+        if (stamp[m] == generation) {
+          continue;
+        }
+        stamp[m] = generation;
+        if (!cellAt[m]) {
+          stack.push_back(m);
+        } else if (cellAt[m] != from) {
+          edges.push_back(cellAt[m]);
+        }
+      }
+    }
+    if (!edges.empty()) {
+      aState.jsEdges[from.asCell()] = std::move(edges);
+    }
+  }
+}
+
+class CellGrayMarkingClient final : public v8::GrayMarkingClient {
+ public:
+  explicit CellGrayMarkingClient(GcState& aState) : mState(aState) {}
+
+  void MarkGrayRoots(v8::GrayRootMarker& aMarker) override {
+    JSRuntime* rt = mState.runtime;
+    if (!rt->grayRootTracer) {
+      return;
+    }
+    GrayRootTracer tracer(rt, aMarker);
+    JS::SliceBudget budget = JS::SliceBudget::unlimited();
+    rt->grayRootTracer(&tracer, budget, rt->grayRootTracerData);
+  }
+
+  void GrayMarkingFinished(const v8::GrayMarkingResult& aResult) override {
+    CellsByAddress cells = ColorMarkedCells(mState, aResult);
+    size_t edgeCount = 0;
+    const v8::GrayMarkingEdge* edges = aResult.Edges(&edgeCount);
+    std::vector<v8::GrayMarkingEdge> allEdges(edges, edges + edgeCount);
+    CollectWeakEntries(mState, aResult, cells, allEdges);
+    CollectCellEdges(mState, aResult, cells, allEdges);
+    mState.grayBitsValid = true;
+  }
+
+ private:
+  GcState& mState;
+};
+
+}
+
+void InstallGrayMarkingClient(GcState& aState) {
+  aState.grayMarkingClient = std::make_unique<CellGrayMarkingClient>(aState);
+  v8::SetGrayMarkingClient(aState.runtime->isolate,
+                           aState.grayMarkingClient.get());
 }
 
 void InvalidateGrayBits(GcState& aState) {
@@ -360,7 +398,7 @@ bool BuildFullCellGraph(JSContext* aCx) {
   v8::Isolate* isolate = aCx->isolate;
   v8::HandleScope outer(isolate);
   const v8::HeapSnapshot* snapshot =
-      TakeColoredSnapshot(aCx, v8::HeapProfiler::HeapSnapshotOptions());
+      TakeReportSnapshot(aCx, v8::HeapProfiler::HeapSnapshotOptions());
   if (!snapshot) {
     return false;
   }
@@ -431,178 +469,10 @@ bool BuildFullCellGraph(JSContext* aCx) {
   return true;
 }
 
-void ForgetDeadColoredCells(GcState& aState) {
-  if (aState.coloredCells.empty()) {
-    return;
-  }
-  std::unordered_set<js::gc::Cell*> dead;
-  std::vector<JS::GCCellPtr> kept;
-  for (JS::GCCellPtr thing : aState.coloredCells) {
-    CellTail* tail = TailOf(thing.asCell(), thing.kind());
-    if (tail && tail->handle.IsEmpty() && thing.is<JSObject>()) {
-      ClearColor(thing);
-      dead.insert(thing.asCell());
-      continue;
-    }
-    kept.push_back(thing);
-  }
-  if (dead.empty()) {
-    return;
-  }
-  aState.coloredCells = std::move(kept);
-  std::vector<JS::GCCellPtr> gray;
-  for (JS::GCCellPtr thing : aState.grayCells) {
-    if (!dead.count(thing.asCell())) {
-      gray.push_back(thing);
-    }
-  }
-  aState.grayCells = std::move(gray);
-  for (js::gc::Cell* cell : dead) {
-    aState.jsEdges.erase(cell);
-  }
-  for (auto& [from, edges] : aState.jsEdges) {
-    std::vector<JS::GCCellPtr> keptEdges;
-    for (JS::GCCellPtr e : edges) {
-      if (!dead.count(e.asCell())) {
-        keptEdges.push_back(e);
-      }
-    }
-    edges = std::move(keptEdges);
-  }
-  std::vector<WeakMapEntry> entries;
-  for (WeakMapEntry& e : aState.weakMapEntries) {
-    if (!dead.count(reinterpret_cast<js::gc::Cell*>(e.map)) &&
-        !dead.count(e.key.asCell()) &&
-        (!e.value || !dead.count(e.value.asCell()))) {
-      entries.push_back(e);
-    }
-  }
-  aState.weakMapEntries = std::move(entries);
-}
-
-namespace {
-
-bool ColorFromSnapshot(JSContext* aCx, const v8::HeapSnapshot* aSnapshot) {
-  GcState& state = StateOf(aCx->runtime);
-  JSRuntime* rt = aCx->runtime;
-  v8::HandleScope outer(aCx->isolate);
-  InvalidateGrayBits(state);
-  uint64_t startCount = GcCount(state);
-  HeapGraph graph(aCx, aSnapshot);
-  graph.MarkBlackFromRoot();
-
-  std::vector<JS::GCCellPtr> blackRoots;
-  {
-    CellCollector collector(rt, blackRoots);
-    TraceBlackRoots(rt, &collector);
-  }
-  for (JS::GCCellPtr thing : blackRoots) {
-    int32_t index = graph.IndexOfCell(thing);
-    if (index >= 0) {
-      graph.MarkBlackFrom(uint32_t(index));
-    }
-  }
-  std::vector<JS::GCCellPtr> grayRoots;
-  if (rt->grayRootTracer) {
-    CellCollector collector(rt, grayRoots);
-    JS::SliceBudget budget = JS::SliceBudget::unlimited();
-    rt->grayRootTracer(&collector, budget, rt->grayRootTracerData);
-  }
-
-  std::unordered_set<js::gc::Cell*> colored;
-  for (JS::GCCellPtr thing : blackRoots) {
-    if (colored.insert(thing.asCell()).second) {
-      Color(state, thing, false);
-    }
-  }
-
-  std::vector<uint32_t> work;
-  std::vector<uint8_t> grayNode(graph.size(), 0);
-  for (JS::GCCellPtr thing : grayRoots) {
-    int32_t index = graph.IndexOfCell(thing);
-    if (index < 0) {
-      continue;
-    }
-    if (graph.IsBlackNode(uint32_t(index))) {
-      if (colored.insert(thing.asCell()).second) {
-        Color(state, thing, false);
-      }
-      continue;
-    }
-    if (!grayNode[index]) {
-      grayNode[index] = 1;
-      work.push_back(uint32_t(index));
-    }
-  }
-
-  std::vector<uint32_t> children;
-  while (!work.empty()) {
-    uint32_t n = work.back();
-    work.pop_back();
-    JS::GCCellPtr from = graph.CellAt(n);
-    if (!from || !LiveTail(from)) {
-      continue;
-    }
-    if (colored.insert(from.asCell()).second) {
-      Color(state, from, true);
-    }
-    children.clear();
-    graph.CellChildren(n, children);
-    std::vector<JS::GCCellPtr>& edges = state.jsEdges[from.asCell()];
-    for (uint32_t m : children) {
-      JS::GCCellPtr to = graph.CellAt(m);
-      edges.push_back(to);
-      if (!grayNode[m]) {
-        grayNode[m] = 1;
-        work.push_back(m);
-      }
-    }
-  }
-
-  std::vector<uint32_t> weakMapNodes = graph.NodesNamed("WeakMap");
-  std::vector<uint32_t> weakRefNodes = graph.NodesNamed("WeakRef");
-
-  if (GcCount(state) != startCount) {
-    InvalidateGrayBits(state);
-    return false;
-  }
-  state.grayBitsValid = true;
-  CollectWeakMaps(aCx, state, graph, weakMapNodes, weakRefNodes);
-  if (GcCount(state) != startCount) {
-    InvalidateGrayBits(state);
-    return false;
-  }
-  return true;
-}
-
-}
-
-const v8::HeapSnapshot* TakeColoredSnapshot(
+const v8::HeapSnapshot* TakeReportSnapshot(
     JSContext* aCx, const v8::HeapProfiler::HeapSnapshotOptions& aOptions) {
   EnsureHooks(aCx);
-  const v8::HeapSnapshot* snapshot =
-      aCx->isolate->GetHeapProfiler()->TakeHeapSnapshot(aOptions);
-  if (snapshot) {
-    ColorFromSnapshot(aCx, snapshot);
-  }
-  return snapshot;
-}
-
-bool ComputeGrayBits(JSContext* aCx) {
-  EnsureHooks(aCx);
-  GcState& state = StateOf(aCx->runtime);
-  v8::HandleScope outer(aCx->isolate);
-  bool wasDriving = state.drivingGc;
-  state.drivingGc = true;
-  v8::HeapProfiler::HeapSnapshotOptions options;
-  options.numerics_mode = v8::HeapProfiler::NumericsMode::kHideNumericValues;
-  const v8::HeapSnapshot* snapshot = TakeColoredSnapshot(aCx, options);
-  state.drivingGc = wasDriving;
-  if (!snapshot) {
-    return false;
-  }
-  const_cast<v8::HeapSnapshot*>(snapshot)->Delete();
-  return state.grayBitsValid;
+  return aCx->isolate->GetHeapProfiler()->TakeHeapSnapshot(aOptions);
 }
 
 }

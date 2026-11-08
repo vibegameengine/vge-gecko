@@ -598,6 +598,14 @@ bool SetProperty(JSContext* aCx, JS::HandleObject aObj, JS::HandleId aId,
   if (IsProxyObject(aObj)) {
     return ProxySet(aCx, aObj, aId, aValue, aReceiver, aResult);
   }
+  if (aReceiver.isObject() && IsProxyObject(&aReceiver.toObject())) {
+    JS::Rooted<mozilla::Maybe<JS::PropertyDescriptor>> ownDesc(aCx);
+    if (!GetOwnPropertyDescriptor(aCx, aObj, aId, &ownDesc)) {
+      return false;
+    }
+    return proxy::SetPropertyIgnoringNamedGetter(aCx, aObj, aId, aValue,
+                                                 aReceiver, ownDesc, aResult);
+  }
   AutoV8 v8(aCx);
   v8::Local<v8::Value> result;
   if (!CallReflect(aCx, kReflectSet,

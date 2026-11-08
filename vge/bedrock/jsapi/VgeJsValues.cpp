@@ -27,6 +27,7 @@ void BindCellHandle(JSContext* aCx, CellTail* aTail, v8::Local<v8::Value> aValue
           CellTail* tail = aInfo.GetParameter();
           tail->handle.Reset();
           if (tail->anchor) {
+            NoteDeadAnchoredCell(tail);
             return;
           }
           if (tail->kind == CellKind::Object) {
@@ -42,6 +43,7 @@ void BindCellHandle(JSContext* aCx, CellTail* aTail, v8::Local<v8::Value> aValue
           FreeCell(cell, sizeof(StringCell));
         },
         v8::WeakCallbackType::kParameter);
+    aCx->runtime->youngTails.insert(aTail);
   }
 }
 

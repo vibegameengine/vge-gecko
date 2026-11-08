@@ -110,7 +110,6 @@
 #include "nsThreadUtils.h"
 #include "nsUnicharUtils.h"
 #include "prsystem.h"
-#include "vge/bedrock/VgeBedrockScriptHook.h"
 #include "xpcpublic.h"
 
 using namespace JS::loader;
@@ -3667,28 +3666,7 @@ nsresult ScriptLoader::EvaluateScriptElement(ScriptLoadRequest* aRequest) {
   auto start = TimeStamp::Now();
 
   nsresult rv;
-  if (!aRequest->IsModuleRequest() &&
-      vge::bedrock::PageScriptsRunInV8(mDocument)) {
-    nsAutoString source;
-    ScriptLoadContext* loadContext = aRequest->GetScriptLoadContext();
-    if (loadContext->mIsInline) {
-      if (nsIScriptElement* element =
-              loadContext->GetScriptElementForCurrentScript()) {
-        element->GetScriptText(source);
-      }
-    } else if (aRequest->IsUTF16Text()) {
-      const auto& text = aRequest->ScriptText<char16_t>();
-      source.Assign(text.begin(), text.length());
-    } else {
-      const auto& text = aRequest->ScriptText<Utf8Unit>();
-      CopyUTF8toUTF16(
-          Span(reinterpret_cast<const char*>(text.begin()), text.length()),
-          source);
-    }
-    rv = vge::bedrock::EvaluatePageScript(
-        mDocument, source, aRequest->URI()->GetSpecOrDefault(),
-        loadContext->mLineNo);
-  } else if (aRequest->IsModuleRequest()) {
+  if (aRequest->IsModuleRequest()) {
     rv = aRequest->AsModuleRequest()->EvaluateModule();
   } else {
     MOZ_ASSERT(!aRequest->IsWasmBytes());

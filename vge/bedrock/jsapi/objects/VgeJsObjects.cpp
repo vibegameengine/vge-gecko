@@ -471,6 +471,7 @@ namespace {
 bool DefineById(JSContext* aCx, JS::HandleObject aObj, JS::HandleId aId,
                 JS::Handle<JS::PropertyDescriptor> aDesc,
                 JS::ObjectOpResult& aResult) {
+  AutoNoResolve noResolve(aCx, aObj.get(), aId.get());
   AutoV8 v8(aCx);
   v8::Isolate* isolate = v8.isolate();
   v8::Local<v8::Context> ctx = v8.context();

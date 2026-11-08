@@ -1,0 +1,73 @@
+diff --git a/include/v8-gray-marking.h b/include/v8-gray-marking.h
+new file mode 100644
+index 0000000..dc4452c
+--- /dev/null
++++ b/include/v8-gray-marking.h
+@@ -0,0 +1,67 @@
++#ifndef INCLUDE_V8_GRAY_MARKING_H_
++#define INCLUDE_V8_GRAY_MARKING_H_
++
++#include <stddef.h>
++#include <stdint.h>
++
++#include "v8-persistent-handle.h"
++#include "v8config.h"
++
++namespace v8 {
++
++class Isolate;
++class Value;
++
++struct GrayMarkingEdge {
++  uintptr_t from;
++  uintptr_t to;
++};
++
++struct GrayMarkingEphemeron {
++  uintptr_t owner;
++  uintptr_t table;
++  uintptr_t key;
++  uintptr_t value;
++};
++
++struct GrayMarkingWeakRef {
++  uintptr_t ref;
++  uintptr_t target;
++};
++
++class GrayRootMarker {
++ public:
++  virtual void Mark(const Global<Value>& root) = 0;
++
++ protected:
++  ~GrayRootMarker() = default;
++};
++
++class GrayMarkingResult {
++ public:
++  virtual uintptr_t AddressOf(const Global<Value>& handle) const = 0;
++  virtual bool IsMarked(uintptr_t object) const = 0;
++  virtual bool IsGray(uintptr_t object) const = 0;
++  virtual uintptr_t InnerGlobalOfProxy(uintptr_t object) const = 0;
++  virtual const uintptr_t* GrayObjects(size_t* count) const = 0;
++  virtual const GrayMarkingEdge* Edges(size_t* count) const = 0;
++  virtual const GrayMarkingEphemeron* Ephemerons(size_t* count) const = 0;
++  virtual const GrayMarkingWeakRef* WeakRefs(size_t* count) const = 0;
++
++ protected:
++  ~GrayMarkingResult() = default;
++};
++
++class GrayMarkingClient {
++ public:
++  virtual ~GrayMarkingClient() = default;
++  virtual void MarkGrayRoots(GrayRootMarker& marker) = 0;
++  virtual void GrayMarkingFinished(const GrayMarkingResult& result) = 0;
++};
++
++V8_EXPORT void SetGrayMarkingClient(Isolate* isolate, GrayMarkingClient* client);
++V8_EXPORT bool IsGlobalInYoungGeneration(const Global<Value>& handle);
++
++}  // namespace v8
++
++#endif  // INCLUDE_V8_GRAY_MARKING_H_

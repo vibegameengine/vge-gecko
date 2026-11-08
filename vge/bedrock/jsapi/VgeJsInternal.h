@@ -46,6 +46,7 @@ struct CellTail {
   bool rootedThisGC;
   bool isAtom;
   uint8_t tracedEpoch;
+  bool classFinalized;
   uint32_t serial;
   v8::Global<v8::Value> handle;
   v8::TracedReference<v8::Value> traced;
@@ -139,6 +140,7 @@ void BindCellHandle(JSContext* aCx, CellTail* aTail, v8::Local<v8::Value> aValue
 void SetTraced(v8::Isolate* aIsolate, CellTail* aTail,
                v8::Local<v8::Value> aValue);
 void ForgetTraced(CellTail* aTail);
+void NoteDeadAnchoredCell(CellTail* aTail);
 JSString* AtomFromV8(JSContext* aCx, v8::Local<v8::String> aString);
 JSString* AtomizeCell(JSContext* aCx, JSString* aStr);
 
@@ -215,11 +217,13 @@ struct JSRuntime {
   const JSPrincipals* trustedPrincipals = nullptr;
   std::vector<vge::jsapi::CellTail*> strongThisGC;
   std::unordered_set<vge::jsapi::CellTail*> tracedTails;
+  std::unordered_set<vge::jsapi::CellTail*> youngTails;
   uint8_t tracedEpoch = 1;
   std::vector<JS::Realm*> realms;
   std::vector<JS::Realm*> dyingRealms;
   std::unordered_set<vge::jsapi::ObjectCell*> objectCells;
   std::vector<vge::jsapi::ObjectCell*> pendingFinalize;
+  std::vector<vge::jsapi::ObjectCell*> deadAnchored;
   void (*weakPointerSweep)(JSRuntime*) = nullptr;
   bool sweepingWeakPointers = false;
   std::unordered_map<const JSClass*, std::vector<vge::jsapi::Shape*>> shapes;
@@ -310,6 +314,20 @@ class AutoV8 {
 };
 
 bool ReportPending(JSContext* aCx, v8::TryCatch& aTry);
+
+void PushNoResolve(JSContext* aCx, JSObject* aObj, jsid aId);
+void PopNoResolve(JSContext* aCx);
+
+class AutoNoResolve {
+ public:
+  AutoNoResolve(JSContext* aCx, JSObject* aObj, jsid aId) : mCx(aCx) {
+    PushNoResolve(aCx, aObj, aId);
+  }
+  ~AutoNoResolve() { PopNoResolve(mCx); }
+
+ private:
+  JSContext* mCx;
+};
 
 JSObject* NewClassObject(JSContext* aCx, const JSClass* aClass,
                          JS::HandleObject aProto);

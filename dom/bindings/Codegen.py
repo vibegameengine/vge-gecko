@@ -12069,6 +12069,401 @@ def memberReturnsNewObject(member):
     return member.getExtendedAttribute("NewObject") is not None
 
 
+V8_DIRECT_INT_RANGES = {
+    IDLType.Tags.int8: ("int8_t", "INT8_MIN", "INT8_MAX"),
+    IDLType.Tags.uint8: ("uint8_t", "0", "UINT8_MAX"),
+    IDLType.Tags.int16: ("int16_t", "INT16_MIN", "INT16_MAX"),
+    IDLType.Tags.uint16: ("uint16_t", "0", "UINT16_MAX"),
+    IDLType.Tags.int32: ("int32_t", "INT32_MIN", "INT32_MAX"),
+    IDLType.Tags.uint32: ("uint32_t", "0", "INT32_MAX"),
+}
+
+
+def v8DirectInterfaceDescriptor(descriptor, type):
+    name = type.unroll().inner.identifier.name
+    if name == "WindowProxy":
+        return None
+    target = descriptor.getDescriptor(name)
+    if (
+        target.interface.isExternal()
+        or target.interface.isJSImplemented()
+        or not target.interface.hasInterfacePrototypeObject()
+    ):
+        return None
+    return target
+
+
+def v8DirectArgumentSupported(descriptor, argument):
+    if argument.canHaveMissingValue() or argument.variadic:
+        return False
+    type = argument.type
+    if type.isDOMString():
+        return True
+    if type.nullable() and not type.isGeckoInterface():
+        return False
+    if type.isPrimitive():
+        if type.hasClamp() or type.hasEnforceRange():
+            return False
+        return (
+            type.isBoolean()
+            or type.isFloat()
+            or type.tag() in V8_DIRECT_INT_RANGES
+        )
+    if type.isGeckoInterface():
+        return v8DirectInterfaceDescriptor(descriptor, type) is not None
+    return False
+
+
+def v8DirectReturnSupported(descriptor, type):
+    if type is None or type.isUndefined():
+        return True
+    if type.isDOMString() or type.isUSVString():
+        return True
+    if type.nullable() and not type.isGeckoInterface():
+        return False
+    if type.isPrimitive():
+        return (
+            type.isBoolean()
+            or type.isFloat()
+            or type.tag() in V8_DIRECT_INT_RANGES
+        )
+    if type.isGeckoInterface():
+        target = v8DirectInterfaceDescriptor(descriptor, type)
+        return target is not None and target.wrapperCache
+    return False
+
+
+class V8DirectTarget:
+    def __init__(self, descriptor, member, kind):
+        self.descriptor = descriptor
+        self.member = member
+        self.kind = kind
+        cname = IDLToCIdentifier(member.identifier.name)
+        if kind == "getter":
+            self.name = "v8_get_%s" % cname
+            self.returnType = member.type
+            self.arguments = []
+            self.nativeName = CGSpecializedGetter.makeNativeName(descriptor, member)
+            self.extendedAttributes = descriptor.getExtendedAttributes(
+                member, getter=True
+            )
+            self.flag = "STRING_TEMPLATE_GETTER"
+            self.label = GetLabelForErrorReporting(descriptor, member, False) + " getter"
+        elif kind == "setter":
+            self.name = "v8_set_%s" % cname
+            self.returnType = None
+            self.arguments = [FakeArgument(member.type)]
+            self.nativeName = CGSpecializedSetter.makeNativeName(descriptor, member)
+            self.extendedAttributes = descriptor.getExtendedAttributes(
+                member, setter=True
+            )
+            self.flag = "STRING_TEMPLATE_SETTER"
+            self.label = GetLabelForErrorReporting(descriptor, member, False) + " setter"
+        else:
+            self.name = "v8_%s" % cname
+            self.returnType, self.arguments = member.signatures()[0]
+            self.nativeName = CGSpecializedMethod.makeNativeName(descriptor, member)
+            self.extendedAttributes = descriptor.getExtendedAttributes(member)
+            self.flag = "STRING_TEMPLATE_METHOD"
+            self.label = GetLabelForErrorReporting(descriptor, member, False)
+
+    @staticmethod
+    def find(descriptor, member, kind):
+        interface = descriptor.interface
+        if (
+            (descriptor.concrete and descriptor.proxy)
+            or descriptor.isGlobal()
+            or descriptor.isMaybeCrossOriginObject()
+            or interface.isJSImplemented()
+            or not interface.hasInterfacePrototypeObject()
+            or member.isStatic()
+            or member.getExtendedAttribute("Deprecated")
+            or member.getExtendedAttribute("UseCounter")
+            or member.getExtendedAttribute("LenientFloat") is not None
+            or member.getExtendedAttribute("BindingTemplate") is not None
+            or member.getExtendedAttribute("WebExtensionStub") is not None
+            or member.getExtendedAttribute("Unexposed") is not None
+        ):
+            return None
+        if kind == "method":
+            if (
+                member.isDefaultToJSON()
+                or member.isIdentifierLess()
+                or member.isMaplikeOrSetlikeOrIterableMethod()
+                or len(member.signatures()) != 1
+            ):
+                return None
+        else:
+            if (
+                member.slotIndices is not None
+                or member.hasLegacyLenientThis()
+                or member.isMaplikeOrSetlikeAttr()
+            ):
+                return None
+            if kind == "setter" and member.readonly:
+                return None
+        target = V8DirectTarget(descriptor, member, kind)
+        if not v8DirectReturnSupported(descriptor, target.returnType):
+            return None
+        if not all(
+            v8DirectArgumentSupported(descriptor, argument)
+            for argument in target.arguments
+        ):
+            return None
+        if needScopeObject(
+            target.returnType,
+            target.arguments,
+            target.extendedAttributes,
+            descriptor.wrapperCache,
+            True,
+            member.getExtendedAttribute("StoreInSlot"),
+        ):
+            return None
+        return target
+
+    @staticmethod
+    def nameFor(descriptor, member, opType):
+        kind = {"Getter": "getter", "Setter": "setter", "Method": "method"}.get(opType)
+        if kind is None:
+            return "nullptr"
+        target = V8DirectTarget.find(descriptor, member, kind)
+        return target.name if target else "nullptr"
+
+
+class CGV8DirectCall(CGThing):
+    def __init__(self, target):
+        CGThing.__init__(self)
+        self.target = target
+
+    @staticmethod
+    def forMember(descriptor, member):
+        kinds = ["method"] if member.isMethod() else ["getter", "setter"]
+        targets = [V8DirectTarget.find(descriptor, member, kind) for kind in kinds]
+        return [CGV8DirectCall(target) for target in targets if target]
+
+    def declare(self):
+        return ""
+
+    def guardsAndConversions(self):
+        guards = []
+        unwraps = []
+        conversions = []
+        for index, argument in enumerate(self.target.arguments):
+            value = "info[%d]" % index
+            name = "arg%d" % index
+            type = argument.type
+            if type.isDOMString():
+                if type.nullable():
+                    guards.append("!%s->IsString() && !%s->IsNull()" % (value, value))
+                    conversions.append(
+                        "nsAutoString %s;\n"
+                        "if (%s->IsNull()) {\n"
+                        "  %s.SetIsVoid(true);\n"
+                        "} else {\n"
+                        "  vge::jsapi::DirectAssignString(info.GetIsolate(), %s, %s);\n"
+                        "}\n" % (name, value, name, value, name)
+                    )
+                else:
+                    guards.append("!%s->IsString()" % value)
+                    conversions.append(
+                        "nsAutoString %s;\n"
+                        "vge::jsapi::DirectAssignString(info.GetIsolate(), %s, %s);\n"
+                        % (name, value, name)
+                    )
+            elif type.isBoolean():
+                guards.append("!%s->IsBoolean()" % value)
+                conversions.append("bool %s = %s->IsTrue();\n" % (name, value))
+            elif type.isFloat():
+                cType = builtinNames[type.tag()]
+                if not type.isUnrestricted():
+                    check = (
+                        "DirectIsFiniteFloat"
+                        if type.tag() == IDLType.Tags.float
+                        else "DirectIsFiniteDouble"
+                    )
+                    guards.append("!vge::jsapi::%s(%s)" % (check, value))
+                else:
+                    guards.append("!%s->IsNumber()" % value)
+                conversions.append(
+                    "%s %s = %s(%s.As<v8::Number>()->Value());\n"
+                    % (cType, name, cType, value)
+                )
+            elif type.isPrimitive():
+                cType, low, high = V8_DIRECT_INT_RANGES[type.tag()]
+                guards.append(
+                    "!vge::jsapi::DirectFitsInt32(%s, %s, %s)" % (value, low, high)
+                )
+                conversions.append(
+                    "%s %s = %s(%s.As<v8::Int32>()->Value());\n"
+                    % (cType, name, cType, value)
+                )
+            else:
+                target = v8DirectInterfaceDescriptor(self.target.descriptor, type)
+                protoId = "prototypes::id::%s" % target.name
+                unwrap = (
+                    "vge::jsapi::DirectUnwrap(%s, %s, PrototypeTraits<%s>::Depth)"
+                    % (value, protoId, protoId)
+                )
+                slot = "unwrapped[%d]" % len(unwraps)
+                if type.nullable():
+                    unwraps.append(
+                        "if (!%s->IsNull()) {\n"
+                        "  %s = %s;\n"
+                        "  if (!%s) {\n"
+                        "    vge::jsapi::DirectSlowPath(info);\n"
+                        "    return;\n"
+                        "  }\n"
+                        "}\n" % (value, slot, unwrap, slot)
+                    )
+                    conversions.append(
+                        "%s* %s = static_cast<%s*>(%s);\n"
+                        % (target.nativeType, name, target.nativeType, slot)
+                    )
+                else:
+                    unwraps.append(
+                        "%s = %s;\n"
+                        "if (!%s) {\n"
+                        "  vge::jsapi::DirectSlowPath(info);\n"
+                        "  return;\n"
+                        "}\n" % (slot, unwrap, slot)
+                    )
+                    conversions.append(
+                        "NonNull<%s> %s;\n%s = static_cast<%s*>(%s);\n"
+                        % (target.nativeType, name, name, target.nativeType, slot)
+                    )
+        return guards, unwraps, conversions
+
+    def returnCode(self):
+        target = self.target
+        type = target.returnType
+        if type is None or type.isUndefined():
+            return "return true;\n"
+        if type.isDOMString() or type.isUSVString():
+            return (
+                "return vge::jsapi::DirectReturnString(cx, info, result, %s);\n"
+                % toStringBool(type.nullable())
+            )
+        if type.isGeckoInterface():
+            return "JS::Rooted<JS::Value> rval(cx);\n" + wrapForType(
+                type,
+                target.descriptor,
+                {
+                    "jsvalRef": "rval",
+                    "jsvalHandle": "&rval",
+                    "successCode": (
+                        "info.GetReturnValue().Set(vge::jsapi::ToV8(cx, rval.get()));\n"
+                        "return true;\n"
+                    ),
+                    "returnsNewObject": memberReturnsNewObject(target.member),
+                },
+            )
+        if type.isBoolean():
+            return "info.GetReturnValue().Set(result);\nreturn true;\n"
+        if type.isFloat():
+            return "info.GetReturnValue().Set(double(result));\nreturn true;\n"
+        if type.tag() == IDLType.Tags.uint32:
+            return "info.GetReturnValue().Set(uint32_t(result));\nreturn true;\n"
+        return "info.GetReturnValue().Set(int32_t(result));\nreturn true;\n"
+
+    def define(self):
+        target = self.target
+        descriptor = target.descriptor
+        guards, unwraps, conversions = self.guardsAndConversions()
+        argumentCount = len(target.arguments)
+        protoId = "prototypes::id::%s" % descriptor.name
+        ceReaction = ""
+        if (
+            target.member.getExtendedAttribute("CEReactions") is not None
+            and target.kind != "getter"
+        ):
+            ceReaction = dedent(
+                """
+                Maybe<AutoCEReaction> ceReaction;
+                DocGroup* docGroup = self->GetDocGroup();
+                if (docGroup) {
+                  ceReaction.emplace(docGroup->CustomElementReactionsStack(), cx);
+                }
+                """
+            )
+        argsPre = []
+        if needCx(
+            target.returnType,
+            target.arguments,
+            target.extendedAttributes,
+            True,
+            False,
+        ):
+            argsPre.append("cx")
+        call = CGCallGenerator(
+            "needsErrorResult" in target.extendedAttributes,
+            needsCallerType(target.member),
+            isChromeOnly(target.member),
+            [(a, "arg%d" % i) for i, a in enumerate(target.arguments)],
+            argsPre,
+            target.returnType,
+            target.extendedAttributes,
+            descriptor,
+            target.nativeName,
+            False,
+            object="MOZ_KnownLive(self)",
+            context='"%s"' % target.label,
+        ).define()
+        guardCode = ""
+        if guards:
+            guardCode = "if (%s) {\n  vge::jsapi::DirectSlowPath(info);\n  return;\n}\n" % (
+                " || ".join("(%s)" % guard for guard in guards)
+            )
+        unwrappedDecl = "void* unwrapped[%d] = {};\n" % (len(unwraps) + 1)
+        return fill(
+            """
+            static bool
+            ${name}_body(JSContext* cx, const vge::jsapi::DirectInfo& info, ${nativeType}* self, void* const* unwrapped)
+            {
+              AUTO_PROFILER_LABEL_DYNAMIC_FAST(
+                "${interfaceName}", "${memberName}", DOM, cx,
+                uint32_t(js::ProfilingStackFrame::Flags::${flag}) |
+                uint32_t(js::ProfilingStackFrame::Flags::RELEVANT_FOR_JS));
+              $*{conversions}
+              $*{ceReaction}
+              $*{call}
+              $*{returnCode}
+            }
+
+            static void
+            ${name}(const vge::jsapi::DirectInfo& info)
+            {
+              void* rawSelf = vge::jsapi::DirectUnwrap(info.This(), ${protoId}, PrototypeTraits<${protoId}>::Depth);
+              if (!rawSelf || info.Length() < ${argumentCount}) {
+                vge::jsapi::DirectSlowPath(info);
+                return;
+              }
+              $*{guardCode}
+              $*{unwrappedDecl}
+              $*{unwraps}
+              vge::jsapi::DirectFrame frame(info);
+              if (!${name}_body(frame.cx(), info, static_cast<${nativeType}*>(rawSelf), unwrapped)) {
+                vge::jsapi::DirectThrowPending(frame.cx());
+              }
+            }
+
+            """,
+            name=target.name,
+            nativeType=descriptor.nativeType,
+            interfaceName=descriptor.interface.identifier.name,
+            memberName=target.member.identifier.name,
+            flag=target.flag,
+            conversions="".join(conversions),
+            ceReaction=ceReaction,
+            call=call,
+            returnCode=self.returnCode(),
+            protoId=protoId,
+            argumentCount=argumentCount,
+            guardCode=guardCode,
+            unwrappedDecl=unwrappedDecl,
+            unwraps="".join(unwraps),
+        )
+
+
 class CGMemberJITInfo(CGThing):
     """
     A class for generating the JITInfo for a property that points to
@@ -12133,9 +12528,11 @@ class CGMemberJITInfo(CGThing):
                   ${isAlwaysInSlot}, /* isAlwaysInSlot.  Only relevant for getters. */
                   ${isLazilyCachedInSlot}, /* isLazilyCachedInSlot.  Only relevant for getters. */
                   ${isTypedMethod},  /* isTypedMethod.  Only relevant for methods. */
-                  ${slotIndex}   /* Reserved slot index, if we're stored in a slot, else 0. */
+                  ${slotIndex},   /* Reserved slot index, if we're stored in a slot, else 0. */
+                  ${vgeDirect}
                 }
                 """,
+                vgeDirect=V8DirectTarget.nameFor(self.descriptor, self.member, opType),
                 opName=opName,
                 name=self.descriptor.name,
                 opType=opType,
@@ -17317,6 +17714,7 @@ class CGDescriptor(CGThing):
                             cgThings.append(
                                 CGMethodPromiseWrapper(descriptor, specializedMethod)
                             )
+                        cgThings.extend(CGV8DirectCall.forMember(descriptor, m))
                         cgThings.append(CGMemberJITInfo(descriptor, m))
                         if props.isCrossOriginMethod:
                             needCrossOriginPropertyArrays = True
@@ -17398,6 +17796,7 @@ class CGDescriptor(CGThing):
                     not m.isStatic()
                     and descriptor.interface.hasInterfacePrototypeObject()
                 ):
+                    cgThings.extend(CGV8DirectCall.forMember(descriptor, m))
                     cgThings.append(CGMemberJITInfo(descriptor, m))
             if m.isConst() and m.type.isPrimitive():
                 cgThings.append(CGConstDefinition(m))
@@ -19349,7 +19748,12 @@ class CGBindingRoot(CGThing):
 
     def __init__(self, config: Configuration, prefix, webIDLFile):
         bindingHeaders = dict.fromkeys(
-            ("mozilla/dom/NonRefcountedDOMObject.h", "MainThreadUtils.h"), True
+            (
+                "mozilla/dom/NonRefcountedDOMObject.h",
+                "MainThreadUtils.h",
+                "VgeV8Direct.h",
+            ),
+            True,
         )
         bindingDeclareHeaders = dict.fromkeys(
             (

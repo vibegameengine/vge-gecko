@@ -1332,9 +1332,6 @@ bool JS_InitializePropertiesFromCompatibleNativeObject(JSContext* aCx,
   v8::TryCatch tryCatch(isolate);
   v8::Local<v8::Object> src = ScriptTarget(aCx, aSrc);
   v8::Local<v8::Object> dst = ScriptTarget(aCx, aDst);
-  if (dst->SetPrototype(ctx, src->GetPrototype()).IsNothing()) {
-    return v8.Check(tryCatch);
-  }
   v8::Local<v8::Array> names;
   if (!src->GetPropertyNames(ctx, v8::KeyCollectionMode::kOwnOnly,
                              v8::ALL_PROPERTIES, v8::IndexFilter::kIncludeIndices,
@@ -1377,11 +1374,6 @@ bool JS_InitializePropertiesFromCompatibleNativeObject(JSContext* aCx,
     if (dst->DefineProperty(ctx, key.As<v8::Name>(), *desc).IsNothing()) {
       return v8.Check(tryCatch);
     }
-  }
-  for (uint32_t i = 0; i < JSCLASS_RESERVED_SLOTS(JS::GetClass(aSrc)) &&
-                       i < kFixedSlots;
-       i++) {
-    JS_SetReservedSlot(aDst, i, JS::GetReservedSlot(aSrc, i));
   }
   return true;
 }
