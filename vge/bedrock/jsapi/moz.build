@@ -23,4 +23,8 @@ OS_LIBS += [
     "winmm",
 ]
 
+GeneratedFile("icudtl.dat", script="copy_icu_data.py", flags=[])
+
+FINAL_TARGET_FILES += ["!icudtl.dat"]
+
 FINAL_LIBRARY = "js"

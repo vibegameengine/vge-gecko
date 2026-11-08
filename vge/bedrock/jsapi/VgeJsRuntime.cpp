@@ -1,6 +1,8 @@
 #include "VgeJsInternal.h"
 #include "platform/VgeJsPlatform.h"
 
+#include <windows.h>
+
 #include "js/Context.h"
 #include "js/GCAPI.h"
 #include "js/Initialization.h"
@@ -590,6 +592,16 @@ const char* JS::detail::InitWithFailureDiagnostic(
       "--harmony-json-parse-with-source --harmony-regexp-unicode-sets";
   v8::V8::SetFlagsFromString(kUnfrozenFlags, sizeof(kUnfrozenFlags) - 1);
   sPlatform = NewEventLoopPlatform();
+  HMODULE thisModule = nullptr;
+  char modulePath[MAX_PATH];
+  if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                              GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                          reinterpret_cast<LPCSTR>(&JS_NewContext),
+                          &thisModule) ||
+      !GetModuleFileNameA(thisModule, modulePath, MAX_PATH) ||
+      !v8::V8::InitializeICUDefaultLocation(modulePath)) {
+    return "vge jsapi: icudtl.dat was not found next to the engine module";
+  }
   v8::V8::InitializePlatform(sPlatform.get());
   cppgc::InitializeProcess(sPlatform->GetPageAllocator());
   if (!v8::V8::Initialize()) {
