@@ -34,6 +34,17 @@
 #include "nsIAppWindow.h"
 #include "nsIObserverService.h"
 #include "nsIWebBrowserChrome.h"
+#include "mozilla/ErrorResult.h"
+#include "mozilla/dom/HTMLBodyElement.h"
+#include "nsFrameLoader.h"
+#include "nsFrameLoaderOwner.h"
+#include "nsGkAtoms.h"
+#include "nsGlobalWindowOuter.h"
+#include "nsIBrowserDOMWindow.h"
+#include "nsQueryObject.h"
+#include "nsIWindowCreator.h"
+#include "nsIWindowWatcher.h"
+#include "nsEmbedCID.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsAppShellCID.h"
 #include "nsArrayEnumerator.h"
@@ -202,20 +213,118 @@ void PrintFrameGeometry(Document* aDocument) {
   }
 }
 
+class SingleWindowOpener final : public nsIBrowserDOMWindow {
+ public:
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIBROWSERDOMWINDOW
+
+  explicit SingleWindowOpener(nsIDocShell* aContent) : mContent(aContent) {}
+
+ private:
+  ~SingleWindowOpener() = default;
+  nsCOMPtr<nsIDocShell> mContent;
+};
+
+NS_IMPL_ISUPPORTS(SingleWindowOpener, nsIBrowserDOMWindow)
+
+NS_IMETHODIMP
+SingleWindowOpener::CreateContentWindow(
+    nsIURI* aURI, nsIOpenWindowInfo* aOpenWindowInfo, int16_t aWhere,
+    int32_t aFlags, nsIPrincipal* aTriggeringPrincipal,
+    nsIPolicyContainer* aPolicyContainer,
+    mozilla::dom::BrowsingContext** aResult) {
+  RefPtr<mozilla::dom::BrowsingContext> context =
+      mContent->GetBrowsingContext();
+  printf("stage: opener where=%d\n", int(aWhere));
+  context.forget(aResult);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+SingleWindowOpener::CreateContentWindowInFrame(
+    nsIURI* aURI, nsIOpenURIInFrameParams* aParams, int16_t aWhere,
+    int32_t aFlags, const nsAString& aName, Element** aResult) {
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+SingleWindowOpener::OpenURI(nsIURI* aURI, nsIOpenWindowInfo* aOpenWindowInfo,
+                            int16_t aWhere, int32_t aFlags,
+                            nsIPrincipal* aTriggeringPrincipal,
+                            nsIPolicyContainer* aPolicyContainer,
+                            mozilla::dom::BrowsingContext** aResult) {
+  return CreateContentWindow(aURI, aOpenWindowInfo, aWhere, aFlags,
+                             aTriggeringPrincipal, aPolicyContainer, aResult);
+}
+
+NS_IMETHODIMP
+SingleWindowOpener::OpenURIInFrame(nsIURI* aURI,
+                                   nsIOpenURIInFrameParams* aParams,
+                                   int16_t aWhere, int32_t aFlags,
+                                   const nsAString& aName, Element** aResult) {
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+SingleWindowOpener::CanClose(bool* aResult) {
+  *aResult = true;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+SingleWindowOpener::GetTabCount(uint32_t* aResult) {
+  *aResult = 1;
+  return NS_OK;
+}
+
+nsCOMPtr<nsIURI> ChromeShellUri() {
+  nsCOMPtr<nsIURI> uri;
+  NS_NewURI(getter_AddRefs(uri), "about:blank"_ns);
+  return uri;
+}
+
+already_AddRefed<nsIDocShell> CreateContentDocShell(nsIAppWindow* aWindow) {
+  nsCOMPtr<nsIDocShell> chromeShell;
+  aWindow->GetDocShell(getter_AddRefs(chromeShell));
+  SpinEventLoopUntil("vge-bedrock-chrome-shell"_ns, [&] {
+    Document* document = chromeShell->GetDocument();
+    return document && document->GetPresShell() && document->GetBody() &&
+           document->GetReadyStateEnum() == Document::READYSTATE_COMPLETE;
+  });
+  RefPtr<Document> chromeDocument = chromeShell->GetDocument();
+  RefPtr<Element> frame = chromeDocument->CreateHTMLElement(nsGkAtoms::iframe);
+  IgnoredErrorResult attributeError;
+  frame->SetAttribute(u"type"_ns, u"content"_ns, nullptr, attributeError);
+  frame->SetAttribute(
+      u"style"_ns,
+      u"position:fixed;left:0;top:0;width:100%;height:100%;border:0"_ns,
+      nullptr, attributeError);
+  RefPtr<Element> body = chromeDocument->GetBody();
+  body->AppendChildTo(frame, true, IgnoreErrors());
+  chromeDocument->FlushPendingNotifications(FlushType::Layout);
+  RefPtr<nsFrameLoaderOwner> owner = do_QueryObject(frame);
+  RefPtr<nsFrameLoader> loader = owner->GetFrameLoader();
+  nsCOMPtr<nsIDocShell> content = loader->GetDocShell(IgnoreErrors());
+  nsCOMPtr<nsIBrowserDOMWindow> opener = new SingleWindowOpener(content);
+  nsGlobalWindowOuter::Cast(chromeDocument->GetWindow())
+      ->SetBrowserDOMWindowOuter(opener);
+  return content.forget();
+}
+
 int RunWindow(const char* aUrl, int aWidth, int aHeight) {
   nsCOMPtr<nsIAppShellService> appShell =
       do_GetService(NS_APPSHELLSERVICE_CONTRACTID);
   nsCOMPtr<nsIAppWindow> window;
   if (NS_FAILED(appShell->CreateTopLevelWindow(
-          nullptr, nullptr, nsIWebBrowserChrome::CHROME_ALL, aWidth, aHeight,
+          nullptr, ChromeShellUri().get(), nsIWebBrowserChrome::CHROME_ALL,
+          aWidth, aHeight,
           getter_AddRefs(window)))) {
     printf("CreateTopLevelWindow failed\n");
     return 1;
   }
-  nsCOMPtr<nsIDocShell> docShell;
-  window->GetDocShell(getter_AddRefs(docShell));
   nsCOMPtr<nsIBaseWindow> baseWindow = do_QueryInterface(window);
   baseWindow->SetVisibility(true);
+  nsCOMPtr<nsIDocShell> docShell = CreateContentDocShell(window);
   nsCOMPtr<nsIURI> uri;
   if (NS_FAILED(NS_NewURI(getter_AddRefs(uri), aUrl))) {
     printf("bad page url %s\n", aUrl);
@@ -236,7 +345,7 @@ int RunWindow(const char* aUrl, int aWidth, int aHeight) {
     if (!current) {
       return true;
     }
-    Document* document = current->GetDocument();
+    Document* document = docShell->GetDocument();
     if (!reported && document &&
         document->GetReadyStateEnum() == Document::READYSTATE_COMPLETE &&
         !NS_IsAboutBlank(document->GetDocumentURI())) {
@@ -265,16 +374,16 @@ int RunLayoutTest(const char* aPagePath, int aWidth, int aHeight) {
       do_GetService(NS_APPSHELLSERVICE_CONTRACTID);
   nsCOMPtr<nsIAppWindow> window;
   if (NS_FAILED(appShell->CreateTopLevelWindow(
-          nullptr, nullptr, nsIWebBrowserChrome::CHROME_ALL, aWidth, aHeight,
+          nullptr, ChromeShellUri().get(), nsIWebBrowserChrome::CHROME_ALL,
+          aWidth, aHeight,
           getter_AddRefs(window)))) {
     printf("CreateTopLevelWindow failed\n");
     return 1;
   }
   printf("stage: window\n");
-  nsCOMPtr<nsIDocShell> docShell;
-  window->GetDocShell(getter_AddRefs(docShell));
   nsCOMPtr<nsIBaseWindow> baseWindow = do_QueryInterface(window);
   baseWindow->SetVisibility(true);
+  nsCOMPtr<nsIDocShell> docShell = CreateContentDocShell(window);
 
   nsCOMPtr<nsIURI> uri;
   if (!strncmp(aPagePath, "http", 4)) {
@@ -435,10 +544,18 @@ int VgeBedrock_RunLayoutTest(int aArgc, char** aArgv) {
     }
     printf("stage: xpcom ready\n");
     Preferences::SetBool("devtools.console.stdout.content", true);
+    nsCOMPtr<nsIWindowCreator> windowCreator =
+        do_GetService("@mozilla.org/toolkit/app-startup;1");
+    nsCOMPtr<nsIWindowWatcher> windowWatcher =
+        do_GetService(NS_WINDOWWATCHER_CONTRACTID);
+    windowWatcher->SetWindowCreator(windowCreator);
     nsCOMPtr<nsIObserverService> observers = services::GetObserverService();
     observers->NotifyObservers(nullptr, "profile-do-change", u"startup");
     observers->NotifyObservers(nullptr, "profile-after-change", u"startup");
     Preferences::SetBool("webgl.allow-in-parent", true);
+    Preferences::SetInt("browser.link.open_newwindow",
+                        nsIBrowserDOMWindow::OPEN_CURRENTWINDOW);
+    Preferences::SetInt("browser.link.open_newwindow.restriction", 0);
     gfxPlatform::GetPlatform();
     gfx::GPUProcessManager::Get()->EnsureProtocolsReady();
     result = aArgc > 2 && !strcmp(aArgv[1], "--window")
