@@ -640,6 +640,8 @@ JSScript* JS::InstantiateGlobalStencil(JSContext* cx,
       (!main->cell || main->realm == cx->realm())) {
     main->realm = cx->realm();
     main->hideFromDebugger = options.hideScriptFromDebugger;
+    EnsureCodeCache(stencil);
+    stencil->mainData = nullptr;
     if (!main->cell) {
       NewScriptCell(cx, main);
     }
