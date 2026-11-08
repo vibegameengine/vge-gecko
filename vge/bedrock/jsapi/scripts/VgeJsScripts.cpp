@@ -15,11 +15,11 @@ namespace {
 
 std::mutex gGraveyardLock;
 std::vector<std::function<void()>> gGraveyard;
-std::unordered_map<JSRuntime*, ScriptsRuntime*> gRuntimeStates;
-std::unordered_map<JSContext*, ScriptsContext*> gContextStates;
-std::unordered_map<int, ScriptData*> gScriptsByV8Id;
-std::vector<ScriptData*> gReferrers;
-std::vector<v8::Isolate*> gSetUpIsolates;
+thread_local std::unordered_map<JSRuntime*, ScriptsRuntime*> gRuntimeStates;
+thread_local std::unordered_map<JSContext*, ScriptsContext*> gContextStates;
+thread_local std::unordered_map<int, ScriptData*> gScriptsByV8Id;
+thread_local std::vector<ScriptData*> gReferrers;
+thread_local std::vector<v8::Isolate*> gSetUpIsolates;
 JS::FilenameValidationCallback gFilenameValidationCallback = nullptr;
 JS::BuildIdOp gBuildIdOp = nullptr;
 
@@ -27,7 +27,7 @@ struct JsmFunction {
   JSObject* environment;
   v8::Global<v8::Value> keep;
 };
-std::unordered_map<int, JsmFunction*> gJsmByScriptId;
+thread_local std::unordered_map<int, JsmFunction*> gJsmByScriptId;
 
 }
 

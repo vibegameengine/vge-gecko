@@ -87,6 +87,7 @@ void DirectThrowPending(JSContext* aCx) { ThrowPendingToV8(aCx); }
 
 JS::Symbol* WellKnownSymbol(JSContext* aCx, JS::SymbolCode aCode) {
   v8::Isolate* isolate = aCx->isolate;
+  v8::HandleScope outerScope(isolate);
   v8::EscapableHandleScope scope(isolate);
   uint32_t code = uint32_t(aCode);
   v8::Local<v8::Symbol> symbol;

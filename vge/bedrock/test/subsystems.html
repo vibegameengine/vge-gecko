@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+<body>
+  <canvas id="c2d" width="4" height="4"></canvas>
+  <canvas id="cgl" width="4" height="4"></canvas>
+  <script>
+    const tests = {
+      timeout: () => new Promise((resolve) => setTimeout(() => resolve("ok"), 1)),
+      microtask: () => new Promise((resolve) => queueMicrotask(() => resolve("ok"))),
+      mutationObserver: () => new Promise((resolve) => {
+        const target = document.createElement("div");
+        new MutationObserver((records) => resolve(records[0].type)).observe(target, { attributes: true });
+        target.setAttribute("a", "b");
+      }),
+      structuredClone: async () => structuredClone({ a: [1, new Map([[1, 2]])] }).a[1].get(1),
+      textEncoder: async () => new TextDecoder().decode(new TextEncoder().encode("abc")),
+      crypto: async () => crypto.getRandomValues(new Uint8Array(4)).length,
+      blob: () => new Blob(["blob-text"]).text(),
+      fetchData: () => fetch("data:text/plain,fetched").then((r) => r.text()),
+      xhrData: () => new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", "data:text/plain,xhr");
+        xhr.onload = () => resolve(xhr.responseText);
+        xhr.onerror = () => reject(new Error("xhr error"));
+        xhr.send();
+      }),
+      worker: () => new Promise((resolve, reject) => {
+        const source = "onmessage = (e) => postMessage(e.data + 1);";
+        const worker = new Worker(URL.createObjectURL(new Blob([source], { type: "text/javascript" })));
+        worker.onmessage = (e) => { worker.terminate(); resolve(e.data); };
+        worker.onerror = (e) => reject(new Error("worker error " + e.message));
+        worker.postMessage(41);
+      }),
+      canvas2d: async () => {
+        const context = document.getElementById("c2d").getContext("2d");
+        context.fillStyle = "rgb(10, 20, 30)";
+        context.fillRect(0, 0, 4, 4);
+        return Array.from(context.getImageData(1, 1, 1, 1).data).join(",");
+      },
+      webgl: async () => {
+        const gl = document.getElementById("cgl").getContext("webgl");
+        if (!gl) {
+          throw new Error("no webgl context");
+        }
+        gl.clearColor(1, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        const pixel = new Uint8Array(4);
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+        return Array.from(pixel).join(",");
+      },
+      localStorage: async () => {
+        localStorage.setItem("vge", "stored");
+        return localStorage.getItem("vge");
+      },
+      indexedDB: () => new Promise((resolve, reject) => {
+        const open = indexedDB.open("vge-test", 1);
+        open.onupgradeneeded = () => open.result.createObjectStore("s");
+        open.onerror = () => reject(open.error);
+        open.onsuccess = () => {
+          const store = open.result.transaction("s", "readwrite").objectStore("s");
+          store.put({ v: 7 }, "k");
+          const read = store.get("k");
+          read.onsuccess = () => resolve(read.result.v);
+          read.onerror = () => reject(read.error);
+        };
+      }),
+      webAudio: () => {
+        const context = new OfflineAudioContext(1, 128, 44100);
+        const oscillator = context.createOscillator();
+        oscillator.connect(context.destination);
+        oscillator.start();
+        return context.startRendering().then((buffer) => buffer.length);
+      },
+      media: async () => document.createElement("video").canPlayType("video/mp4; codecs=avc1.42E01E"),
+    };
+    const limit = (promise) => Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error("timed out")), 4000)),
+    ]);
+    const failures = [];
+    Promise.all(Object.entries(tests).map(([name, run]) =>
+      limit(Promise.resolve().then(run)).then(
+        (value) => console.log("subsystem", name, "ok", String(value)),
+        (error) => {
+          failures.push(name);
+          console.log("subsystem", name, "FAILED", String(error));
+        }))).then(() => {
+      document.documentElement.setAttribute("data-vge-failures", failures.join(","));
+      document.documentElement.setAttribute("data-vge-done", "");
+    });
+  </script>
+</body>
+</html>

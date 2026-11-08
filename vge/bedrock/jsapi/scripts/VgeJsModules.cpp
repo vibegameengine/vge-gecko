@@ -36,7 +36,7 @@ struct ModuleData {
   JS::Heap<JSObject*> wasmSource;
 };
 
-std::unordered_multimap<int, ModuleData*> gModulesByHash;
+thread_local std::unordered_multimap<int, ModuleData*> gModulesByHash;
 
 enum RequestSlot : uint32_t { kSpecifier, kType, kSourcePhase, kRequestSlots };
 

@@ -624,6 +624,7 @@ JSContext* JS_NewContext(uint32_t aMaxBytes, JSRuntime* aParentRuntime) {
   JSContext* cx = new JSContext(rt);
   rt->mainContext = cx;
   tlsContext.set(cx);
+  ::new (cx->taskScope) v8::HandleScope(rt->isolate);
   {
     v8::HandleScope scope(rt->isolate);
     rt->cellKey.Reset(rt->isolate,
@@ -652,11 +653,21 @@ void JS_DestroyContext(JSContext* aCx) {
   for (JS::Realm* realm : realms) {
     DestroyRealm(rt, realm, true);
   }
+  reinterpret_cast<v8::HandleScope*>(aCx->taskScope)->~HandleScope();
   DetachIsolate(sPlatform.get(), rt->isolate);
   rt->isolate->Exit();
   rt->isolate->Dispose();
+  ReleaseCellChunks(rt);
   tlsContext.set(nullptr);
   delete aCx;
+}
+
+void js::ReleaseTaskHandles(JSContext* aCx) {
+  if (aCx->isolate->InContext()) {
+    return;
+  }
+  reinterpret_cast<v8::HandleScope*>(aCx->taskScope)->~HandleScope();
+  ::new (aCx->taskScope) v8::HandleScope(aCx->isolate);
 }
 
 void* JS_GetContextPrivate(JSContext* aCx) { return aCx->data; }

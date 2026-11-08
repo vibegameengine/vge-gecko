@@ -10,6 +10,7 @@
 #include "js/Debug.h"
 #include "js/GCAPI.h"
 #include "js/Utility.h"
+#include "js/friend/CycleCollector.h"
 #include "js/friend/DumpFunctions.h"
 #include "js/friend/MicroTask.h"
 #include "jsapi.h"
@@ -566,6 +567,7 @@ void CycleCollectedJSContext::AfterProcessTask(uint32_t aRecursionDepth) {
 
   mRuntime->FinalizeDeferredThings(CycleCollectedJSRuntime::FinalizeNow);
   nsCycleCollector_maybeDoDeferredDeletion();
+  js::ReleaseTaskHandles(mJSContext);
 }
 
 void CycleCollectedJSContext::AfterProcessMicrotasks() {

@@ -89,6 +89,21 @@ RuntimeDirProvider::GetFile(const char* aProp, bool* aPersistent,
   if (!strcmp(aProp, XRE_EXECUTABLE_FILE)) {
     return mBinaryFile->Clone(aResult);
   }
+  if (!strcmp(aProp, NS_APP_USER_PROFILE_50_DIR) ||
+      !strcmp(aProp, NS_APP_USER_PROFILE_LOCAL_50_DIR)) {
+    nsCOMPtr<nsIFile> file;
+    if (NS_FAILED(NS_GetSpecialDirectory(NS_OS_TEMP_DIR,
+                                         getter_AddRefs(file))) ||
+        NS_FAILED(file->AppendNative("vge-bedrock-profile"_ns))) {
+      return NS_ERROR_FAILURE;
+    }
+    nsresult rv = file->Create(nsIFile::DIRECTORY_TYPE, 0700);
+    if (NS_FAILED(rv) && rv != NS_ERROR_FILE_ALREADY_EXISTS) {
+      return rv;
+    }
+    file.forget(aResult);
+    return NS_OK;
+  }
   if (!strcmp(aProp, NS_APP_PREF_DEFAULTS_50_DIR)) {
     nsCOMPtr<nsIFile> file;
     if (NS_FAILED(mGreDir->Clone(getter_AddRefs(file))) ||

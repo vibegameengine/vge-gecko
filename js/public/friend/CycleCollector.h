@@ -125,6 +125,8 @@ extern JS_PUBLIC_API void IterateGrayObjects(
 extern JS_PUBLIC_API bool CheckGrayMarkingState(JSRuntime* rt);
 #endif
 
+extern JS_PUBLIC_API void ReleaseTaskHandles(JSContext* cx);
+
 }  // namespace js
 
 #endif  // js_friend_CycleCollector_h

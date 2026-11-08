@@ -14,16 +14,6 @@ struct Chunk : public js::gc::ArenaChunkBase {
   explicit Chunk(JSRuntime* aRuntime) : js::gc::ArenaChunkBase(aRuntime) {}
 };
 
-struct SizeClass {
-  size_t size;
-  CellTail* freeList = nullptr;
-  uint8_t* cursor = nullptr;
-  uint8_t* limit = nullptr;
-};
-
-SizeClass gClasses[] = {{sizeof(StringCell)}, {sizeof(ObjectCell)}};
-std::vector<Chunk*> gChunks;
-
 static_assert(sizeof(StringCell) == sizeof(SymbolCell));
 static_assert(sizeof(StringCell) == sizeof(BigIntCell));
 static_assert(offsetof(StringCell, tail) == offsetof(SymbolCell, tail));
@@ -31,16 +21,12 @@ static_assert(offsetof(StringCell, tail) == offsetof(BigIntCell, tail));
 static_assert(sizeof(StringCell) % js::gc::CellAlignBytes == 0);
 static_assert(sizeof(ObjectCell) % js::gc::CellAlignBytes == 0);
 
-SizeClass& ClassFor(size_t aSize) {
-  for (SizeClass& c : gClasses) {
-    if (c.size == aSize) {
-      return c;
-    }
-  }
-  MOZ_CRASH("vge jsapi: unknown cell size");
+CellPool& PoolFor(JSRuntime* aRuntime, size_t aSize) {
+  MOZ_RELEASE_ASSERT(aSize == sizeof(ObjectCell) || aSize == sizeof(StringCell));
+  return aRuntime->cellPools[aSize == sizeof(ObjectCell) ? 1 : 0];
 }
 
-Chunk* NewChunk() {
+Chunk* NewChunk(JSRuntime* aRuntime) {
   void* reserve = VirtualAlloc(nullptr, js::gc::ChunkSize * 2, MEM_RESERVE,
                                PAGE_NOACCESS);
   MOZ_RELEASE_ASSERT(reserve);
@@ -51,18 +37,19 @@ Chunk* NewChunk() {
                              js::gc::ChunkSize, MEM_RESERVE | MEM_COMMIT,
                              PAGE_READWRITE);
   if (!chunk) {
-    return NewChunk();
+    return NewChunk(aRuntime);
   }
-  Chunk* c = new (chunk) Chunk(Runtime());
-  c->info.zone = Runtime()->zone;
-  gChunks.push_back(c);
+  Chunk* c = new (chunk) Chunk(aRuntime);
+  c->info.zone = aRuntime->zone;
+  aRuntime->cellChunks.push_back(c);
   return c;
 }
 
 }
 
 void* AllocCell(size_t aSize) {
-  SizeClass& c = ClassFor(aSize);
+  JSRuntime* rt = Runtime();
+  CellPool& c = PoolFor(rt, aSize);
   if (c.freeList) {
     CellTail* tail = c.freeList;
     c.freeList = tail->nextFree;
@@ -74,7 +61,7 @@ void* AllocCell(size_t aSize) {
     return cell;
   }
   if (!c.cursor || c.cursor + aSize > c.limit) {
-    Chunk* chunk = NewChunk();
+    Chunk* chunk = NewChunk(rt);
     c.cursor = reinterpret_cast<uint8_t*>(chunk) + js::gc::FirstArenaOffset;
     c.limit = reinterpret_cast<uint8_t*>(chunk) + js::gc::ChunkSize;
   }
@@ -85,7 +72,7 @@ void* AllocCell(size_t aSize) {
 }
 
 void FreeCell(void* aCell, size_t aSize) {
-  SizeClass& c = ClassFor(aSize);
+  CellPool& c = PoolFor(Runtime(), aSize);
   CellTail* tail =
       aSize == sizeof(ObjectCell)
           ? &static_cast<ObjectCell*>(aCell)->tail
@@ -97,13 +84,24 @@ void FreeCell(void* aCell, size_t aSize) {
 }
 
 bool IsCellAddress(const void* aPtr) {
+  JSRuntime* rt = Runtime();
+  if (!rt) {
+    return false;
+  }
   uintptr_t chunk = uintptr_t(aPtr) & ~uintptr_t(js::gc::ChunkMask);
-  for (Chunk* c : gChunks) {
+  for (void* c : rt->cellChunks) {
     if (uintptr_t(c) == chunk) {
       return true;
     }
   }
   return false;
+}
+
+void ReleaseCellChunks(JSRuntime* aRuntime) {
+  for (void* c : aRuntime->cellChunks) {
+    VirtualFree(c, 0, MEM_RELEASE);
+  }
+  aRuntime->cellChunks.clear();
 }
 
 CellTail* TailOf(js::gc::Cell* aCell, JS::TraceKind aKind) {

@@ -112,6 +112,12 @@ struct BigIntCell {
   }
 };
 
+struct CellPool {
+  CellTail* freeList = nullptr;
+  uint8_t* cursor = nullptr;
+  uint8_t* limit = nullptr;
+};
+
 struct Shape {
   JS::shadow::Shape shadow;
   JS::shadow::BaseShape base;
@@ -147,6 +153,7 @@ JSString* AtomizeCell(JSContext* aCx, JSString* aStr);
 void* AllocCell(size_t aSize);
 void FreeCell(void* aCell, size_t aSize);
 bool IsCellAddress(const void* aPtr);
+void ReleaseCellChunks(JSRuntime* aRuntime);
 
 CellTail* TailOf(js::gc::Cell* aCell, JS::TraceKind aKind);
 
@@ -196,6 +203,8 @@ struct JSRuntime {
   std::unique_ptr<v8::CppHeap> cppHeap;
   JSContext* mainContext = nullptr;
   JS::Zone* zone = nullptr;
+  vge::jsapi::CellPool cellPools[2];
+  std::vector<void*> cellChunks;
   v8::Global<v8::Private> cellKey;
   v8::Global<v8::Private> slotsKey;
   mozilla::LinkedList<js::PersistentRootedBase>
@@ -277,6 +286,7 @@ struct JSContext : public JS::RootingContext {
   JSRuntime* runtime;
   v8::Isolate* isolate;
   void* data = nullptr;
+  alignas(v8::HandleScope) unsigned char taskScope[sizeof(v8::HandleScope)];
   JS::Value pendingException;
   bool exceptionPending = false;
   bool throwingOutOfMemory = false;

@@ -22,7 +22,7 @@ struct DebuggerData {
   std::vector<JS::Heap<JSObject*>> debuggees;
 };
 
-std::vector<JSObject*> gDebuggers;
+thread_local std::vector<JSObject*> gDebuggers;
 
 DebuggerData* DebuggerDataOf(JSObject* aObj) {
   JS::Value slot = JS::GetReservedSlot(aObj, 0);

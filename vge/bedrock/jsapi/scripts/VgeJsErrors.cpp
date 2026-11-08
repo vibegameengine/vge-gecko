@@ -33,7 +33,7 @@ struct ErrorInfo {
   v8::Global<v8::Value> stackKeep;
 };
 
-bool gInterceptorRunning = false;
+thread_local bool gInterceptorRunning = false;
 
 v8::Local<v8::Private> ErrorInfoKey(v8::Isolate* aIsolate) {
   return v8::Private::ForApi(

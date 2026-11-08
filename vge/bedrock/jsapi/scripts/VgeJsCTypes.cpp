@@ -60,7 +60,7 @@ struct CTypesState {
   JS::CTypesActivityCallback activity = nullptr;
 };
 
-std::unordered_map<JSContext*, CTypesState> gCTypesStates;
+thread_local std::unordered_map<JSContext*, CTypesState> gCTypesStates;
 std::unordered_map<JSObject*, const JS::CTypesCallbacks*> gCTypesCallbacks;
 
 v8::Local<v8::Private> TypeKey(v8::Isolate* aIsolate) {
