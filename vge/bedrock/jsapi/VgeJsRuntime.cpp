@@ -718,6 +718,8 @@ void JS::LeaveRealm(JSContext* aCx, JS::Realm* aOldRealm) {
   aCx->leaveRealm(aOldRealm);
 }
 
+v8::Platform* vge::jsapi::CurrentPlatform() { return sPlatform.get(); }
+
 v8::Isolate* vge::jsapi::MainIsolate() {
   JSContext* cx = CurrentContext();
   return cx ? cx->isolate : nullptr;

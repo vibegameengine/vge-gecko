@@ -339,8 +339,19 @@ class EventLoopPlatform final : public v8::Platform {
       v8::Isolate* aIsolate, v8::TaskPriority aPriority) override {
     std::lock_guard<std::mutex> lock(mMutex);
     auto it = mIsolates.find(aIsolate);
-    MOZ_RELEASE_ASSERT(it != mIsolates.end());
+    if (it == mIsolates.end()) {
+      return mInner->GetForegroundTaskRunner(aIsolate);
+    }
     return it->second.runners[size_t(aPriority)];
+  }
+
+  void PumpHelper(v8::Isolate* aIsolate) {
+    while (v8::platform::PumpMessageLoop(mInner.get(), aIsolate)) {
+    }
+  }
+
+  void ForgetHelper(v8::Isolate* aIsolate) {
+    v8::platform::NotifyIsolateShutdown(mInner.get(), aIsolate);
   }
 
   bool IdleTasksEnabled(v8::Isolate* aIsolate) override { return true; }
@@ -485,6 +496,14 @@ void AttachIsolateToCurrentThread(v8::Platform* aPlatform,
 
 void DetachIsolate(v8::Platform* aPlatform, v8::Isolate* aIsolate) {
   static_cast<EventLoopPlatform*>(aPlatform)->Detach(aIsolate);
+}
+
+void PumpHelperIsolate(v8::Platform* aPlatform, v8::Isolate* aIsolate) {
+  static_cast<EventLoopPlatform*>(aPlatform)->PumpHelper(aIsolate);
+}
+
+void ForgetHelperIsolate(v8::Platform* aPlatform, v8::Isolate* aIsolate) {
+  static_cast<EventLoopPlatform*>(aPlatform)->ForgetHelper(aIsolate);
 }
 
 }

@@ -212,13 +212,20 @@ int RunLayoutTest(const char* aPagePath, int aWidth, int aHeight) {
   nsCOMPtr<nsIBaseWindow> baseWindow = do_QueryInterface(docShell);
   baseWindow->SetPositionAndSize(0, 0, aWidth, aHeight, 0);
 
-  nsCOMPtr<nsIFile> pageFile;
-  if (NS_FAILED(XRE_GetFileFromPath(aPagePath, getter_AddRefs(pageFile)))) {
-    printf("bad page path %s\n", aPagePath);
-    return 1;
-  }
   nsCOMPtr<nsIURI> uri;
-  NS_NewFileURI(getter_AddRefs(uri), pageFile);
+  if (!strncmp(aPagePath, "http", 4)) {
+    if (NS_FAILED(NS_NewURI(getter_AddRefs(uri), aPagePath))) {
+      printf("bad page url %s\n", aPagePath);
+      return 1;
+    }
+  } else {
+    nsCOMPtr<nsIFile> pageFile;
+    if (NS_FAILED(XRE_GetFileFromPath(aPagePath, getter_AddRefs(pageFile)))) {
+      printf("bad page path %s\n", aPagePath);
+      return 1;
+    }
+    NS_NewFileURI(getter_AddRefs(uri), pageFile);
+  }
 
   dom::LoadURIOptions options;
   options.mTriggeringPrincipal = nsContentUtils::GetSystemPrincipal();
@@ -234,11 +241,16 @@ int RunLayoutTest(const char* aPagePath, int aWidth, int aHeight) {
     if (!document) {
       return false;
     }
-    return document->GetDocumentURI()->SchemeIs("file") &&
+    bool equals = false;
+    return NS_SUCCEEDED(document->GetDocumentURI()->EqualsExceptRef(uri, &equals)) &&
+           equals &&
            document->GetReadyStateEnum() == Document::READYSTATE_COMPLETE;
   });
 
-  printf("stage: page loaded\n");
+  nsAutoString pageTitle;
+  document->GetTitle(pageTitle);
+  printf("stage: page loaded, title: %s\n",
+         NS_ConvertUTF16toUTF8(pageTitle).get());
   TimeStamp waitStart = TimeStamp::Now();
   SpinEventLoopUntil("vge-bedrock-page-done"_ns, [&] {
     Element* root = document->GetRootElement();
@@ -264,10 +276,13 @@ int RunLayoutTest(const char* aPagePath, int aWidth, int aHeight) {
   nsJSContext::CycleCollectNow(CCReason::API);
   printf("cycle collection with live page: %.1f ms\n",
          (TimeStamp::Now() - liveCycleCollectStart).ToMilliseconds());
+  bool expectsFinalization =
+      root && root->HasAttribute(u"data-vge-expect-finalization"_ns);
   TimeStamp cleanupStart = TimeStamp::Now();
   SpinEventLoopUntil("vge-bedrock-finalization-cleanup"_ns, [&] {
     Element* element = document->GetRootElement();
-    return (element && element->HasAttribute(u"data-vge-finalized"_ns)) ||
+    return !expectsFinalization ||
+           (element && element->HasAttribute(u"data-vge-finalized"_ns)) ||
            (TimeStamp::Now() - cleanupStart).ToSeconds() > 5.0;
   });
   nsAutoString finalized;
@@ -311,7 +326,10 @@ int RunLayoutTest(const char* aPagePath, int aWidth, int aHeight) {
   }
   printf("page realm destroy callbacks: %u\n", sPageRealmDestroyed);
   printf("page realm still listed: %s\n", listed ? "yes" : "no");
-  bool passed = pagePassed && finalizationRan && sPageRealmDestroyed && !listed;
+  bool remotePage = !strncmp(aPagePath, "http", 4);
+  bool passed = (remotePage || pagePassed) &&
+                (!expectsFinalization || finalizationRan) &&
+                sPageRealmDestroyed && !listed;
   printf("test result: %s\n", passed ? "PASS" : "FAIL");
   return passed ? 0 : 1;
 }

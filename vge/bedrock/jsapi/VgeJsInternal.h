@@ -142,6 +142,7 @@ void FreeStringChars(StringCell* aCell);
 
 JSContext* CurrentContext();
 v8::Isolate* MainIsolate();
+v8::Platform* CurrentPlatform();
 void BindCellHandle(JSContext* aCx, CellTail* aTail, v8::Local<v8::Value> aValue, bool aStrong);
 void SetTraced(v8::Isolate* aIsolate, CellTail* aTail,
                v8::Local<v8::Value> aValue);

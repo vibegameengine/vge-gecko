@@ -1,4 +1,5 @@
 #include "VgeJsScripts.h"
+#include "platform/VgeJsPlatform.h"
 
 #include <windows.h>
 
@@ -48,6 +49,8 @@ struct HelperIsolate {
 
   ~HelperIsolate() {
     context.Reset();
+    PumpHelperIsolate(CurrentPlatform(), isolate);
+    ForgetHelperIsolate(CurrentPlatform(), isolate);
     isolate->Dispose();
     delete allocator;
   }
@@ -239,6 +242,7 @@ already_AddRefed<JS::Stencil> CompileOffThread(
     RecordFrontendError(aFc, helper.isolate, context, tryCatch);
     return nullptr;
   }
+  PumpHelperIsolate(CurrentPlatform(), helper.isolate);
   if (aFc->cancelRequested) {
     aFc->cancelled = true;
     return nullptr;

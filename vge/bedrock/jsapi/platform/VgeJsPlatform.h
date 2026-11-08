@@ -17,6 +17,10 @@ void AttachIsolateToCurrentThread(v8::Platform* aPlatform,
 
 void DetachIsolate(v8::Platform* aPlatform, v8::Isolate* aIsolate);
 
+void PumpHelperIsolate(v8::Platform* aPlatform, v8::Isolate* aIsolate);
+
+void ForgetHelperIsolate(v8::Platform* aPlatform, v8::Isolate* aIsolate);
+
 }
 
 #endif
