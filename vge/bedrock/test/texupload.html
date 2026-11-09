@@ -3,7 +3,17 @@
 <body style="margin:0">
   <canvas id="c" width="1264" height="770"></canvas>
   <script>
-    const mode = new URLSearchParams(location.search).get("mode") || "float";
+    const params = new URLSearchParams(location.search);
+    const mode = params.get("mode") || "float";
+    const canvasElement = document.getElementById("c");
+    if (params.get("css")) {
+      canvasElement.style.cssText = "position:fixed;left:0;top:0;width:100vw;height:100vh;display:block";
+    }
+    if (params.get("overlay")) {
+      const overlay = document.createElement("div");
+      overlay.style.cssText = "position:fixed;left:40px;top:40px;width:400px;height:300px;background:rgba(200,120,60,.8);backdrop-filter:blur(4px);border-radius:24px;box-shadow:0 8px 40px #0008";
+      document.body.appendChild(overlay);
+    }
     const gl = document.getElementById("c").getContext("webgl2", {
       alpha: true, depth: true, stencil: false, antialias: true, premultipliedAlpha: true,
       preserveDrawingBuffer: false, powerPreference: "high-performance", failIfMajorPerformanceCaveat: false,
@@ -19,6 +29,10 @@
     gl.attachShader(program, compile(gl.FRAGMENT_SHADER, "#version 300 es\nprecision highp float;uniform highp sampler2D t;out vec4 c;void main(){c=texture(t,gl_FragCoord.xy/512.)+vec4(.2);}"));
     gl.linkProgram(program);
     gl.useProgram(program);
+    if (params.get("colorspace")) {
+      gl.drawingBufferColorSpace = "srgb";
+      gl.unpackColorSpace = "srgb";
+    }
     gl.getExtension("EXT_color_buffer_float");
     const size = 512;
     const texture = gl.createTexture();
