@@ -259,12 +259,15 @@ class StallProbe final : public nsIThreadObserver {
 
   void Watch() {
     uint64_t reportedTick = 0;
+    uint64_t reportedAt = 0;
     for (;;) {
       Sleep(3);
       uint64_t tick = mLastTick;
-      uint64_t age = GetTickCount64() - tick;
-      if (age >= 25 && reportedTick != tick) {
+      uint64_t now = GetTickCount64();
+      uint64_t age = now - tick;
+      if (age >= 25 && (reportedTick != tick || now - reportedAt >= 500)) {
         reportedTick = tick;
+        reportedAt = now;
         printf("stall begin %llums\n", (unsigned long long)age);
         MozStackWalkThread(PrintFrame, 28, nullptr, mMainThread, nullptr);
       }
