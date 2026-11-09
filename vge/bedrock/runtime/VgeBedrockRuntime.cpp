@@ -414,6 +414,11 @@ int RunWindow(const char* aUrl, int aWidth, int aHeight) {
   }
   nsCOMPtr<nsIBaseWindow> baseWindow = do_QueryInterface(window);
   baseWindow->SetVisibility(true);
+  nsCOMPtr<nsIWidget> mainWidget;
+  baseWindow->GetMainWidget(getter_AddRefs(mainWidget));
+  if (mainWidget) {
+    mainWidget->SetFocus(nsIWidget::Raise::Yes, dom::CallerType::System);
+  }
   nsCOMPtr<nsIDocShell> docShell = CreateContentDocShell(window);
   nsCOMPtr<nsIURI> uri;
   if (NS_FAILED(NS_NewURI(getter_AddRefs(uri), aUrl))) {
