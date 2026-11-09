@@ -109,6 +109,7 @@ def main():
     parser.add_argument("--gc", action="store_true")
     parser.add_argument("--alloc", action="store_true")
     parser.add_argument("--compare")
+    parser.add_argument("--watch", action="store_true")
     args = parser.parse_args()
 
     RESULTS.mkdir(parents=True, exist_ok=True)
@@ -146,12 +147,25 @@ def main():
                 stderr=subprocess.STDOUT,
             )
             trace_path.unlink(missing_ok=True)
+            watch = None
+            if args.watch:
+                import sys
+
+                sys.path.insert(0, str(HERE))
+                from windowwatch import WindowWatch
+
+                watch = WindowWatch(process.pid, shots=str(RESULTS / args.label))
+                watch.start()
             time.sleep(args.seconds)
             if args.trace:
                 deadline = time.time() + 180
                 while time.time() < deadline and process.poll() is None and not trace_path.exists():
                     time.sleep(2)
             crashed = process.poll() is not None
+            screen = None
+            if watch:
+                watch.stop()
+                screen = watch.summary()
             if args.profile:
                 profile = RESULTS / f"{args.label}.profile.json"
                 deadline = time.time() + 90
@@ -186,6 +200,7 @@ def main():
         "frames": parse_frames(text),
         "gc": parse_gc(text),
         "gray_worst_ms": parse_gray(text),
+        "screen": screen,
     }
     (RESULTS / f"{args.label}.json").write_text(json.dumps(result, indent=1))
     print(json.dumps(result))
