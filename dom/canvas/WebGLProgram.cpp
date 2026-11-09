@@ -880,6 +880,7 @@ void WebGLProgram::LinkProgram() {
 
   // as some of the validation changes program state
 
+  mLinkPending = false;
   mLinkLog = {};
   mMostRecentLinkInfo = nullptr;
 
@@ -927,18 +928,35 @@ void WebGLProgram::LinkProgram() {
   }
 
   if (allowLink) {
-    LinkAndUpdate();
-
-    if (mMostRecentLinkInfo) {
-      std::string postLinkLog;
-      if (ValidateAfterTentativeLink(&postLinkLog)) return;
-
-      mMostRecentLinkInfo = nullptr;
-      mLinkLog = std::move(postLinkLog);
-    }
+    mContext->gl->fLinkProgram(mGLName);
+    mLinkPending = true;
+    return;
   }
 
-  // Failed link.
+  ReportFailedLink();
+}
+
+void WebGLProgram::FinishLink() const {
+  if (!mLinkPending) return;
+  mLinkPending = false;
+  const_cast<WebGLProgram*>(this)->CompleteLink();
+}
+
+void WebGLProgram::CompleteLink() {
+  LinkAndUpdate();
+
+  if (mMostRecentLinkInfo) {
+    std::string postLinkLog;
+    if (ValidateAfterTentativeLink(&postLinkLog)) return;
+
+    mMostRecentLinkInfo = nullptr;
+    mLinkLog = std::move(postLinkLog);
+  }
+
+  ReportFailedLink();
+}
+
+void WebGLProgram::ReportFailedLink() {
   if (mContext->ShouldGenerateWarnings()) {
     // report shader/program infoLogs as warnings.
     // note that shader compilation errors can be deferred to linkProgram,
@@ -1135,6 +1153,7 @@ bool WebGLProgram::ValidateAfterTentativeLink(
 }
 
 bool WebGLProgram::UseProgram() const {
+  FinishLink();
   if (!mMostRecentLinkInfo) {
     mContext->ErrorInvalidOperation(
         "Program has not been successfully linked.");
@@ -1179,7 +1198,6 @@ void WebGLProgram::LinkAndUpdate() {
   mMostRecentLinkInfo = nullptr;
 
   gl::GLContext* gl = mContext->gl;
-  gl->fLinkProgram(mGLName);
 
   // Grab the program log.
   {

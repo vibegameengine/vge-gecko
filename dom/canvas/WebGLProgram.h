@@ -173,21 +173,32 @@ class WebGLProgram final : public WebGLContextBoundObject {
   void TransformFeedbackVaryings(const std::vector<std::string>& varyings,
                                  GLenum bufferMode);
 
-  bool IsLinked() const { return mMostRecentLinkInfo; }
+  void FinishLink() const;
+
+  bool IsLinked() const {
+    FinishLink();
+    return mMostRecentLinkInfo;
+  }
 
   const webgl::LinkedProgramInfo* LinkInfo() const {
+    FinishLink();
     return mMostRecentLinkInfo.get();
   }
 
   const auto& VertShader() const { return mVertShader; }
   const auto& FragShader() const { return mFragShader; }
 
-  const auto& LinkLog() const { return mLinkLog; }
+  const auto& LinkLog() const {
+    FinishLink();
+    return mLinkLog;
+  }
 
  private:
   ~WebGLProgram();
 
   void LinkAndUpdate();
+  void CompleteLink();
+  void ReportFailedLink();
   bool ValidateForLink();
   bool ValidateAfterTentativeLink(std::string* const out_linkLog) const;
 
@@ -205,6 +216,7 @@ class WebGLProgram final : public WebGLContextBoundObject {
   GLenum mNextLink_TransformFeedbackBufferMode;
 
   std::string mLinkLog;
+  mutable bool mLinkPending = false;
   RefPtr<const webgl::LinkedProgramInfo> mMostRecentLinkInfo;
 };
 
