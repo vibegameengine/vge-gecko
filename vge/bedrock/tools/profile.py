@@ -63,6 +63,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("profile")
     parser.add_argument("--thread", default="GeckoMain")
+    parser.add_argument("--callers")
     parser.add_argument("--top", type=int, default=40)
     parser.add_argument("--from-ms", type=float, default=0)
     parser.add_argument("--to-ms", type=float, default=1e12)
@@ -91,6 +92,7 @@ def main():
         address = native(location)
         return symbols.get(address, location) if address is not None else location
 
+    callers = collections.Counter()
     self_counts = collections.Counter()
     total_counts = collections.Counter()
     count = 0
@@ -103,6 +105,16 @@ def main():
         if stack is None:
             continue
         count += 1
+        if args.callers:
+            chain = []
+            walk = stack
+            while walk is not None:
+                chain.append(label(stacks[walk][st_schema["frame"]]))
+                walk = stacks[walk][st_schema["prefix"]]
+            for i, name in enumerate(chain):
+                if args.callers in name:
+                    callers[" < ".join(c[:70] for c in chain[i + 1 : i + 6])] += 1
+                    break
         seen = set()
         leaf = True
         while stack is not None:
@@ -116,6 +128,11 @@ def main():
                 seen.add(name)
             stack = stacks[stack][st_schema["prefix"]]
     print("samples", count, "span_ms", round(samples[-1][s_schema["time"]] - first_time))
+    if args.callers:
+        print("--- callers of", args.callers)
+        for name, value in callers.most_common(args.top):
+            print(value, name[:400])
+        return
     print("--- self")
     for name, value in self_counts.most_common(args.top):
         print(value, name[:130])

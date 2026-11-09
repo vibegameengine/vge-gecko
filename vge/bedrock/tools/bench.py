@@ -118,7 +118,7 @@ def main():
     if args.profile:
         env["MOZ_PROFILER_STARTUP"] = "1"
         env["MOZ_PROFILER_STARTUP_ENTRIES"] = "4000000"
-        env["MOZ_PROFILER_STARTUP_INTERVAL"] = "1"
+        env["MOZ_PROFILER_STARTUP_INTERVAL"] = "4"
         env["MOZ_PROFILER_STARTUP_FEATURES"] = "stackwalk"
         env["MOZ_PROFILER_STARTUP_FILTERS"] = "GeckoMain,Compositor,Renderer,WRRenderBackend"
         env["VGE_PROFILE"] = str(RESULTS / f"{args.label}.profile.json").replace("/", "\\")
@@ -146,13 +146,22 @@ def main():
             crashed = process.poll() is not None
             if args.profile:
                 profile = RESULTS / f"{args.label}.profile.json"
-                deadline = time.time() + 280
+                deadline = time.time() + 90
                 while time.time() < deadline and process.poll() is None:
                     try:
                         json.loads(profile.read_text(encoding="utf-8"))
                         break
                     except (OSError, ValueError):
                         time.sleep(3)
+                else:
+                    if process.poll() is None:
+                        cdb = "C:/Users/pavel/.mozbuild/vs/Windows Kits/10/Debuggers/x64/cdb.exe"
+                        out = subprocess.run(
+                            [cdb, "-y", str(HOST.parent), "-p", str(process.pid), "-c", "~*kc 24; .detach; q"],
+                            capture_output=True,
+                            text=True,
+                        ).stdout
+                        (RESULTS / f"{args.label}.stacks.txt").write_text(out)
             memory = None if crashed else working_set(process.pid, RESULTS / f"{args.label}.regions.json")
             video = None if crashed else gpu_memory(process.pid)
             process.kill()
