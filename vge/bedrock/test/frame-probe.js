@@ -25,27 +25,6 @@
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
-  let lastSample = 0;
-  const sample = (now) => {
-    if (now - lastSample < 1000) return;
-    lastSample = now;
-    const canvas = document.querySelector("canvas");
-    const gl = canvas && canvas.getContext("webgl2");
-    if (!gl) return;
-    const bound = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
-    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
-    const pixels = new Uint8Array(canvas.width * canvas.height * 4);
-    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, bound);
-    let hash = 0;
-    for (const value of pixels) hash = (hash * 31 + value) | 0;
-    console.log("frameprobe glhash " + Math.round(now) + " " + hash + " error " + gl.getError());
-  };
-  const nativeRaf = window.requestAnimationFrame.bind(window);
-  window.requestAnimationFrame = (callback) => nativeRaf((now) => {
-    callback(now);
-    sample(now);
-  });
   const starter = setInterval(() => {
     const play = document.querySelector("#play.art-ready");
     if (play && play.offsetParent) {
