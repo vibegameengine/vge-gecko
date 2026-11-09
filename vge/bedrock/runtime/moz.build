@@ -3,6 +3,7 @@ EXPORTS.vge.bedrock += [
 ]
 
 SOURCES += [
+    "VgeAllocTrace.cpp",
     "VgeBedrockRuntime.cpp",
 ]
 

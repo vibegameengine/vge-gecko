@@ -67,6 +67,7 @@
 #include "nsIFile.h"
 #include "nsIFrame.h"
 #include "nsIMemoryInfoDumper.h"
+#include "VgeAllocTrace.h"
 #include "nsIWebNavigation.h"
 #include "nsIWindowlessBrowser.h"
 #include "nsLayoutUtils.h"
@@ -477,6 +478,7 @@ int RunWindow(const char* aUrl, int aWidth, int aHeight) {
         }
       }
       ScheduleMemoryReport();
+      ScheduleAllocTraceReport();
       gfx::gfxConfig::ForEachFeature(
           [](const char* aName, const char* aDescription,
              gfx::FeatureState& aFeature) {
@@ -640,6 +642,7 @@ int VgeBedrock_RunLayoutTest(int aArgc, char** aArgv) {
   }
 
   setvbuf(stdout, nullptr, _IONBF, 0);
+  vge::bedrock::InstallAllocTrace();
   printf("stage: start\n");
   NS_LogInit();
   LogModule::Init(aArgc, aArgv);
