@@ -12,6 +12,7 @@
 #include "libplatform/libplatform.h"
 #include "v8-gray-marking.h"
 #include "mozilla/Maybe.h"
+#include "mozilla/StackWalk_windows.h"
 #include "mozilla/ThreadLocal.h"
 
 JS::detail::InitState JS::detail::libraryInitState =
@@ -650,6 +651,16 @@ JSContext* JS_NewContext(uint32_t aMaxBytes, JSRuntime* aParentRuntime) {
   AttachIsolateToCurrentThread(sPlatform.get(), rt->isolate);
   v8::Isolate::Initialize(rt->isolate, params);
   rt->isolate->Enter();
+  static bool sCodeRegionRegistered = false;
+  if (!sCodeRegionRegistered) {
+    void* codeStart = nullptr;
+    size_t codeSize = 0;
+    rt->isolate->GetCodeRange(&codeStart, &codeSize);
+    if (codeStart && codeSize) {
+      sCodeRegionRegistered = true;
+      RegisterJitCodeRegion(static_cast<uint8_t*>(codeStart), codeSize);
+    }
+  }
   rt->cppHeap = v8::CppHeap::Create(
       sPlatform.get(),
       v8::CppHeapCreateParams({}, v8::WrapperDescriptor(0, 1, kWrapperEmbedderId)));

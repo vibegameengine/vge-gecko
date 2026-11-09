@@ -117,12 +117,12 @@ def main():
     trace_path = RESULTS / f"{args.label}.trace.txt"
     if args.profile:
         env["MOZ_PROFILER_STARTUP"] = "1"
-        env["MOZ_PROFILER_STARTUP_ENTRIES"] = "16000000"
+        env["MOZ_PROFILER_STARTUP_ENTRIES"] = "4000000"
         env["MOZ_PROFILER_STARTUP_INTERVAL"] = "1"
         env["MOZ_PROFILER_STARTUP_FEATURES"] = "stackwalk"
         env["MOZ_PROFILER_STARTUP_FILTERS"] = "GeckoMain,Compositor,Renderer,WRRenderBackend"
         env["VGE_PROFILE"] = str(RESULTS / f"{args.label}.profile.json").replace("/", "\\")
-        env["VGE_PROFILE_DELAY"] = str(max(args.seconds - 15, 5))
+        env["VGE_PROFILE_DELAY"] = str(max(args.seconds - 45, 5))
     if args.trace:
         env["VGE_ALLOC_TRACE"] = str(trace_path).replace("/", "\\")
         env["VGE_ALLOC_TRACE_DELAY"] = str(max(args.seconds - 15, 5))
@@ -144,6 +144,15 @@ def main():
             )
             time.sleep(args.seconds)
             crashed = process.poll() is not None
+            if args.profile:
+                profile = RESULTS / f"{args.label}.profile.json"
+                deadline = time.time() + 280
+                while time.time() < deadline and process.poll() is None:
+                    try:
+                        json.loads(profile.read_text(encoding="utf-8"))
+                        break
+                    except (OSError, ValueError):
+                        time.sleep(3)
             memory = None if crashed else working_set(process.pid, RESULTS / f"{args.label}.regions.json")
             video = None if crashed else gpu_memory(process.pid)
             process.kill()

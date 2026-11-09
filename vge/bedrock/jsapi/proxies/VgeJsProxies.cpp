@@ -121,6 +121,16 @@ void GetCommon(JSContext* aCx, JS::HandleObject aProxy, JS::HandleId aId,
     ThrowPendingToV8(aCx);
     return;
   }
+  if (vp.isUndefined()) {
+    bool found = false;
+    if (!ProxyHas(aCx, aProxy, aId, &found)) {
+      ThrowPendingToV8(aCx);
+      return;
+    }
+    if (!found) {
+      return;
+    }
+  }
   aInfo.GetReturnValue().Set(ToV8(aCx, vp.get()));
 }
 

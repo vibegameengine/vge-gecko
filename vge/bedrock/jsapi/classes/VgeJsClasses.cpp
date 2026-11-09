@@ -338,6 +338,21 @@ void NamedGetter(v8::Local<v8::Name> aName,
   LookupHook(aInfo.Holder(), aName, aInfo.Data());
 }
 
+void NonMaskingNamedGetter(v8::Local<v8::Name> aName,
+                           const v8::PropertyCallbackInfo<v8::Value>& aInfo) {
+  v8::Local<v8::Object> holder = aInfo.Holder();
+  LookupHook(holder, aName, aInfo.Data());
+  v8::Isolate* isolate = aInfo.GetIsolate();
+  v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
+  if (!HasOwnReal(ctx, holder, aName)) {
+    return;
+  }
+  v8::Local<v8::Value> value;
+  if (holder->GetRealNamedProperty(ctx, aName).ToLocal(&value)) {
+    aInfo.GetReturnValue().Set(value);
+  }
+}
+
 void NamedSetter(v8::Local<v8::Name> aName, v8::Local<v8::Value> aValue,
                  const v8::PropertyCallbackInfo<v8::Value>& aInfo) {
   AddHook(aInfo.Holder(), aName, aValue, aInfo.Data(), true);
@@ -636,11 +651,13 @@ v8::Local<v8::FunctionTemplate> ClassTemplate(JSContext* aCx,
   v8::Local<v8::Value> data =
       v8::External::New(isolate, const_cast<JSClass*>(aClass));
   if (HasPropertyHooks(aClass)) {
+    bool isWindow = aClass->name && !strcmp(aClass->name, "Window");
     inst->SetHandler(v8::NamedPropertyHandlerConfiguration(
-        NamedGetter, NamedSetter, NamedQuery, NamedDeleter, NamedEnumerator,
-        NamedDefiner,
-        static_cast<v8::GenericNamedPropertyDescriptorCallback>(nullptr),
-        data));
+        isWindow ? NonMaskingNamedGetter : NamedGetter, NamedSetter, NamedQuery,
+        NamedDeleter, NamedEnumerator, NamedDefiner,
+        static_cast<v8::GenericNamedPropertyDescriptorCallback>(nullptr), data,
+        isWindow ? v8::PropertyHandlerFlags::kNonMasking
+                 : v8::PropertyHandlerFlags::kNone));
     inst->SetHandler(v8::IndexedPropertyHandlerConfiguration(
         IndexedGetter, IndexedSetter, IndexedQuery, IndexedDeleter,
         IndexedEnumerator, IndexedDefiner,
