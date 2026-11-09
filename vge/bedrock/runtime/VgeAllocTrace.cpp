@@ -7,7 +7,9 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
+#include <iterator>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "mozilla/StackWalk.h"
@@ -20,11 +22,15 @@ namespace vge::bedrock {
 namespace {
 
 constexpr size_t kMinimumSize = 64 * 1024;
-constexpr size_t kMaxEntries = 1 << 16;
+constexpr size_t kPageSize = 4096;
+constexpr size_t kSlotBits = 18;
+constexpr size_t kSlots = size_t(1) << kSlotBits;
+constexpr size_t kMaxEntries = kSlots - kSlots / 8;
+constexpr uintptr_t kTombstone = 1;
 constexpr size_t kFrames = 32;
 const HANDLE kCurrentProcess = HANDLE(-1);
 
-enum class Kind : uint32_t { Commit, Lock };
+enum class Kind : uint32_t { Commit, Lock, Ddi };
 
 struct Entry {
   uintptr_t base;
@@ -32,6 +38,7 @@ struct Entry {
   size_t size;
   Kind kind;
   uint32_t frameCount;
+  const char* label;
   void* frames[kFrames];
 };
 
@@ -62,7 +69,12 @@ Entry* sEntries = nullptr;
 size_t sCount = 0;
 size_t sDropped = 0;
 
-void Record(uintptr_t aBase, size_t aSize, Kind aKind) {
+size_t SlotIndex(uintptr_t aBase) {
+  return size_t(((aBase >> 12) * 0x9E3779B97F4A7C15ull) >> (64 - kSlotBits));
+}
+
+void Record(uintptr_t aBase, size_t aSize, Kind aKind,
+            const char* aLabel = nullptr) {
   MEMORY_BASIC_INFORMATION info;
   uintptr_t allocationBase = aBase;
   if (VirtualQuery(reinterpret_cast<void*>(aBase), &info, sizeof(info))) {
@@ -73,42 +85,73 @@ void Record(uintptr_t aBase, size_t aSize, Kind aKind) {
   entry.allocationBase = allocationBase;
   entry.size = aSize;
   entry.kind = aKind;
+  entry.label = aLabel;
   entry.frameCount = RtlCaptureStackBackTrace(2, kFrames, entry.frames, nullptr);
   AcquireSRWLockExclusive(&sLock);
-  for (size_t i = 0; i < sCount; i++) {
-    if (sEntries[i].base == aBase) {
-      sEntries[i] = entry;
+  Entry* reusable = nullptr;
+  for (size_t i = SlotIndex(aBase);; i = (i + 1) & (kSlots - 1)) {
+    Entry& slot = sEntries[i];
+    if (slot.base == aBase) {
+      slot = entry;
+      ReleaseSRWLockExclusive(&sLock);
+      return;
+    }
+    if (slot.base == kTombstone && !reusable) {
+      reusable = &slot;
+    }
+    if (slot.base == 0) {
+      if (sCount < kMaxEntries) {
+        *(reusable ? reusable : &slot) = entry;
+        sCount++;
+      } else {
+        sDropped++;
+      }
       ReleaseSRWLockExclusive(&sLock);
       return;
     }
   }
-  if (sCount < kMaxEntries) {
-    sEntries[sCount++] = entry;
-  } else {
-    sDropped++;
+}
+
+void EraseRange(uintptr_t aBase, size_t aSize) {
+  AcquireSRWLockExclusive(&sLock);
+  for (uintptr_t page = aBase; page < aBase + aSize; page += kPageSize) {
+    for (size_t i = SlotIndex(page);; i = (i + 1) & (kSlots - 1)) {
+      Entry& slot = sEntries[i];
+      if (slot.base == 0) {
+        break;
+      }
+      if (slot.base == page) {
+        slot.base = kTombstone;
+        sCount--;
+        break;
+      }
+    }
   }
   ReleaseSRWLockExclusive(&sLock);
 }
 
-template <typename Predicate>
-void RemoveIf(Predicate aPredicate) {
-  AcquireSRWLockExclusive(&sLock);
-  for (size_t i = 0; i < sCount;) {
-    if (aPredicate(sEntries[i])) {
-      sEntries[i] = sEntries[--sCount];
-    } else {
-      i++;
+void EraseAllocation(uintptr_t aBase) {
+  uintptr_t cursor = aBase;
+  MEMORY_BASIC_INFORMATION info;
+  while (VirtualQuery(reinterpret_cast<void*>(cursor), &info, sizeof(info)) &&
+         uintptr_t(info.AllocationBase) == aBase) {
+    if (info.State == MEM_COMMIT) {
+      EraseRange(uintptr_t(info.BaseAddress), info.RegionSize);
     }
+    cursor = uintptr_t(info.BaseAddress) + info.RegionSize;
   }
-  ReleaseSRWLockExclusive(&sLock);
+}
+
+bool IsSelf(HANDLE aProcess) {
+  return aProcess == kCurrentProcess ||
+         GetProcessId(aProcess) == GetCurrentProcessId();
 }
 
 NTSTATUS NTAPI AllocateHook(HANDLE aProcess, PVOID* aBase, ULONG_PTR aZeroBits,
                             PSIZE_T aSize, ULONG aType, ULONG aProtect) {
   NTSTATUS status =
       sAllocateStub(aProcess, aBase, aZeroBits, aSize, aType, aProtect);
-  if (status >= 0 && aProcess == kCurrentProcess && (aType & MEM_COMMIT) &&
-      *aSize >= kMinimumSize) {
+  if (status >= 0 && IsSelf(aProcess) && (aType & MEM_COMMIT)) {
     Record(uintptr_t(*aBase), *aSize, Kind::Commit);
   }
   return status;
@@ -119,8 +162,7 @@ NTSTATUS NTAPI AllocateExHook(HANDLE aProcess, PVOID* aBase, PSIZE_T aSize,
                               ULONG aCount) {
   NTSTATUS status =
       sAllocateExStub(aProcess, aBase, aSize, aType, aProtect, aParameters, aCount);
-  if (status >= 0 && aProcess == kCurrentProcess && (aType & MEM_COMMIT) &&
-      *aSize >= kMinimumSize) {
+  if (status >= 0 && IsSelf(aProcess) && (aType & MEM_COMMIT)) {
     Record(uintptr_t(*aBase), *aSize, Kind::Commit);
   }
   return status;
@@ -130,15 +172,13 @@ NTSTATUS NTAPI FreeHook(HANDLE aProcess, PVOID* aBase, PSIZE_T aSize,
                         ULONG aType) {
   uintptr_t base = aBase ? uintptr_t(*aBase) : 0;
   size_t size = aSize ? *aSize : 0;
+  bool own = IsSelf(aProcess) && base;
+  if (own && (aType & MEM_RELEASE)) {
+    EraseAllocation(base);
+  }
   NTSTATUS status = sFreeStub(aProcess, aBase, aSize, aType);
-  if (status >= 0 && aProcess == kCurrentProcess) {
-    if (aType & MEM_RELEASE) {
-      RemoveIf([&](const Entry& e) { return e.allocationBase == base; });
-    } else if (aType & MEM_DECOMMIT) {
-      RemoveIf([&](const Entry& e) {
-        return e.base >= base && e.base + e.size <= base + size;
-      });
-    }
+  if (status >= 0 && own && (aType & MEM_DECOMMIT)) {
+    EraseRange(base & ~(kPageSize - 1), size);
   }
   return status;
 }
@@ -169,16 +209,94 @@ NTSTATUS APIENTRY Lock2Hook(void* aArgs) {
   return status;
 }
 
-std::string Symbol(void* aAddress) {
+bool ReadableRegion(uintptr_t aAddress, MEMORY_BASIC_INFORMATION* aInfo) {
+  constexpr uintptr_t kUserEnd = uintptr_t(1) << 47;
+  return aAddress >= 0x10000 && aAddress < kUserEnd &&
+         VirtualQuery(reinterpret_cast<void*>(aAddress), aInfo, sizeof(*aInfo)) &&
+         aInfo->State == MEM_COMMIT && (aInfo->Protect & PAGE_READWRITE);
+}
+
+void ScanArguments(uintptr_t aAddress, const char* aName, int aDepth) {
+  MEMORY_BASIC_INFORMATION info;
+  if (!ReadableRegion(aAddress, &info) || (aAddress & 7)) {
+    return;
+  }
+  uintptr_t regionEnd = uintptr_t(info.BaseAddress) + info.RegionSize;
+  size_t words = std::min<size_t>(32, (regionEnd - aAddress) / 8);
+  auto* values = reinterpret_cast<uintptr_t*>(aAddress);
+  for (size_t i = 0; i < words; i++) {
+    MEMORY_BASIC_INFORMATION target;
+    if (!ReadableRegion(values[i], &target) || target.Type != MEM_PRIVATE) {
+      continue;
+    }
+    if (target.RegionSize >= kMinimumSize) {
+      Record(uintptr_t(target.BaseAddress), target.RegionSize, Kind::Ddi, aName);
+    } else if (aDepth > 0) {
+      ScanArguments(values[i], aName, aDepth - 1);
+    }
+  }
+}
+
+using DdiFn = NTSTATUS(APIENTRY*)(void*, void*, void*, void*);
+
+template <size_t N>
+struct DdiHook {
+  static inline mozilla::WindowsDllInterceptor::FuncHookType<DdiFn> stub;
+  static inline const char* name;
+  static NTSTATUS APIENTRY Hook(void* a, void* b, void* c, void* d) {
+    NTSTATUS status = stub(a, b, c, d);
+    if (status >= 0) {
+      ScanArguments(uintptr_t(a), name, 1);
+    }
+    return status;
+  }
+};
+
+template <size_t... N>
+void InstallDdiHooks(const std::vector<const char*>& aNames,
+                     std::index_sequence<N...>) {
+  ((N < aNames.size()
+        ? (DdiHook<N>::name = aNames[N],
+           (void)DdiHook<N>::stub.Set(sWin32u, aNames[N], &DdiHook<N>::Hook))
+        : void()),
+   ...);
+}
+
+std::vector<const char*> DdiExports() {
+  std::vector<const char*> names;
+  auto* base = reinterpret_cast<char*>(GetModuleHandleW(L"win32u.dll"));
+  auto* nt = reinterpret_cast<IMAGE_NT_HEADERS*>(
+      base + reinterpret_cast<IMAGE_DOS_HEADER*>(base)->e_lfanew);
+  auto* exports = reinterpret_cast<IMAGE_EXPORT_DIRECTORY*>(
+      base + nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT]
+                 .VirtualAddress);
+  auto* rvas = reinterpret_cast<DWORD*>(base + exports->AddressOfNames);
+  for (DWORD i = 0; i < exports->NumberOfNames; i++) {
+    const char* name = base + rvas[i];
+    if (!strncmp(name, "NtGdiDdDDI", 10) && strcmp(name, "NtGdiDdDDILock") &&
+        strcmp(name, "NtGdiDdDDILock2")) {
+      names.push_back(name);
+    }
+  }
+  return names;
+}
+
+const std::string& Symbol(void* aAddress) {
+  static std::map<void*, std::string> cache;
+  auto found = cache.find(aAddress);
+  if (found != cache.end()) {
+    return found->second;
+  }
   MozCodeAddressDetails details;
   MozDescribeCodeAddress(aAddress, &details);
-  if (details.function[0]) {
-    return details.function;
+  std::string name = details.function;
+  if (name.empty()) {
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "%s+0x%llx", details.library,
+             static_cast<unsigned long long>(details.loffset));
+    name = buffer;
   }
-  char buffer[128];
-  snprintf(buffer, sizeof(buffer), "%s+0x%llx", details.library,
-           static_cast<unsigned long long>(details.loffset));
-  return buffer;
+  return cache.emplace(aAddress, std::move(name)).first->second;
 }
 
 bool IsAllocatorFrame(const std::string& aName) {
@@ -239,8 +357,13 @@ size_t ResidentBytes(uintptr_t aBase, size_t aSize) {
 
 void WriteReport(const char* aPath) {
   std::vector<Entry> entries;
+  entries.reserve(sCount * 2 + 4096);
   AcquireSRWLockShared(&sLock);
-  entries.assign(sEntries, sEntries + sCount);
+  for (size_t i = 0; i < kSlots && entries.size() < entries.capacity(); i++) {
+    if (sEntries[i].base > kTombstone) {
+      entries.push_back(sEntries[i]);
+    }
+  }
   size_t dropped = sDropped;
   ReleaseSRWLockShared(&sLock);
 
@@ -255,6 +378,12 @@ void WriteReport(const char* aPath) {
   std::sort(entries.begin(), entries.end(), [](const Entry& a, const Entry& b) {
     return a.base < b.base;
   });
+  std::vector<Entry> ddi;
+  std::copy_if(entries.begin(), entries.end(), std::back_inserter(ddi),
+               [](const Entry& e) { return e.kind == Kind::Ddi; });
+  entries.erase(std::remove_if(entries.begin(), entries.end(),
+                               [](const Entry& e) { return e.kind == Kind::Ddi; }),
+                entries.end());
   std::vector<Entry> mapped;
   mapped.reserve(entries.size());
   std::vector<size_t> residents;
@@ -287,16 +416,30 @@ void WriteReport(const char* aPath) {
 
   size_t untrackedTotal = 0;
   std::map<size_t, std::pair<size_t, size_t>> untracked;
+  struct Unknown {
+    MEMORY_BASIC_INFORMATION info;
+    size_t resident;
+    const Entry* owner;
+  };
+  std::vector<Unknown> unknown;
   uintptr_t cursor = 0;
   MEMORY_BASIC_INFORMATION info;
   while (VirtualQuery(reinterpret_cast<void*>(cursor), &info, sizeof(info))) {
     uintptr_t base = uintptr_t(info.BaseAddress);
     uintptr_t end = base + info.RegionSize;
     if (info.State == MEM_COMMIT && info.Type == MEM_PRIVATE &&
-        info.RegionSize >= kMinimumSize) {
+        info.RegionSize >= kMinimumSize &&
+        info.AllocationBase != static_cast<void*>(sEntries)) {
       uintptr_t position = base;
       size_t resident = 0;
-      for (const Entry& entry : entries) {
+      auto next = std::upper_bound(
+          entries.begin(), entries.end(), base,
+          [](uintptr_t value, const Entry& e) { return value < e.base; });
+      if (next != entries.begin()) {
+        --next;
+      }
+      for (; next != entries.end() && next->base < end; ++next) {
+        const Entry& entry = *next;
         uintptr_t from = std::max(entry.base, base);
         uintptr_t to = std::min(entry.base + entry.size, end);
         if (to <= from) {
@@ -312,6 +455,16 @@ void WriteReport(const char* aPath) {
       }
       if (resident) {
         untrackedTotal += resident;
+        const Entry* owner = nullptr;
+        for (const Entry& candidate : ddi) {
+          if (candidate.base < end && candidate.base + candidate.size > base) {
+            owner = &candidate;
+            break;
+          }
+        }
+        if (resident >= 1048576) {
+          unknown.push_back({info, resident, owner});
+        }
         auto& bucket = untracked[info.RegionSize / 1048576];
         bucket.first += resident;
         bucket.second++;
@@ -345,7 +498,8 @@ void WriteReport(const char* aPath) {
     return a.second.resident > b.second.resident;
   });
 
-  FILE* out = fopen(aPath, "w");
+  std::string temporary = std::string(aPath) + ".tmp";
+  FILE* out = fopen(temporary.c_str(), "w");
   if (!out) {
     printf("alloc trace: cannot write %s\n", aPath);
     return;
@@ -365,7 +519,39 @@ void WriteReport(const char* aPath) {
     fprintf(out, "untracked region_mb %zu total_mb %.1f regions %zu\n", it->first,
             it->second.first / 1048576.0, it->second.second);
   }
+  std::sort(unknown.begin(), unknown.end(), [](const Unknown& a, const Unknown& b) {
+    return a.resident > b.resident;
+  });
+  for (const Unknown& item : unknown) {
+    auto* bytes = static_cast<const unsigned char*>(item.info.BaseAddress);
+    size_t zero = 0;
+    size_t sampled = 0;
+    bool readable = item.info.Protect & PAGE_READWRITE;
+    if (readable) {
+      for (size_t offset = 0; offset < item.info.RegionSize; offset += 1048576) {
+        for (size_t i = 0; i < 4096; i++) {
+          zero += bytes[offset + i] == 0;
+        }
+        sampled += 4096;
+      }
+    }
+    fprintf(out, "unknown base %p alloc %p size_mb %.1f resident_mb %.1f protect %lx zero_pct %zu head",
+            item.info.BaseAddress, item.info.AllocationBase,
+            item.info.RegionSize / 1048576.0, item.resident / 1048576.0,
+            item.info.Protect, sampled ? zero * 100 / sampled : 0);
+    for (size_t i = 0; readable && i < 16; i++) {
+      fprintf(out, " %02x", bytes[i]);
+    }
+    fprintf(out, " owner %s", item.owner ? item.owner->label : "none");
+    if (item.owner) {
+      for (uint32_t i = 0; i < item.owner->frameCount && i < 10; i++) {
+        fprintf(out, " < %s", Symbol(item.owner->frames[i]).c_str());
+      }
+    }
+    fprintf(out, "\n");
+  }
   fclose(out);
+  MoveFileExA(temporary.c_str(), aPath, MOVEFILE_REPLACE_EXISTING);
 }
 
 }
@@ -375,7 +561,7 @@ void InstallAllocTrace() {
     return;
   }
   sEntries = static_cast<Entry*>(VirtualAlloc(
-      nullptr, sizeof(Entry) * kMaxEntries, MEM_RESERVE | MEM_COMMIT,
+      nullptr, sizeof(Entry) * kSlots, MEM_RESERVE | MEM_COMMIT,
       PAGE_READWRITE));
   sNtdll.Init("ntdll.dll");
   sAllocateStub.Set(sNtdll, "NtAllocateVirtualMemory", &AllocateHook);
@@ -385,6 +571,7 @@ void InstallAllocTrace() {
   sWin32u.Init("win32u.dll");
   sLock2Stub.Set(sWin32u, "NtGdiDdDDILock2", &Lock2Hook);
   sLockStub.Set(sWin32u, "NtGdiDdDDILock", &LockHook);
+  InstallDdiHooks(DdiExports(), std::make_index_sequence<256>());
 }
 
 void ScheduleAllocTraceReport() {

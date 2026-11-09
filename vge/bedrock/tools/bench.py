@@ -145,7 +145,12 @@ def main():
                 stdout=log,
                 stderr=subprocess.STDOUT,
             )
+            trace_path.unlink(missing_ok=True)
             time.sleep(args.seconds)
+            if args.trace:
+                deadline = time.time() + 180
+                while time.time() < deadline and process.poll() is None and not trace_path.exists():
+                    time.sleep(2)
             crashed = process.poll() is not None
             if args.profile:
                 profile = RESULTS / f"{args.label}.profile.json"
