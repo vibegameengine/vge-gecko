@@ -8,7 +8,6 @@
 #include <cstring>
 #include <map>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 #include "mozilla/StackWalk.h"
@@ -178,8 +177,7 @@ bool IsDriverFrame(const std::string& aName) {
   return false;
 }
 
-size_t ResidentBytes(uintptr_t aBase, size_t aSize,
-                     std::unordered_set<uintptr_t>& aCounted) {
+size_t ResidentBytes(uintptr_t aBase, size_t aSize) {
   struct Query {
     void* address;
     uintptr_t attributes;
@@ -188,20 +186,24 @@ size_t ResidentBytes(uintptr_t aBase, size_t aSize,
   static const auto query = reinterpret_cast<QueryFn>(
       GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "K32QueryWorkingSetEx"));
   constexpr size_t kPage = 4096;
-  std::vector<Query> pages(aSize / kPage);
-  for (size_t i = 0; i < pages.size(); i++) {
-    pages[i].address = reinterpret_cast<void*>(aBase + i * kPage);
-  }
-  if (pages.empty() ||
-      !query(GetCurrentProcess(), pages.data(),
-             DWORD(pages.size() * sizeof(Query)))) {
-    return 0;
-  }
+  constexpr size_t kBatch = 2048;
+  Query pages[kBatch];
   size_t resident = 0;
-  for (const Query& page : pages) {
-    if ((page.attributes & 1) && aCounted.insert(uintptr_t(page.address)).second) {
-      resident += kPage;
+  for (size_t offset = 0; offset < aSize;) {
+    size_t count = std::min(kBatch, (aSize - offset) / kPage);
+    if (!count) {
+      break;
     }
+    for (size_t i = 0; i < count; i++) {
+      pages[i].address = reinterpret_cast<void*>(aBase + offset + i * kPage);
+      pages[i].attributes = 0;
+    }
+    if (query(GetCurrentProcess(), pages, DWORD(count * sizeof(Query)))) {
+      for (size_t i = 0; i < count; i++) {
+        resident += (pages[i].attributes & 1) ? kPage : 0;
+      }
+    }
+    offset += count * kPage;
   }
   return resident;
 }
@@ -221,10 +223,21 @@ void WriteReport(const char* aPath) {
   std::map<std::string, Group> groups;
   size_t tracked = 0;
   size_t trackedResident = 0;
-  std::unordered_set<uintptr_t> counted;
+  std::sort(entries.begin(), entries.end(), [](const Entry& a, const Entry& b) {
+    return a.base < b.base;
+  });
   std::vector<Entry> mapped;
   mapped.reserve(entries.size());
-  for (const Entry& entry : entries) {
+  uintptr_t coveredEnd = 0;
+  for (Entry entry : entries) {
+    uintptr_t entryEnd = entry.base + entry.size;
+    if (entry.base < coveredEnd) {
+      if (entryEnd <= coveredEnd) {
+        continue;
+      }
+      entry.base = coveredEnd;
+      entry.size = entryEnd - coveredEnd;
+    }
     MEMORY_BASIC_INFORMATION region;
     if (entry.kind == Kind::Lock &&
         (!VirtualQuery(reinterpret_cast<void*>(entry.base), &region,
@@ -247,7 +260,8 @@ void WriteReport(const char* aPath) {
       used++;
     }
     Group& group = groups[key];
-    size_t resident = ResidentBytes(entry.base, entry.size, counted);
+    size_t resident = ResidentBytes(entry.base, entry.size);
+    coveredEnd = entryEnd;
     group.bytes += entry.size;
     group.resident += resident;
     group.count++;
@@ -287,16 +301,23 @@ void WriteReport(const char* aPath) {
     uintptr_t end = base + info.RegionSize;
     if (info.State == MEM_COMMIT && info.Type == MEM_PRIVATE &&
         info.RegionSize >= kMinimumSize) {
-      size_t covered = 0;
+      uintptr_t position = base;
+      size_t resident = 0;
       for (const Entry& entry : entries) {
         uintptr_t from = std::max(entry.base, base);
         uintptr_t to = std::min(entry.base + entry.size, end);
-        if (to > from) {
-          covered += to - from;
+        if (to <= from) {
+          continue;
         }
+        if (from > position) {
+          resident += ResidentBytes(position, from - position);
+        }
+        position = std::max(position, to);
       }
-      size_t resident = ResidentBytes(base, info.RegionSize, counted);
-      if (covered < info.RegionSize && resident) {
+      if (position < end) {
+        resident += ResidentBytes(position, end - position);
+      }
+      if (resident) {
         untrackedTotal += resident;
         auto& bucket = untracked[info.RegionSize / 1048576];
         bucket.first += resident;
