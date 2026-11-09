@@ -37,6 +37,8 @@ struct Entry {
 
 using NtAllocateFn = NTSTATUS(NTAPI*)(HANDLE, PVOID*, ULONG_PTR, PSIZE_T, ULONG,
                                       ULONG);
+using NtAllocateExFn = NTSTATUS(NTAPI*)(HANDLE, PVOID*, PSIZE_T, ULONG, ULONG,
+                                        void*, ULONG);
 using NtFreeFn = NTSTATUS(NTAPI*)(HANDLE, PVOID*, PSIZE_T, ULONG);
 using NtLock2Fn = NTSTATUS(APIENTRY*)(void*);
 
@@ -50,8 +52,10 @@ struct Lock2Args {
 mozilla::WindowsDllInterceptor sNtdll;
 mozilla::WindowsDllInterceptor sWin32u;
 mozilla::WindowsDllInterceptor::FuncHookType<NtAllocateFn> sAllocateStub;
+mozilla::WindowsDllInterceptor::FuncHookType<NtAllocateExFn> sAllocateExStub;
 mozilla::WindowsDllInterceptor::FuncHookType<NtFreeFn> sFreeStub;
 mozilla::WindowsDllInterceptor::FuncHookType<NtLock2Fn> sLock2Stub;
+mozilla::WindowsDllInterceptor::FuncHookType<NtLock2Fn> sLockStub;
 
 SRWLOCK sLock = SRWLOCK_INIT;
 Entry* sEntries = nullptr;
@@ -110,6 +114,18 @@ NTSTATUS NTAPI AllocateHook(HANDLE aProcess, PVOID* aBase, ULONG_PTR aZeroBits,
   return status;
 }
 
+NTSTATUS NTAPI AllocateExHook(HANDLE aProcess, PVOID* aBase, PSIZE_T aSize,
+                              ULONG aType, ULONG aProtect, void* aParameters,
+                              ULONG aCount) {
+  NTSTATUS status =
+      sAllocateExStub(aProcess, aBase, aSize, aType, aProtect, aParameters, aCount);
+  if (status >= 0 && aProcess == kCurrentProcess && (aType & MEM_COMMIT) &&
+      *aSize >= kMinimumSize) {
+    Record(uintptr_t(*aBase), *aSize, Kind::Commit);
+  }
+  return status;
+}
+
 NTSTATUS NTAPI FreeHook(HANDLE aProcess, PVOID* aBase, PSIZE_T aSize,
                         ULONG aType) {
   uintptr_t base = aBase ? uintptr_t(*aBase) : 0;
@@ -122,6 +138,19 @@ NTSTATUS NTAPI FreeHook(HANDLE aProcess, PVOID* aBase, PSIZE_T aSize,
       RemoveIf([&](const Entry& e) {
         return e.base >= base && e.base + e.size <= base + size;
       });
+    }
+  }
+  return status;
+}
+
+NTSTATUS APIENTRY LockHook(void* aArgs) {
+  NTSTATUS status = sLockStub(aArgs);
+  if (status >= 0) {
+    uintptr_t data = *reinterpret_cast<uintptr_t*>(static_cast<char*>(aArgs) + 24);
+    MEMORY_BASIC_INFORMATION info;
+    if (data && VirtualQuery(reinterpret_cast<void*>(data), &info, sizeof(info)) &&
+        info.RegionSize >= kMinimumSize) {
+      Record(uintptr_t(info.BaseAddress), info.RegionSize, Kind::Lock);
     }
   }
   return status;
@@ -350,10 +379,12 @@ void InstallAllocTrace() {
       PAGE_READWRITE));
   sNtdll.Init("ntdll.dll");
   sAllocateStub.Set(sNtdll, "NtAllocateVirtualMemory", &AllocateHook);
+  sAllocateExStub.Set(sNtdll, "NtAllocateVirtualMemoryEx", &AllocateExHook);
   sFreeStub.Set(sNtdll, "NtFreeVirtualMemory", &FreeHook);
   LoadLibraryW(L"win32u.dll");
   sWin32u.Init("win32u.dll");
   sLock2Stub.Set(sWin32u, "NtGdiDdDDILock2", &Lock2Hook);
+  sLockStub.Set(sWin32u, "NtGdiDdDDILock", &LockHook);
 }
 
 void ScheduleAllocTraceReport() {

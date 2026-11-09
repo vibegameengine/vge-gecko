@@ -65,6 +65,7 @@ def main():
     parser.add_argument("--thread", default="GeckoMain")
     parser.add_argument("--callers")
     parser.add_argument("--spikes", type=float)
+    parser.add_argument("--retained", action="store_true")
     parser.add_argument("--top", type=int, default=40)
     parser.add_argument("--from-ms", type=float, default=0)
     parser.add_argument("--to-ms", type=float, default=1e12)
@@ -93,6 +94,34 @@ def main():
         address = native(location)
         return symbols.get(address, location) if address is not None else location
 
+    if args.retained:
+        table = thread.get("nativeAllocations")
+        print("native allocations", None if table is None else len(table["data"]))
+        if table is None:
+            return
+        schema = table["schema"]
+        live = {}
+        for row in table["data"]:
+            address = row[schema["memoryAddress"]]
+            weight = row[schema["weight"]]
+            stack = row[schema["stack"]]
+            if weight > 0:
+                live[address] = (weight, stack)
+            else:
+                live.pop(address, None)
+        totals = collections.Counter()
+        for weight, stack in live.values():
+            names = []
+            walk = stack
+            while walk is not None and len(names) < 40:
+                names.append(label(stacks[walk][st_schema["frame"]]))
+                walk = stacks[walk][st_schema["prefix"]]
+            key = [n for n in names if "mozglue" not in n and "replace" not in n and "Allocator" not in n and "malloc" not in n]
+            totals[" < ".join(k[:60] for k in key[:5])] += weight
+        print("retained_mb", round(sum(totals.values()) / 1048576, 1))
+        for name, value in totals.most_common(args.top):
+            print(round(value / 1048576, 1), name[:320])
+        return
     if args.spikes:
         runs = []
         current = []

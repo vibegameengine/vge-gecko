@@ -107,6 +107,7 @@ def main():
     parser.add_argument("--trace", action="store_true")
     parser.add_argument("--profile", action="store_true")
     parser.add_argument("--gc", action="store_true")
+    parser.add_argument("--alloc", action="store_true")
     parser.add_argument("--compare")
     args = parser.parse_args()
 
@@ -121,7 +122,7 @@ def main():
         env["MOZ_PROFILER_STARTUP"] = "1"
         env["MOZ_PROFILER_STARTUP_ENTRIES"] = "4000000"
         env["MOZ_PROFILER_STARTUP_INTERVAL"] = "4"
-        env["MOZ_PROFILER_STARTUP_FEATURES"] = "stackwalk"
+        env["MOZ_PROFILER_STARTUP_FEATURES"] = "stackwalk,nativeallocations" if args.alloc else "stackwalk"
         env["MOZ_PROFILER_STARTUP_FILTERS"] = "GeckoMain,Compositor,Renderer,WRRenderBackend"
         env["VGE_PROFILE"] = str(RESULTS / f"{args.label}.profile.json").replace("/", "\\")
         env["VGE_PROFILE_DELAY"] = str(max(args.seconds - 45, 5))
