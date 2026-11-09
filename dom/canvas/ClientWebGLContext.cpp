@@ -597,8 +597,7 @@ Maybe<layers::SurfaceDescriptor> ClientWebGLContext::GetFrontBuffer(
     // If there are many flushed cmds, force synchronous IPC to avoid too many
     // pending ipc messages. Otherwise don't sync for other cases to avoid any
     // performance penalty.
-    needsSync = XRE_IsParentProcess() ||
-                gfx::gfxVars::WebglOopAsyncPresentForceSync() ||
+    needsSync = gfx::gfxVars::WebglOopAsyncPresentForceSync() ||
                 info.flushesSinceLastCongestionCheck > tooManyFlushes;
 
     // Only send over a remote texture descriptor if the WebGLChild actor is

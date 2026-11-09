@@ -106,6 +106,7 @@ def main():
     parser.add_argument("--seconds", type=int, default=75)
     parser.add_argument("--trace", action="store_true")
     parser.add_argument("--profile", action="store_true")
+    parser.add_argument("--gc", action="store_true")
     parser.add_argument("--compare")
     args = parser.parse_args()
 
@@ -113,7 +114,8 @@ def main():
     log_path = RESULTS / f"{args.label}.log"
     env = dict(os.environ)
     env["VGE_FRAME_PROBE"] = str(PROBE).replace("/", "\\")
-    env["VGE_V8_FLAGS"] = "--trace-gc-nvp"
+    if args.gc:
+        env["VGE_V8_FLAGS"] = "--trace-gc-nvp"
     trace_path = RESULTS / f"{args.label}.trace.txt"
     if args.profile:
         env["MOZ_PROFILER_STARTUP"] = "1"

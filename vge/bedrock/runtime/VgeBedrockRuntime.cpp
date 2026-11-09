@@ -692,6 +692,7 @@ int VgeBedrock_RunLayoutTest(int aArgc, char** aArgv) {
     observers->NotifyObservers(nullptr, "profile-do-change", u"startup");
     observers->NotifyObservers(nullptr, "profile-after-change", u"startup");
     Preferences::SetBool("webgl.allow-in-parent", true);
+    Preferences::SetUint("webgl.out-of-process.shmem-size", 1024 * 1024);
     Preferences::SetInt("browser.link.open_newwindow",
                         nsIBrowserDOMWindow::OPEN_CURRENTWINDOW);
     Preferences::SetInt("browser.link.open_newwindow.restriction", 0);

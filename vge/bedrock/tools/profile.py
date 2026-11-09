@@ -64,6 +64,7 @@ def main():
     parser.add_argument("profile")
     parser.add_argument("--thread", default="GeckoMain")
     parser.add_argument("--callers")
+    parser.add_argument("--spikes", type=float)
     parser.add_argument("--top", type=int, default=40)
     parser.add_argument("--from-ms", type=float, default=0)
     parser.add_argument("--to-ms", type=float, default=1e12)
@@ -92,6 +93,39 @@ def main():
         address = native(location)
         return symbols.get(address, location) if address is not None else location
 
+    if args.spikes:
+        runs = []
+        current = []
+        for sample in samples:
+            stack = sample[s_schema["stack"]]
+            frame_names = []
+            walk = stack
+            while walk is not None:
+                frame_names.append(label(stacks[walk][st_schema["frame"]]))
+                walk = stacks[walk][st_schema["prefix"]]
+            idle = not frame_names or any(
+                "WaitForMessage" in name or "ProcessNextNativeEvent" in name for name in frame_names
+            )
+            if idle:
+                if current:
+                    runs.append(current)
+                current = []
+            else:
+                current.append((sample[s_schema["time"]], frame_names))
+        if current:
+            runs.append(current)
+        long_runs = [r for r in runs if r[-1][0] - r[0][0] >= args.spikes]
+        print("busy runs over", args.spikes, "ms:", len(long_runs))
+        totals = collections.Counter()
+        for run in long_runs:
+            for _, names in run:
+                for name in set(names):
+                    totals[name] += 1
+        ignored = ("(root)", "SpinEventLoop", "RunLayoutTest", "__avx10", "KERNEL32", "ProcessNextEvent", "TaskController", "RunnableTask", "RunnableFunction", "ntdll.dll+0x4cc91")
+        for name, value in totals.most_common(args.top * 2):
+            if not any(i in name for i in ignored):
+                print(value, name[:130])
+        return
     callers = collections.Counter()
     self_counts = collections.Counter()
     total_counts = collections.Counter()
