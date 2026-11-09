@@ -89,14 +89,13 @@ void Attribute(JSContext* aCx, SnapshotIndex& aIndex,
   }
 }
 
-size_t Measure(JSContext* aCx, JS::ObjectPrivateVisitor* aOpv,
+size_t Measure(JSContext* aCx, const v8::HeapSnapshot* snapshot,
+               JS::ObjectPrivateVisitor* aOpv,
                const std::vector<JS::Realm*>& aRealms, JS::ZoneStats& aZone,
                JS::RealmStats* aRealmStats) {
   v8::Isolate* isolate = aCx->isolate;
   v8::HandleScope scope(isolate);
   v8::HeapProfiler* profiler = isolate->GetHeapProfiler();
-  const v8::HeapSnapshot* snapshot =
-      TakeReportSnapshot(aCx, v8::HeapProfiler::HeapSnapshotOptions());
   if (!snapshot) {
     return 0;
   }
@@ -158,18 +157,26 @@ size_t Measure(JSContext* aCx, JS::ObjectPrivateVisitor* aOpv,
         }
         realm->classInfo.objectsGCHeap += size;
         gcThings += size;
-        if (aOpv && type == v8::HeapGraphNode::kObject) {
-          v8::HandleScope inner(isolate);
-          JS::GCCellPtr cell =
-              CellForV8Value(aCx, profiler->FindObjectById(node->GetId()));
-          nsISupports* iface = nullptr;
-          if (cell && aOpv->getISupports_(&cell.as<JSObject>(), &iface) &&
-              iface) {
-            realm->objectsPrivate += aOpv->sizeOfIncludingThis(iface);
-          }
-        }
         break;
       }
+    }
+  }
+  if (aOpv && !aRealms.empty()) {
+    for (ObjectCell* cell : aCx->runtime->objectCells) {
+      if (cell->tail.handle.IsEmpty()) {
+        continue;
+      }
+      nsISupports* iface = nullptr;
+      if (!aOpv->getISupports_(cell->asObject(), &iface) || !iface) {
+        continue;
+      }
+      v8::HandleScope inner(isolate);
+      v8::Local<v8::Value> handle = cell->tail.handle.Get(isolate);
+      const v8::HeapGraphNode* node =
+          snapshot->GetNodeById(profiler->GetObjectId(handle));
+      int32_t n = node ? index.Find(node) : -1;
+      int32_t realmIndex = n >= 0 && owner[n] >= 0 ? owner[n] : 0;
+      aRealmStats[realmIndex].objectsPrivate += aOpv->sizeOfIncludingThis(iface);
     }
   }
   return gcThings;
@@ -204,6 +211,8 @@ JS_PUBLIC_API bool JS::CollectRuntimeStats(JSContext* cx,
                                            JS::ObjectPrivateVisitor* opv,
                                            bool anonymize) {
   JSRuntime* rt = cx->runtime;
+  const v8::HeapSnapshot* snapshot =
+      TakeReportSnapshot(cx, v8::HeapProfiler::HeapSnapshotOptions());
   std::vector<JS::Realm*> realms = rt->realms;
   if (!rtStats->realmStatsVector.reserve(realms.size()) ||
       !rtStats->zoneStatsVector.reserve(1)) {
@@ -214,7 +223,7 @@ JS_PUBLIC_API bool JS::CollectRuntimeStats(JSContext* cx,
   }
   rtStats->zoneStatsVector.infallibleAppend(JS::ZoneStats());
   JS::ZoneStats& zone = rtStats->zoneStatsVector.back();
-  size_t gcThings = Measure(cx, opv, realms, zone,
+  size_t gcThings = Measure(cx, snapshot, opv, realms, zone,
                             rtStats->realmStatsVector.begin());
 
   JS::AutoCheckCannotGC nogc;

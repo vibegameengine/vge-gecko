@@ -66,6 +66,7 @@
 #include "nsIDocShell.h"
 #include "nsIFile.h"
 #include "nsIFrame.h"
+#include "nsIMemoryInfoDumper.h"
 #include "nsIWebNavigation.h"
 #include "nsIWindowlessBrowser.h"
 #include "nsLayoutUtils.h"
@@ -220,6 +221,24 @@ void PrintFrameGeometry(Document* aDocument) {
            nsPresContext::AppUnitsToFloatCSSPixels(rect.width),
            nsPresContext::AppUnitsToFloatCSSPixels(rect.height));
   }
+}
+
+void ScheduleMemoryReport() {
+  const char* path = PR_GetEnv("VGE_MEMORY_REPORT");
+  if (!path) {
+    return;
+  }
+  const char* delay = PR_GetEnv("VGE_MEMORY_REPORT_DELAY");
+  NS_DelayedDispatchToCurrentThread(
+      NS_NewRunnableFunction(
+          "VgeMemoryReport",
+          [path = nsString(NS_ConvertUTF8toUTF16(path))] {
+            nsCOMPtr<nsIMemoryInfoDumper> dumper =
+                do_GetService("@mozilla.org/memory-info-dumper;1");
+            dumper->DumpMemoryReportsToNamedFile(path, nullptr, nullptr, false,
+                                                 false);
+          }),
+      (delay ? atoi(delay) : 0) * 1000);
 }
 
 class StallProbe final : public nsIThreadObserver {
@@ -452,6 +471,7 @@ int RunWindow(const char* aUrl, int aWidth, int aHeight) {
                                                     IgnoreErrors());
         }
       }
+      ScheduleMemoryReport();
       gfx::gfxConfig::ForEachFeature(
           [](const char* aName, const char* aDescription,
              gfx::FeatureState& aFeature) {
