@@ -97,3 +97,15 @@ class WindowWatch:
             "frozen_times": frozen[:40],
             "foreground_samples": sum(s["foreground"] for s in self.samples),
         }
+
+
+if __name__ == "__main__":
+    import json
+    import sys
+
+    watch = WindowWatch(int(sys.argv[1]))
+    watch.start()
+    time.sleep(float(sys.argv[2]))
+    watch.stop()
+    with open(sys.argv[3], "w") as output:
+        json.dump(watch.summary(), output)
