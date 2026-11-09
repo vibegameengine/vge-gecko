@@ -96,7 +96,10 @@ def main():
     if args.spikes:
         runs = []
         current = []
+        origin = samples[0][s_schema["time"]]
         for sample in samples:
+            if not args.from_ms <= sample[s_schema["time"]] - origin <= args.to_ms:
+                continue
             stack = sample[s_schema["stack"]]
             frame_names = []
             walk = stack
