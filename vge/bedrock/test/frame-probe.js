@@ -11,7 +11,10 @@
     frames++;
     elapsed += delta;
     longest = Math.max(longest, delta);
-    if (delta > 25) over25++;
+    if (delta > 25) {
+      over25++;
+      console.log("frameprobe spike at " + Math.round(now) + " ms length " + delta.toFixed(1));
+    }
     if (delta > 50) over50++;
     if (elapsed >= 5000) {
       console.log("frameprobe fps " + Math.round(frames * 1000 / elapsed) +
