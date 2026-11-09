@@ -295,17 +295,18 @@ void WriteReport(const char* aPath) {
           covered += to - from;
         }
       }
-      if (covered < info.RegionSize) {
-        size_t rest = info.RegionSize - covered;
-        untrackedTotal += rest;
+      size_t resident = ResidentBytes(base, info.RegionSize, counted);
+      if (covered < info.RegionSize && resident) {
+        untrackedTotal += resident;
         auto& bucket = untracked[info.RegionSize / 1048576];
-        bucket.first += rest;
+        bucket.first += resident;
         bucket.second++;
       }
     }
     cursor = end;
   }
-  fprintf(out, "untracked_private_mb %.1f\n", untrackedTotal / 1048576.0);
+  fprintf(out, "untracked_private_resident_mb %.1f\n",
+          untrackedTotal / 1048576.0);
   for (auto it = untracked.rbegin(); it != untracked.rend(); ++it) {
     fprintf(out, "untracked region_mb %zu total_mb %.1f regions %zu\n", it->first,
             it->second.first / 1048576.0, it->second.second);

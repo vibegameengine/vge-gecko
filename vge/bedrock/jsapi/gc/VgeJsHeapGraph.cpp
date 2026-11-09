@@ -215,27 +215,44 @@ using CellsByAddress = std::unordered_map<uintptr_t, JS::GCCellPtr>;
 
 CellsByAddress ColorMarkedCells(GcState& aState,
                                 const v8::GrayMarkingResult& aResult,
-                                bool aKeepBlackCells) {
+                                bool aKeepBlackCells,
+                                std::vector<JS::GCCellPtr>& aCellAt) {
   CellsByAddress cells;
+  if (aKeepBlackCells) {
+    cells.reserve(aState.runtime->objectCells.size());
+  }
+  auto setCellAt = [&](uintptr_t aAddress, JS::GCCellPtr aThing) {
+    uint32_t index = aResult.GrayIndexOf(aAddress);
+    if (index != v8::kNotGrayIndex && !aCellAt[index]) {
+      aCellAt[index] = aThing;
+    }
+  };
   for (ObjectCell* cell : aState.runtime->objectCells) {
     if (cell->tail.handle.IsEmpty()) {
       continue;
     }
     uintptr_t address = aResult.AddressOf(cell->tail.handle);
-    bool gray = aResult.IsGray(address);
+    uint32_t index = aResult.GrayIndexOf(address);
+    bool gray = index != v8::kNotGrayIndex;
     if (!gray && !(aKeepBlackCells && aResult.IsMarked(address))) {
       continue;
     }
     JS::GCCellPtr thing(cell->asObject());
     if (gray) {
       Color(aState, thing, true);
+      setCellAt(address, thing);
     }
-    cells.emplace(address, thing);
+    if (aKeepBlackCells) {
+      cells.emplace(address, thing);
+    }
     const JSClass* clasp = cell->shape ? cell->shape->base.clasp : nullptr;
     if (clasp && (clasp->flags & JSCLASS_IS_GLOBAL)) {
       uintptr_t inner = aResult.InnerGlobalOfProxy(address);
       if (inner) {
-        cells.emplace(inner, thing);
+        setCellAt(inner, thing);
+        if (aKeepBlackCells) {
+          cells.emplace(inner, thing);
+        }
       }
     }
   }
@@ -277,13 +294,11 @@ void CollectWeakEntries(GcState& aState, const v8::GrayMarkingResult& aResult,
 }
 
 void CollectCellEdges(GcState& aState, const v8::GrayMarkingResult& aResult,
-                      const CellsByAddress& aCells,
+                      const std::vector<JS::GCCellPtr>& aCellAt,
                       std::vector<v8::GrayMarkingEdge>& aEdges) {
-  size_t nodeCount = 0;
-  const uintptr_t* nodes = aResult.GrayObjects(&nodeCount);
+  size_t nodeCount = aCellAt.size();
   auto indexOf = [&](uintptr_t aAddress) {
-    return uint32_t(std::lower_bound(nodes, nodes + nodeCount, aAddress) -
-                    nodes);
+    return aResult.GrayIndexOf(aAddress);
   };
   std::vector<uint32_t> offsets(nodeCount + 1, 0);
   for (const v8::GrayMarkingEdge& edge : aEdges) {
@@ -297,13 +312,7 @@ void CollectCellEdges(GcState& aState, const v8::GrayMarkingResult& aResult,
   for (const v8::GrayMarkingEdge& edge : aEdges) {
     targets[fill[indexOf(edge.from)]++] = indexOf(edge.to);
   }
-  std::vector<JS::GCCellPtr> cellAt(nodeCount);
-  for (size_t i = 0; i < nodeCount; i++) {
-    auto it = aCells.find(nodes[i]);
-    if (it != aCells.end()) {
-      cellAt[i] = it->second;
-    }
-  }
+  const std::vector<JS::GCCellPtr>& cellAt = aCellAt;
   std::vector<uint32_t> stamp(nodeCount, 0);
   std::vector<uint32_t> stack;
   uint32_t generation = 0;
@@ -357,13 +366,16 @@ class CellGrayMarkingClient final : public v8::GrayMarkingClient {
     size_t weakRefCount = 0;
     aResult.Ephemerons(&ephemeronCount);
     aResult.WeakRefs(&weakRefCount);
-    CellsByAddress cells =
-        ColorMarkedCells(mState, aResult, ephemeronCount || weakRefCount);
+    size_t nodeCount = 0;
+    aResult.GrayObjects(&nodeCount);
+    std::vector<JS::GCCellPtr> cellAt(nodeCount);
+    CellsByAddress cells = ColorMarkedCells(
+        mState, aResult, ephemeronCount || weakRefCount, cellAt);
     size_t edgeCount = 0;
     const v8::GrayMarkingEdge* edges = aResult.Edges(&edgeCount);
     std::vector<v8::GrayMarkingEdge> allEdges(edges, edges + edgeCount);
     CollectWeakEntries(mState, aResult, cells, allEdges);
-    CollectCellEdges(mState, aResult, cells, allEdges);
+    CollectCellEdges(mState, aResult, cellAt, allEdges);
     mState.grayBitsValid = true;
   }
 

@@ -67,6 +67,7 @@
 #include "nsIFile.h"
 #include "nsIFrame.h"
 #include "nsIMemoryInfoDumper.h"
+#include "GeckoProfiler.h"
 #include "VgeAllocTrace.h"
 #include "nsIWebNavigation.h"
 #include "nsIWindowlessBrowser.h"
@@ -222,6 +223,18 @@ void PrintFrameGeometry(Document* aDocument) {
            nsPresContext::AppUnitsToFloatCSSPixels(rect.width),
            nsPresContext::AppUnitsToFloatCSSPixels(rect.height));
   }
+}
+
+void ScheduleProfileSave() {
+  const char* path = PR_GetEnv("VGE_PROFILE");
+  if (!path) {
+    return;
+  }
+  const char* delay = PR_GetEnv("VGE_PROFILE_DELAY");
+  NS_DelayedDispatchToCurrentThread(
+      NS_NewRunnableFunction("VgeProfileSave",
+                             [path] { profiler_save_profile_to_file(path); }),
+      (delay ? atoi(delay) : 30) * 1000);
 }
 
 void ScheduleMemoryReport() {
@@ -479,6 +492,7 @@ int RunWindow(const char* aUrl, int aWidth, int aHeight) {
       }
       ScheduleMemoryReport();
       ScheduleAllocTraceReport();
+      ScheduleProfileSave();
       gfx::gfxConfig::ForEachFeature(
           [](const char* aName, const char* aDescription,
              gfx::FeatureState& aFeature) {

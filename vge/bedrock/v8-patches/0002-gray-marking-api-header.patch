@@ -1,9 +1,9 @@
 diff --git a/include/v8-gray-marking.h b/include/v8-gray-marking.h
 new file mode 100644
-index 0000000..dc4452c
+index 0000000..9571be3
 --- /dev/null
 +++ b/include/v8-gray-marking.h
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,70 @@
 +#ifndef INCLUDE_V8_GRAY_MARKING_H_
 +#define INCLUDE_V8_GRAY_MARKING_H_
 +
@@ -17,6 +17,8 @@ index 0000000..dc4452c
 +
 +class Isolate;
 +class Value;
++
++constexpr uint32_t kNotGrayIndex = 0xFFFFFFFFu;
 +
 +struct GrayMarkingEdge {
 +  uintptr_t from;
@@ -48,6 +50,7 @@ index 0000000..dc4452c
 +  virtual uintptr_t AddressOf(const Global<Value>& handle) const = 0;
 +  virtual bool IsMarked(uintptr_t object) const = 0;
 +  virtual bool IsGray(uintptr_t object) const = 0;
++  virtual uint32_t GrayIndexOf(uintptr_t object) const = 0;
 +  virtual uintptr_t InnerGlobalOfProxy(uintptr_t object) const = 0;
 +  virtual const uintptr_t* GrayObjects(size_t* count) const = 0;
 +  virtual const GrayMarkingEdge* Edges(size_t* count) const = 0;

@@ -36,7 +36,7 @@ index 7da06e6..45c8520 100644
        nullptr;  // Owned by the embedder.
  
 diff --git a/src/heap/mark-compact.cc b/src/heap/mark-compact.cc
-index 189e023..5f9053e 100644
+index 189e023..bcd9b98 100644
 --- a/src/heap/mark-compact.cc
 +++ b/src/heap/mark-compact.cc
 @@ -4,6 +4,8 @@
@@ -88,7 +88,7 @@ index 189e023..5f9053e 100644
    if (was_marked_incrementally) {
      // Disable the marking barrier after concurrent/parallel marking has
      // finished as it will reset page flags that share the same bitmap as
-@@ -2469,6 +2489,175 @@ void MarkCompactCollector::MarkLiveObjects() {
+@@ -2469,6 +2489,227 @@ void MarkCompactCollector::MarkLiveObjects() {
  
  namespace {
  
@@ -111,15 +111,59 @@ index 189e023..5f9053e 100644
 +  RootVisitor* root_visitor_;
 +};
 +
++class GrayObjectIndex final {
++ public:
++  explicit GrayObjectIndex(size_t expected) {
++    size_t capacity = 16;
++    while (capacity < expected * 2) capacity <<= 1;
++    slots_.assign(capacity, Slot{0, v8::kNotGrayIndex});
++    mask_ = capacity - 1;
++  }
++
++  bool Insert(Address key, uint32_t value) {
++    for (size_t i = Hash(key);; i = (i + 1) & mask_) {
++      Slot& slot = slots_[i];
++      if (slot.key == key) return false;
++      if (slot.key == 0) {
++        slot = Slot{key, value};
++        return true;
++      }
++    }
++  }
++
++  uint32_t Find(Address key) const {
++    for (size_t i = Hash(key);; i = (i + 1) & mask_) {
++      const Slot& slot = slots_[i];
++      if (slot.key == key) return slot.value;
++      if (slot.key == 0) return v8::kNotGrayIndex;
++    }
++  }
++
++ private:
++  struct Slot {
++    Address key;
++    uint32_t value;
++  };
++
++  size_t Hash(Address key) const {
++    return static_cast<size_t>((key >> 3) * 0x9E3779B97F4A7C15ull >> 20) & mask_;
++  }
++
++  std::vector<Slot> slots_;
++  size_t mask_ = 0;
++};
++
 +class GrayMarkingResultImpl final : public v8::GrayMarkingResult {
 + public:
 +  GrayMarkingResultImpl(MarkingState* marking_state,
 +                        const std::vector<Address>& gray_objects,
++                        const GrayObjectIndex& gray_index,
 +                        const std::vector<v8::GrayMarkingEdge>& edges,
 +                        const std::vector<v8::GrayMarkingEphemeron>& ephemerons,
 +                        const std::vector<v8::GrayMarkingWeakRef>& weak_refs)
 +      : marking_state_(marking_state),
 +        gray_objects_(gray_objects),
++        gray_index_(gray_index),
 +        edges_(edges),
 +        ephemerons_(ephemerons),
 +        weak_refs_(weak_refs) {}
@@ -135,8 +179,11 @@ index 189e023..5f9053e 100644
 +  }
 +
 +  bool IsGray(uintptr_t object) const override {
-+    return std::binary_search(gray_objects_.begin(), gray_objects_.end(),
-+                              object);
++    return gray_index_.Find(object) != v8::kNotGrayIndex;
++  }
++
++  uint32_t GrayIndexOf(uintptr_t object) const override {
++    return gray_index_.Find(object);
 +  }
 +
 +  uintptr_t InnerGlobalOfProxy(uintptr_t object) const override {
@@ -168,6 +215,7 @@ index 189e023..5f9053e 100644
 + private:
 +  MarkingState* marking_state_;
 +  const std::vector<Address>& gray_objects_;
++  const GrayObjectIndex& gray_index_;
 +  const std::vector<v8::GrayMarkingEdge>& edges_;
 +  const std::vector<v8::GrayMarkingEphemeron>& ephemerons_;
 +  const std::vector<v8::GrayMarkingWeakRef>& weak_refs_;
@@ -193,12 +241,16 @@ index 189e023..5f9053e 100644
 +  marking_visitor_->set_gray_edges(nullptr);
 +  recording_gray_objects_ = false;
 +
-+  std::sort(gray_objects_.begin(), gray_objects_.end());
-+  gray_objects_.erase(std::unique(gray_objects_.begin(), gray_objects_.end()),
-+                      gray_objects_.end());
-+  auto is_gray = [this](Address object) {
-+    return std::binary_search(gray_objects_.begin(), gray_objects_.end(),
-+                              object);
++  GrayObjectIndex gray_index(gray_objects_.size());
++  size_t unique_objects = 0;
++  for (Address object : gray_objects_) {
++    if (gray_index.Insert(object, static_cast<uint32_t>(unique_objects))) {
++      gray_objects_[unique_objects++] = object;
++    }
++  }
++  gray_objects_.resize(unique_objects);
++  auto is_gray = [&gray_index](Address object) {
++    return gray_index.Find(object) != v8::kNotGrayIndex;
 +  };
 +
 +  std::vector<v8::GrayMarkingEdge> edges;
@@ -251,7 +303,7 @@ index 189e023..5f9053e 100644
 +    if (IsJSWeakRef(object)) add_weak_ref(JSWeakRef::cast(object));
 +  }
 +
-+  GrayMarkingResultImpl result(marking_state_, gray_objects_, edges,
++  GrayMarkingResultImpl result(marking_state_, gray_objects_, gray_index, edges,
 +                               ephemerons, weak_refs);
 +  client->GrayMarkingFinished(result);
 +
@@ -264,7 +316,7 @@ index 189e023..5f9053e 100644
  class ParallelClearingJob final : public v8::JobTask {
   public:
    class ClearingItem {
-@@ -5205,4 +5394,18 @@ void MarkCompactCollector::Sweep() {
+@@ -5205,4 +5446,18 @@ void MarkCompactCollector::Sweep() {
  }
  
  }  // namespace internal
