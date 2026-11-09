@@ -214,18 +214,22 @@ class GrayRootTracer final : public JS::CallbackTracer {
 using CellsByAddress = std::unordered_map<uintptr_t, JS::GCCellPtr>;
 
 CellsByAddress ColorMarkedCells(GcState& aState,
-                                const v8::GrayMarkingResult& aResult) {
+                                const v8::GrayMarkingResult& aResult,
+                                bool aKeepBlackCells) {
   CellsByAddress cells;
   for (ObjectCell* cell : aState.runtime->objectCells) {
     if (cell->tail.handle.IsEmpty()) {
       continue;
     }
     uintptr_t address = aResult.AddressOf(cell->tail.handle);
-    if (!aResult.IsMarked(address)) {
+    bool gray = aResult.IsGray(address);
+    if (!gray && !(aKeepBlackCells && aResult.IsMarked(address))) {
       continue;
     }
     JS::GCCellPtr thing(cell->asObject());
-    Color(aState, thing, aResult.IsGray(address));
+    if (gray) {
+      Color(aState, thing, true);
+    }
     cells.emplace(address, thing);
     const JSClass* clasp = cell->shape ? cell->shape->base.clasp : nullptr;
     if (clasp && (clasp->flags & JSCLASS_IS_GLOBAL)) {
@@ -349,7 +353,12 @@ class CellGrayMarkingClient final : public v8::GrayMarkingClient {
   }
 
   void GrayMarkingFinished(const v8::GrayMarkingResult& aResult) override {
-    CellsByAddress cells = ColorMarkedCells(mState, aResult);
+    size_t ephemeronCount = 0;
+    size_t weakRefCount = 0;
+    aResult.Ephemerons(&ephemeronCount);
+    aResult.WeakRefs(&weakRefCount);
+    CellsByAddress cells =
+        ColorMarkedCells(mState, aResult, ephemeronCount || weakRefCount);
     size_t edgeCount = 0;
     const v8::GrayMarkingEdge* edges = aResult.Edges(&edgeCount);
     std::vector<v8::GrayMarkingEdge> allEdges(edges, edges + edgeCount);

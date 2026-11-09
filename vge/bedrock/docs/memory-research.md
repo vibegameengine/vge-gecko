@@ -1,88 +1,174 @@
 # Память хоста Gecko+V8: что её держит и как уменьшить
 
-Документ пополняется по ходу работы. Здесь только то, что прочитано из отчётов движка, из живого процесса или из кода.
-Числа ниже — из запусков 2026-11-09.
+Числа из запусков 2026-11-09, окно 1280x800, машина с 24 логическими процессорами и картой NVIDIA. Только прочитанное из
+отчётов движка, живого процесса или кода. Где причина не найдена, так и написано.
 
 ## Как снималось
 
-- Частная копия `dist/bin` в scratchpad, чтобы сборка основной сессии её не трогала и файлы не пропадали.
-- Отчёт движка: `nsIMemoryInfoDumper.dumpMemoryReportsToNamedFile` из chrome-модуля, зарегистрированного в копии
-  (`chrome://vgeprobe`), который потом уводит окно на целевой URL.
-- Windows: обход `VirtualQueryEx` + `QueryWorkingSetEx` по каждой странице; private working set по модулям и регионам,
-  стеки потоков из TEB, имена потоков и стартовые адреса.
-- V8: `VGE_V8_FLAGS=--trace-gc-verbose` (штатная переменная слоя, `jsapi/VgeJsRuntime.cpp:594`), размеры по пространствам.
+- Отдельная копия `dist/bin` в scratchpad, чтобы сборка основной сессии не мешала. В ней добавлен chrome-модуль
+  `vgeprobe`, который из `core.sys.mjs` вызывает `nsIMemoryInfoDumper.dumpMemoryReportsToNamedFile` и уводит окно на URL.
+  В репозитории ничего не менялось.
+- Windows: обход `VirtualQueryEx` + `QueryWorkingSetEx` по каждой странице: private working set (PWS) по модулям и
+  регионам, стеки из TEB, имена потоков, стартовые адреса; у безымянных потоков цепочка адресов со дна стека.
+- V8: `VGE_V8_FLAGS=--trace-gc-verbose` (`jsapi/VgeJsRuntime.cpp:594`), `All spaces` по изолятам.
+- Chromium: Playwright `chromium-1234` (151.0.7922.34) с `--no-sandbox`. CEF: `E:\Projects\AIGamess\cef-fsapp`, та же
+  страница через `--url=`. Для них PWS — сумма по всему дереву процессов. Число JS из CDP (`Runtime.getHeapUsage`,
+  `performance.memory`), видеопамять — счётчик `GPU Process Memory\Dedicated Usage`.
 
-## Дефект, мешающий измерению: JS-репортёр падает
+## Дефекты, найденные при измерении
 
-`dumpMemoryReportsToNamedFile` роняет процесс с 0xc0000005:
+1. **`about:memory`/отчёт движка падает на V8.** 0xc0000005:
+   `XPCJSRuntimeStats::initExtraRealmStats` (`js/xpconnect/src/XPCJSRuntime.cpp:2229`), вызов из
+   `JS::CollectRuntimeStats` (`vge/bedrock/jsapi/gc/VgeJsMemoryMetrics.cpp:225`), из `JSReporter::CollectReports`, из
+   `nsWindowMemoryReporter::CollectReports` (`dom/base/nsWindowMemoryReporter.cpp:536`). Чтобы снять остальные отчёты, в
+   частной копии `xul.dll` функция `JS::CollectRuntimeStats` заменена на `return false`. Поэтому в числах ниже нет
+   дерева `explicit/js-*`. Без исправления этого падения штатного отчёта у хоста нет.
+2. **Минимизация памяти не завершается на игре.** Дамп с `minimizeMemoryUsage` на no-script закончился, на игре за 90 с нет:
+   изолят воркера делает Mark-Compact по 1,4 мс подряд тысячами (6052 блока `All spaces` за запуск).
+3. **Падение процесса с Worker.** Один запуск закончился 0xc0000005 в обработчике `MessageEvent` на потоке воркера
+   (`MessageEventRunnable::WorkerRun`, `dom/workers/MessageEventRunnable.cpp:92`, вызов `EventHandlerNonNull::Call`). На
+   следующих запусках не повторилось.
 
-```
-xpc::XPCJSRuntimeStats::initExtraRealmStats (js/xpconnect/src/XPCJSRuntime.cpp:2229)
-JS::CollectRuntimeStats (vge/bedrock/jsapi/gc/VgeJsMemoryMetrics.cpp:225)
-xpc::JSReporter::CollectReports (js/xpconnect/src/XPCJSRuntime.cpp:2296)
-nsWindowMemoryReporter::CollectReports (dom/base/nsWindowMemoryReporter.cpp:536)
-```
+## Сводка сравнения
 
-Значит about:memory на этом хосте сейчас не работает вообще. Чтобы получить остальные отчёты, в частной копии `xul.dll`
-функция `JS::CollectRuntimeStats` заменена на `return false` (в репозитории ничего не менялось). Поэтому в числах ниже нет
-дерева `explicit/js-*`; V8 показан из `--trace-gc-verbose`.
+| Страница | Хост | CEF (cef-fsapp) | Chromium 151 |
+|---|---|---|---|
+| `no-script.html`, PWS всего дерева | 61 + Socket 4,5 = 66 МБ | 74 МБ | 149 МБ |
+| Игра, PWS всего дерева | 735-769 + Socket 4 + Utility 16 = 755-789 МБ | 416 МБ | 485 МБ |
+| Игра, рендерер PWS | весь главный процесс | 307 МБ | 314 МБ |
+| Игра, Dedicated GPU | 3021 МБ | 220 МБ | 331 МБ |
+| Игра, JS-куча V8 | 44 МБ занято, 48 МБ committed | 54 МБ занято (performance.memory) | 49 МБ занято |
+| Игра, потоков | 291-300 | 8 процессов, 254 потока | 11 процессов, 333 потока |
 
-## Простая страница (`test/no-script.html`), главный процесс
+Вывод из таблицы: простой хост на уровне CEF и меньше Chromium. Лишнее появляется на настоящей странице: хост держит на
+300 МБ PWS больше CEF и в десять раз больше видеопамяти. JS-куча сопоставима, поэтому сам V8 здесь не источник.
 
-| Что | Байты | Источник |
+## Что держит память, по убыванию байт
+
+### 1. Видеопамять 3,0 ГБ против 220-331 МБ у CEF/Chromium
+
+- Держит: процесс хоста, счётчик `GPU Process Memory\Dedicated Usage` (3 021 602 816 байт), не PWS.
+- Отчёты движка объясняют только 358 МБ: `gfx/webrender/textures/*` (render-texture-hosts 220,6; render-targets 64;
+  atlas 36; depth 17; picture-tiles 10; swap-chains 7,3; standalone 3,8; staging 4,2) и `webgl-texture-memory` 121,8.
+- Остальные примерно 2,5 ГБ движок не считает. Причина не найдена.
+- Как закрыть: снять список D3D-ресурсов устройства ANGLE/WebRender (`ID3D11Device` с Debug Layer и
+  `ReportLiveDeviceObjects`) и прочитать, кто создаёт. Решение пишется только после этого.
+
+### 2. Большие частные блоки без хозяина, около 530 МБ PWS
+
+- Главный процесс игры, `private-data` 720-769 МБ. Из них объяснено: mozjemalloc 109,2 + служебное 4,9, системная куча
+  26, V8 48 committed, ячейки 9 МБ.
+- Остаток около 530 МБ лежит в отдельных регионах точных размеров: 16 МиБ x7, 32 МиБ x4, 5,4 МиБ x16, 4 МиБ x8 и другие
+  (файл регионов запуска `clay3`). В части регионов с начала идут RGBA-пиксели (`0xff00a6ff...`), в остальных нули.
+  Размеры 16 и 4 МиБ равны 2048x2048 и 1024x1024 RGBA.
+- `V8 External memory reported` = 211,5 МБ. Это сумма `JS::AddAssociatedMemory`
+  (`jsapi/gc/VgeJsRuntimeMisc.cpp:194`), её вызывают биндинги (`dom/bindings/BindingUtils.h`, `XPCWrappedNative.cpp`),
+  2D-канвас и `ImageBitmap` (`dom/canvas/ImageBitmap.cpp`, `CanvasRenderingContext2D.cpp:2147`). Это учётная величина,
+  не адрес блока, и какой объект её набрал, не установлено.
+- Причина не найдена, регионы не приписаны. Как закрыть: запись стека на `VirtualAlloc` и крупные CRT-выделения в живом
+  процессе, затем чтение того, кто создаёт. Пока стек не прочитан, решение здесь не предлагается.
+- Отдельно по коду: `v8::ArrayBuffer::Allocator::NewDefaultAllocator` (`VgeJsRuntime.cpp:629`) в V8 идёт через
+  `base::Calloc` (`v8/src/api/api.cc:524`), то есть мимо mozjemalloc, и `ArrayBuffer` не попадают в `heap-allocated`. Для
+  сравнения в Chromium `backingStorageSize` 18,5 МБ, в CEF 23,3 МБ, поэтому большой остаток не объясняется одними
+  `ArrayBuffer` игры.
+
+### 3. Общие секции: 277-293 МБ выделено, 200 МБ отображено
+
+- Держит: `shmem-allocated`, `shmem-mapped`; shared working set 356 МБ. Это не PWS.
+- Состав в отчёте: `gfx/webrender/images/mapped_from_owner/...` — декодированные поверхности 1024x1024 и 2048x2048, по
+  сумме сходится с `render-texture-hosts` 220,6 МБ. Хозяин: `SharedSurfacesParent` (`gfx/layers/ipc/SharedSurfacesParent.cpp`).
+- Сравнение: у CEF и Chromium таких секций в том же объёме нет, общая часть PWS у них меньше.
+- Что сделать: прочитать жизнь `SharedSurfacesParent` и вызовы, откуда поверхность остаётся отображённой после загрузки в
+  текстуру. По отчёту она отображена у владельца и у WebRender. Чтение ещё не сделано.
+
+### 4. mozjemalloc: 109,2 МБ + 4,9 служебного
+
+- `heap-allocated`, `heap/committed/bookkeeping`. Распределено по отчётам 48 МБ `explicit`:
+  `explicit/js-non-window/cache` 13,2 (`dom/script/SharedScriptCache.cpp:323`, разделяемый кэш скриптов);
+  `images/content/raster` 8,6; `webaudio/audiobuffer` 3,1; `gfx/webrender` 5,3; `storage/sqlite` 1,5;
+  `window-objects` 1,9; `threads` 5,1 (стеки и kernel).
+- Остальные около 60 МБ сейчас идут как heap-unclassified: JS-репортёр выключен (дефект 1), там обычно V8 malloc и DOM-объекты.
+- Что сделать: чинить дефект 1, потом читать это дерево. Кэш скриптов: прочитать политику `SharedScriptCache` и
+  ограничить по памяти для одного окна.
+
+### 5. Куча V8: 44 МБ занято, 48 МБ committed
+
+- Главный изолят: `All spaces, used: 44234 KB, committed 48060 KB`, Old 32708, Code 3584, Large object 10744.
+- Сравнение: CEF 54, Chromium 49 МБ. Паритет.
+- Единственный оставшийся на уровне сборки рычаг: `v8_enable_pointer_compression=false` в
+  `build_wee8_compile.cmd`. Сжатие указателей уменьшает старые пространства по документации V8 (v8.dev/blog/pointer-compression;
+  здесь не проверялось). Оценка 15-20 МБ на этой странице, отдельный замер нужен после сборки. Полное решение: сборка V8 с этим
+  флагом, проверка, что `VgeV8Config.h` совпадает со сборкой, и граница 4 ГБ на изолят.
+- Настройки heap (`--max-semi-space-size`, `--optimize-for-size` в `src/flags/flag-definitions.h:1267,1538`) снимают
+  единицы мегабайт и не использованы; это делается `VGE_V8_FLAGS` без сборки.
+
+### 6. Ячейки JS API: 9 МБ
+
+- Регионы по 1 МиБ со общим `runtime` в `ChunkBase`: 9 штук (запуск `clay3`) на игре.
+- Стоимость одной обёртки по коду (`jsapi/VgeJsInternal.h`):
+  - `ObjectCell` = 8 (shape) + 8 x 18 (`words`, 2 заголовка + 16 слотов `MAX_FIXED_SLOTS`) + `CellTail` 48 = 200 байт
+    (`VgeJsHeap.cpp`, `AllocCell`, кусками по 1 МиБ с `VirtualAlloc`, `MEM_COMMIT` сразу);
+  - `v8::Global` — узел `GlobalHandles::Node`, блоками по 256 (`src/handles/global-handles.cc:41`), около 32 байт на узел;
+  - `v8::TracedReference` в `CellTail` плюс второй в `Anchor`: узел `TracedNode` до 16 байт каждый
+    (`traced-handles.cc:146`);
+  - `Anchor` cppgc: 16 + заголовок 8 = 24 байта;
+  - запись в `unordered_set` `objectCells` (`VgeJsValues.cpp:119`), узел MSVC около 48 байт.
+  - Итого около 350 байт на обёртку плюс сам объект V8. Строка: `StringCell` 80 байт (`VgeJsInternal.h:74`).
+- Сравнение с целевым видом: у SpiderMonkey такого нет, и нет `CellTail`, отдельный 16-слотовый резерв на каждую ячейку не
+  нужен большинству объектов.
+- Что сделать окончательно: 16 слотов вынести в опциональный блок по фактическому `reservedSlots` (`Shape::reservedSlots`
+  уже есть): ячейка тогда 56 байт вместо 200, у маленьких классов выигрыш больше; `objectCells` заменить интрузивным списком
+  через `CellTail` (минус примерно 48 байт и его бакеты). Выигрыш на этой странице единицы мегабайт из 9, на больших DOM
+  пропорционален числу обёрток.
+
+### 7. Потоки: 291-300 в игре, 168-170 на пустой странице
+
+Разбор живого процесса (стартовые адреса и имена):
+
+| Группа | Потоков | Кто / как уменьшить |
 |---|---|---|
-| Private working set всего | 61 МБ | обход страниц |
-| `resident-unique` | 60,0 МБ | репортёр |
-| Shared working set | 79 МБ | обход страниц |
-| Committed | 747 МБ | обход страниц |
-| Reserved private | 14,6 ГБ адресов | `address-space/reserved/private` |
-| Потоков | 168, из них 107 без имени | TEB |
+| Пул драйвера NVIDIA | 135 (игра), 57 (пусто) | `nvwgf2umx.dll+0xe6ec30`. Driver. У Chromium GPU-процесс 109 потоков, у CEF 101 — та же природа |
+| Безымянные с `ucrtbase` | 62-64 (игра), 40 (пусто) | Среди них пул V8: `NewDefaultPlatform()` (`VgeJsPlatform.cpp:303`) = min(24-1, 16) = 16 потоков (`default-platform.cc:33-40`). Остальные по цепочке стека не определены |
+| WebRender | 12 + 2 builder + RenderBackend | `WRWorker#`, `WRWorkerLP#`, `WRSceneBuilder*`, `WRRenderBackend*`, `Renderer`, `Compositor`, `CanvasRenderer` |
+| Style | 5 | `layout.css.stylo-threads`, `modules/libpref/init/StaticPrefList.yaml:11592` |
+| TaskController | 8 | `xpcom/threads/TaskController.cpp:56`, `MOZ_TASKCONTROLLER_THREADCOUNT`, иначе от числа ядер |
+| DNS | 5 | `network.dns.max_any_priority_threads`, `netwerk/dns/nsHostResolver.cpp:185` |
+| Сервисы | по 1 | `URL Classifier`, `Permission`, `Cookie`, `QuotaManager IO`, `glean.dispatcher`, `BHMgr Monitor`, `BHMgr Processor`, `Gamepad`, `osclientcerts`, `JS Watchdog`, `sqldb:cookies.sqlite`, `Link Monitor`, `IPC Launch` |
 
-Состав private working set (61 МБ):
+Вес всего этого: стеки в отчёте `threads/stacks` 2,9 МБ, ядро `threads/overhead/kernel` 2,1 МБ, в PWS категории стеков 6,8 МБ.
+Сокращение потоков экономит единицы мегабайт и закрывается настройками числа потоков выше (`NewDefaultPlatform(N)`, env,
+префы), тут важен пул V8 и пул NVIDIA не трогается. Потоки — не то место, где лежат сотни мегабайт.
 
-| Что | МБ | Источник |
+### 8. Сервисы Gecko, не нужные хосту
+
+- Запущены: `nsUrlClassifierDBService` (поток `URL Classifier`, `toolkit/components/url-classifier/nsUrlClassifierDBService.cpp:2070`),
+  БД `permissions.sqlite` и `cookies.sqlite`, glean, BHMgr, Quota. Память всей подсистемы SQLite 1,5 МБ на игре.
+- `Places` и служба политик в этих прогонах в отчётах не видны (нет `places.sqlite`, нет потока). Хост только шлёт
+  `profile-after-change` наблюдателям и не поднимает категории (`runtime/VgeBedrockRuntime.cpp:559`), так что запускались они,
+  если запускались, не через категорию. Для полной уверенности нужен список загруженных модулей.
+- Что сделать: срез каталогов и категорий в `app.mozbuild` с крейтами gkrust, как записано в `DECISIONS.md`. Вес единицы МБ.
+
+### 9. Отдельные процессы
+
+Socket: PWS 4 МБ, 10 потоков. Utility (аудио) на игре: 16 МБ, 25 потоков. Выбор Gecko, задаётся префами `network.process.enabled`
+и аналогичными; в одном процессе они исчезают ценой изоляции. Решает пользователь.
+
+### 10. Файлы
+
+| Файл | Диск | Что в памяти |
 |---|---|---|
-| Частные данные всего | 54,4 | категория private-data |
-| из них mozjemalloc: выделено | 21,7 | `heap-allocated` |
-| из них mozjemalloc: служебное | 4,05 | `heap/committed/bookkeeping` |
-| из них системная куча Windows | 12,2 | `system-heap-allocated` |
-| из них V8, все пространства, committed | 4,3 (занято 3,0) | `--trace-gc-verbose` |
-| Стеки потоков | 2,6 | TEB + working set |
-| `xul.dll`, частные страницы | 0,7 | обход страниц (shared 34,3) |
-| Драйвер NVIDIA `nvgpucomp64.dll` | 0,8 | обход страниц |
+| `xul.dll` | 186,6 МБ | 0,7-0,9 МБ PWS, 34-65 МБ shared, committed 178,8 МБ |
+| `icudtl.dat` | 10,7 МБ | отображается файлом; PWS 0 |
+| `onnxruntime.dll`, `mozinference.dll` | 11,9 и 3,1 МБ | на этих страницах не загружены |
+| `dxcompiler.dll`, `libGLESv2.dll` | 24,2 и 4,9 МБ | шейдеры ANGLE |
+| Каталог `dist/bin` | 321 МБ | devtools, gmp, браузерная часть — только диск |
 
-Отдельный процесс Socket: `resident-unique` 4,5 МБ, `private` 9,3 МБ, `resident` 18,1 МБ.
+PWS от бинарников меньше 1 МБ, это вопрос диска и shared, не private. `icudtl.dat` и ICU внутри `xul` (`js_static_lib`,
+`DECISIONS.md`) — две копии данных; единая копия уберёт одну из них, 10,7 МБ на диске.
 
-Прочие объекты из отчёта: `phc/metadata` 1,34 МБ, `gfx/webrender` 1,5 МБ, `threads/overhead/kernel` 1,4 МБ,
-`storage/sqlite` 0,5 МБ, `layout/style-sheet-cache` 0,4 МБ, `icu` 0,4 МБ.
+## Что не проверено
 
-## Размеры файлов
-
-`xul.dll` 186,6 МБ, `icudtl.dat` 10,7 МБ, `dxcompiler.dll` 24,2 МБ, `onnxruntime.dll` 11,9 МБ, `gkcodecs.dll` 11,4 МБ,
-`libGLESv2.dll` 4,9 МБ, `mozavcodec.dll` 4,6 МБ, `mozinference.dll` 3,1 МБ. Каталог `dist/bin` целиком 321 МБ.
-
-## Игра `https://claybound-56949.web.app/`, главный процесс, 50 с после старта
-
-| Что | Байты | Источник |
-|---|---|---|
-| Private working set | 735 МБ | обход страниц |
-| `resident-unique` | 739,7 МБ | репортёр |
-| Shared working set | 356 МБ | обход страниц |
-| Committed | 1691 МБ | обход страниц |
-| Потоков | 300 | TEB |
-| mozjemalloc выделено | 109,2 МБ | `heap-allocated` |
-| Системная куча Windows | 26,0 МБ | `system-heap-allocated` |
-| `webgl-texture-memory` | 121,8 МБ | репортёр WebGL |
-| Общие секции (shmem) | 277,4 МБ выделено, 199,8 отображено | `shmem-*` |
-| Кэш скриптов | 13,2 МБ | `explicit/js-non-window/cache` |
-| Картинки | 8,6 МБ | `explicit/images/content/raster` |
-| Webaudio | 3,1 МБ | `explicit/webaudio/audiobuffer` |
-
-Плюс процессы Socket (private WS 4 МБ, 10 потоков) и Utility (16 МБ, 25 потоков).
-
-Из 300 потоков 135 — один пул драйвера NVIDIA (стартовый адрес `nvwgf2umx.dll+0xe6ec30`), 64 безымянных с точкой входа
-`ucrtbase`, остальные с именами (пулы Style, WebRender и прочие).
-
-## В работе
-
-Страница WebGL, разбор потоков, сравнение с CEF/Chromium, стоимость обёртки, предложения.
+- Первопричина пунктов 1 и 2: стек выделения и D3D-список ещё не сняты. Без них про остаток 2,5 ГБ и 530 МБ нельзя сказать ничего.
+- Какие объекты дают 211,5 МБ associated memory.
+- Что игра в хосте дошла до того же состояния, что в CEF/Chromium (`clayBoot.ready` в хосте не прочитан). Косвенный признак: JS-куча та же. На
+  этом измерение лучше не считать окончательным.
