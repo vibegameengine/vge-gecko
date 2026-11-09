@@ -42,6 +42,11 @@
 #include <atomic>
 #include <thread>
 #include <windows.h>
+#include <psapi.h>
+#include <d3d11.h>
+#include <dxgi1_3.h>
+#include "mozilla/gfx/DeviceManagerDx.h"
+#include "mozmemory.h"
 #include "mozilla/StackWalk.h"
 #include "mozilla/StackWalkThread.h"
 #include "nsIThreadInternal.h"
@@ -253,6 +258,82 @@ void ScheduleMemoryReport() {
                                                  false);
           }),
       (delay ? atoi(delay) : 0) * 1000);
+}
+
+void PrintPressureStep(const char* aName) {
+  PROCESS_MEMORY_COUNTERS_EX counters = {};
+  GetProcessMemoryInfo(GetCurrentProcess(),
+                       reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&counters),
+                       sizeof(counters));
+  printf("VGEPRESSURE %s ws_mb %zu commit_mb %zu\n", aName,
+         counters.WorkingSetSize / 1048576, counters.PrivateUsage / 1048576);
+  fflush(stdout);
+}
+
+void TrimDevice(RefPtr<ID3D11Device> aDevice) {
+  if (!aDevice) {
+    return;
+  }
+  RefPtr<IDXGIDevice3> dxgi;
+  if (SUCCEEDED(aDevice->QueryInterface(__uuidof(IDXGIDevice3),
+                                        getter_AddRefs(dxgi)))) {
+    dxgi->Trim();
+  }
+}
+
+void RunPressureStep(size_t aStep) {
+  constexpr uint32_t kStepDelayMs = 3000;
+  switch (aStep) {
+    case 0:
+      PrintPressureStep("before");
+      break;
+    case 1:
+      if (nsCOMPtr<nsIObserverService> os = mozilla::services::GetObserverService()) {
+        os->NotifyObservers(nullptr, "memory-pressure", u"low-memory");
+      }
+      break;
+    case 2:
+      PrintPressureStep("after_notify");
+      jemalloc_free_dirty_pages();
+      break;
+    case 3: {
+      PrintPressureStep("after_jemalloc");
+      auto* manager = mozilla::gfx::DeviceManagerDx::Get();
+      TrimDevice(manager->GetCompositorDevice());
+      TrimDevice(manager->GetContentDevice());
+      TrimDevice(manager->GetCanvasDevice());
+      break;
+    }
+    case 4:
+      PrintPressureStep("after_trim");
+      SetProcessWorkingSetSize(GetCurrentProcess(), SIZE_T(-1), SIZE_T(-1));
+      PrintPressureStep("after_empty_ws");
+      break;
+    case 5:
+      PrintPressureStep("rebound_3s");
+      break;
+    case 6:
+    case 7:
+    case 8:
+      PrintPressureStep("rebound_later");
+      break;
+    default:
+      return;
+  }
+  NS_DelayedDispatchToCurrentThread(
+      NS_NewRunnableFunction("VgeMemoryPressureStep",
+                             [aStep] { RunPressureStep(aStep + 1); }),
+      kStepDelayMs);
+}
+
+void ScheduleMemoryPressure() {
+  const char* delay = PR_GetEnv("VGE_MEMORY_PRESSURE_DELAY");
+  if (!delay) {
+    return;
+  }
+  NS_DelayedDispatchToCurrentThread(
+      NS_NewRunnableFunction("VgeMemoryPressure", [] { RunPressureStep(0); }),
+      atoi(delay) * 1000);
 }
 
 class StallProbe final : public nsIThreadObserver {
@@ -491,6 +572,7 @@ int RunWindow(const char* aUrl, int aWidth, int aHeight) {
         }
       }
       ScheduleMemoryReport();
+  ScheduleMemoryPressure();
       ScheduleAllocTraceReport();
       ScheduleProfileSave();
       gfx::gfxConfig::ForEachFeature(

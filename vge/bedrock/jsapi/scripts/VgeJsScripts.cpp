@@ -135,6 +135,37 @@ JSScript* ScriptForFunction(JSContext* aCx, v8::Local<v8::Function> aFunction) {
   return NewScriptCell(aCx, data);
 }
 
+namespace {
+
+constexpr size_t kMinimumExternalSource = 4096;
+
+class SourceResource final : public v8::String::ExternalStringResource {
+ public:
+  explicit SourceResource(std::shared_ptr<const std::u16string> aText)
+      : mText(std::move(aText)) {}
+  const uint16_t* data() const override {
+    return reinterpret_cast<const uint16_t*>(mText->data());
+  }
+  size_t length() const override { return mText->size(); }
+
+ private:
+  std::shared_ptr<const std::u16string> mText;
+};
+
+}  // namespace
+
+v8::Local<v8::String> V8Source(v8::Isolate* aIsolate, const SharedSource& aSource) {
+  if (aSource.size() >= kMinimumExternalSource) {
+    auto* resource = new SourceResource(aSource.shared());
+    v8::Local<v8::String> external;
+    if (v8::String::NewExternalTwoByte(aIsolate, resource).ToLocal(&external)) {
+      return external;
+    }
+    return v8::String::Empty(aIsolate);
+  }
+  return V8String(aIsolate, aSource.data(), aSource.size());
+}
+
 v8::Local<v8::String> V8String(v8::Isolate* aIsolate, const char* aUtf8) {
   return V8String(aIsolate, aUtf8, aUtf8 ? strlen(aUtf8) : 0);
 }
@@ -294,7 +325,7 @@ JSScript* CompileScriptText(JSContext* aCx,
   data->source = std::move(aSource);
   NewReferrerId(data);
   v8::ScriptCompiler::Source source(
-      V8String(isolate, data->source.data(), data->source.size()),
+      V8Source(isolate, data->source),
       OriginFor(isolate, data, false), aCache);
   v8::TryCatch tryCatch(isolate);
   v8::Local<v8::UnboundScript> unbound;
@@ -353,7 +384,7 @@ bool ExecuteScriptCell(JSContext* aCx, JSScript* aScript,
     extensions.push_back(ToV8(aCx, aChain[--i]));
   }
   v8::ScriptCompiler::Source source(
-      V8String(isolate, data->source.data(), data->source.size()),
+      V8Source(isolate, data->source),
       OriginFor(isolate, data, false));
   v8::Local<v8::Function> body;
   if (!v8::ScriptCompiler::CompileFunction(context, &source, 0, nullptr,

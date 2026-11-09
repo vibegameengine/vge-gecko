@@ -174,7 +174,7 @@ bool CompileInIsolate(v8::Isolate* aIsolate, v8::Local<v8::Context> aContext,
                       v8::Local<v8::Module>* aModule, bool aMakeCache,
                       v8::TryCatch& aTry) {
   v8::ScriptCompiler::Source source(
-      V8String(aIsolate, aStencil->source.data(), aStencil->source.size()),
+      V8Source(aIsolate, aStencil->source),
       StencilOrigin(aIsolate, aStencil, aReferrerId));
   v8::ScriptCompiler::CachedData* cache = nullptr;
   if (aStencil->isModule) {
@@ -447,7 +447,7 @@ v8::MaybeLocal<v8::UnboundScript> CompileFromStencilCache(
         v8::ScriptCompiler::CachedData::BufferNotOwned);
   }
   v8::ScriptCompiler::Source source(
-      V8String(isolate, aData->source.data(), aData->source.size()),
+      V8Source(isolate, aData->source),
       OriginFor(isolate, aData, false), cache);
   return v8::ScriptCompiler::CompileUnboundScript(
       isolate, &source,
@@ -465,7 +465,7 @@ v8::MaybeLocal<v8::Module> CompileModuleFromStencilCache(
         v8::ScriptCompiler::CachedData::BufferNotOwned);
   }
   v8::ScriptCompiler::Source source(
-      V8String(isolate, aData->source.data(), aData->source.size()),
+      V8Source(isolate, aData->source),
       OriginFor(isolate, aData, true), cache);
   return v8::ScriptCompiler::CompileModule(
       isolate, &source,

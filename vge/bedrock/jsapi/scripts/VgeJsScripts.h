@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -28,6 +29,27 @@
 
 namespace vge::jsapi {
 
+class SharedSource {
+ public:
+  SharedSource& operator=(std::u16string aText) {
+    mText = std::make_shared<const std::u16string>(std::move(aText));
+    return *this;
+  }
+  const char16_t* data() const { return text().data(); }
+  size_t size() const { return text().size(); }
+  bool empty() const { return text().empty(); }
+  size_t capacity() const { return text().capacity(); }
+  operator const std::u16string&() const { return text(); }
+  const std::shared_ptr<const std::u16string>& shared() const { return mText; }
+
+ private:
+  const std::u16string& text() const {
+    static const std::u16string kEmpty;
+    return mText ? *mText : kEmpty;
+  }
+  std::shared_ptr<const std::u16string> mText;
+};
+
 struct ScriptData {
   JS::Realm* realm = nullptr;
   std::string filename;
@@ -43,7 +65,7 @@ struct ScriptData {
   bool isFunction = false;
   bool hideFromDebugger = false;
   bool collectingDelazifications = false;
-  std::u16string source;
+  SharedSource source;
   v8::Global<v8::UnboundScript> unbound;
   v8::Global<v8::Function> function;
   JS::Value privateValue = JS::UndefinedValue();
@@ -113,6 +135,7 @@ ScriptData* ScriptDataByReferrerId(uint32_t aId);
 JSScript* ScriptForFunction(JSContext* aCx, v8::Local<v8::Function> aFunction);
 
 v8::Local<v8::String> V8String(v8::Isolate* aIsolate, const char* aUtf8);
+v8::Local<v8::String> V8Source(v8::Isolate* aIsolate, const SharedSource& aSource);
 v8::Local<v8::String> V8String(v8::Isolate* aIsolate, const char* aUtf8,
                                size_t aLength);
 v8::Local<v8::String> V8String(v8::Isolate* aIsolate, const char16_t* aChars,
@@ -193,7 +216,7 @@ struct js::frontend::InitialStencilAndDelazifications {
   bool isModule = false;
   bool borrowed = false;
   bool cacheable = true;
-  std::u16string source;
+  vge::jsapi::SharedSource source;
   size_t sourceLength = 0;
   std::string filename;
   std::string introducerFilename;
