@@ -39,6 +39,7 @@
 #include "nsFrameLoader.h"
 #include "nsFrameLoaderOwner.h"
 #include "nsStreamUtils.h"
+#include <algorithm>
 #include <atomic>
 #include <thread>
 #include <windows.h>
@@ -326,6 +327,69 @@ void RunPressureStep(size_t aStep) {
       kStepDelayMs);
 }
 
+class ColdMemoryTrimmer {
+ public:
+  static void Start() {
+    if (PR_GetEnv("VGE_MEMORY_PRESSURE_DELAY") || PR_GetEnv("VGE_NO_MEMORY_TRIM")) {
+      return;
+    }
+    Dispatch(kPollDelayMs, [] { Poll(0, 0); });
+  }
+
+ private:
+  static constexpr uint32_t kPollDelayMs = 2000;
+  static constexpr uint32_t kSliceDelayMs = 16;
+  static constexpr uint32_t kStablePolls = 5;
+  static constexpr size_t kStableBytes = 8 * 1048576;
+  static constexpr size_t kSliceBytes = 8 * 1048576;
+
+  template <typename Function>
+  static void Dispatch(uint32_t aDelay, Function aFunction) {
+    NS_DelayedDispatchToCurrentThread(
+        NS_NewRunnableFunction("VgeColdMemoryTrim", std::move(aFunction)), aDelay);
+  }
+
+  static void Poll(size_t aLastCommit, uint32_t aStable) {
+    PROCESS_MEMORY_COUNTERS_EX counters = {};
+    GetProcessMemoryInfo(GetCurrentProcess(),
+                         reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&counters),
+                         sizeof(counters));
+    size_t commit = counters.PrivateUsage;
+    size_t change = commit > aLastCommit ? commit - aLastCommit : aLastCommit - commit;
+    uint32_t stable = aLastCommit && change < kStableBytes ? aStable + 1 : 0;
+    if (stable >= kStablePolls) {
+      Dispatch(kSliceDelayMs, [] { Sweep(0); });
+      return;
+    }
+    Dispatch(kPollDelayMs, [commit, stable] { Poll(commit, stable); });
+  }
+
+  static void Sweep(uintptr_t aCursor) {
+    uintptr_t cursor = aCursor;
+    size_t budget = kSliceBytes;
+    MEMORY_BASIC_INFORMATION info;
+    while (budget &&
+           VirtualQuery(reinterpret_cast<void*>(cursor), &info, sizeof(info))) {
+      uintptr_t end = uintptr_t(info.BaseAddress) + info.RegionSize;
+      bool trimmable = info.State == MEM_COMMIT && info.Type == MEM_PRIVATE &&
+                       !(info.Protect & (PAGE_GUARD | PAGE_NOACCESS));
+      if (!trimmable) {
+        cursor = end;
+        continue;
+      }
+      uintptr_t from = std::max(cursor, uintptr_t(info.BaseAddress));
+      size_t length = std::min(size_t(end - from), budget);
+      VirtualUnlock(reinterpret_cast<void*>(from), length);
+      cursor = from + length;
+      budget -= length;
+    }
+    if (budget) {
+      return;
+    }
+    Dispatch(kSliceDelayMs, [cursor] { Sweep(cursor); });
+  }
+};
+
 void ScheduleMemoryPressure() {
   const char* delay = PR_GetEnv("VGE_MEMORY_PRESSURE_DELAY");
   if (!delay) {
@@ -573,6 +637,7 @@ int RunWindow(const char* aUrl, int aWidth, int aHeight) {
       }
       ScheduleMemoryReport();
   ScheduleMemoryPressure();
+  ColdMemoryTrimmer::Start();
       ScheduleAllocTraceReport();
       ScheduleProfileSave();
       gfx::gfxConfig::ForEachFeature(
