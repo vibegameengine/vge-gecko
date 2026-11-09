@@ -228,6 +228,8 @@ void WriteReport(const char* aPath) {
   });
   std::vector<Entry> mapped;
   mapped.reserve(entries.size());
+  std::vector<size_t> residents;
+  residents.reserve(entries.size());
   uintptr_t coveredEnd = 0;
   for (Entry entry : entries) {
     uintptr_t entryEnd = entry.base + entry.size;
@@ -246,52 +248,14 @@ void WriteReport(const char* aPath) {
       continue;
     }
     mapped.push_back(entry);
-    std::string key = entry.kind == Kind::Commit ? "COMMIT" : "LOCK";
-    uint32_t used = 0;
-    for (uint32_t i = 0; i < entry.frameCount && used < 8; i++) {
-      std::string name = Symbol(entry.frames[i]);
-      if (used == 0 && IsAllocatorFrame(name)) {
-        continue;
-      }
-      if (IsDriverFrame(name)) {
-        continue;
-      }
-      key += " < " + name;
-      used++;
-    }
-    Group& group = groups[key];
     size_t resident = ResidentBytes(entry.base, entry.size);
     coveredEnd = entryEnd;
-    group.bytes += entry.size;
-    group.resident += resident;
-    group.count++;
+    residents.push_back(resident);
     tracked += entry.size;
     trackedResident += resident;
   }
   entries = std::move(mapped);
 
-  std::vector<std::pair<std::string, Group>> sorted(groups.begin(), groups.end());
-  std::sort(sorted.begin(), sorted.end(), [](const auto& a, const auto& b) {
-    return a.second.resident > b.second.resident;
-  });
-
-  FILE* out = fopen(aPath, "w");
-  if (!out) {
-    printf("alloc trace: cannot write %s\n", aPath);
-    return;
-  }
-  fprintf(out, "tracked_mb %.1f resident_mb %.1f entries %zu dropped %zu\n",
-          tracked / 1048576.0, trackedResident / 1048576.0, entries.size(),
-          dropped);
-  for (const auto& [key, group] : sorted) {
-    fprintf(out, "resident %.1f committed %.1f MB x%zu %s\n",
-            group.resident / 1048576.0, group.bytes / 1048576.0, group.count,
-            key.c_str());
-  }
-
-  std::sort(entries.begin(), entries.end(), [](const Entry& a, const Entry& b) {
-    return a.base < b.base;
-  });
   size_t untrackedTotal = 0;
   std::map<size_t, std::pair<size_t, size_t>> untracked;
   uintptr_t cursor = 0;
@@ -326,6 +290,46 @@ void WriteReport(const char* aPath) {
     }
     cursor = end;
   }
+  for (size_t index = 0; index < entries.size(); index++) {
+    const Entry& entry = entries[index];
+    std::string key = entry.kind == Kind::Commit ? "COMMIT" : "LOCK";
+    uint32_t used = 0;
+    for (uint32_t i = 0; i < entry.frameCount && used < 8; i++) {
+      std::string name = Symbol(entry.frames[i]);
+      if (used == 0 && IsAllocatorFrame(name)) {
+        continue;
+      }
+      if (IsDriverFrame(name)) {
+        continue;
+      }
+      key += " < " + name;
+      used++;
+    }
+    Group& group = groups[key];
+    group.bytes += entry.size;
+    group.resident += residents[index];
+    group.count++;
+  }
+
+  std::vector<std::pair<std::string, Group>> sorted(groups.begin(), groups.end());
+  std::sort(sorted.begin(), sorted.end(), [](const auto& a, const auto& b) {
+    return a.second.resident > b.second.resident;
+  });
+
+  FILE* out = fopen(aPath, "w");
+  if (!out) {
+    printf("alloc trace: cannot write %s\n", aPath);
+    return;
+  }
+  fprintf(out, "tracked_mb %.1f resident_mb %.1f entries %zu dropped %zu\n",
+          tracked / 1048576.0, trackedResident / 1048576.0, entries.size(),
+          dropped);
+  for (const auto& [key, group] : sorted) {
+    fprintf(out, "resident %.1f committed %.1f MB x%zu %s\n",
+            group.resident / 1048576.0, group.bytes / 1048576.0, group.count,
+            key.c_str());
+  }
+
   fprintf(out, "untracked_private_resident_mb %.1f\n",
           untrackedTotal / 1048576.0);
   for (auto it = untracked.rbegin(); it != untracked.rend(); ++it) {
