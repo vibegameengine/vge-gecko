@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "VgeJsInternal.h"
 
 #include <windows.h>
@@ -158,11 +159,25 @@ void FreeObjectCell(ObjectCell* aCell) {
     MOZ_ASSERT(realm->liveCells > 0);
     realm->liveCells--;
   }
+  JS::Value* slots = DynamicSlots(aCell);
   if (JSRuntime* rt = Runtime()) {
     rt->objectCells.erase(aCell);
+    rt->deferredObjectFrees.emplace_back(aCell, slots);
+    return;
   }
-  delete[] DynamicSlots(aCell);
+  delete[] slots;
   FreeCell(aCell, sizeof(ObjectCell));
+}
+
+void DrainDeferredObjectFrees(JSRuntime* aRuntime, size_t aLimit) {
+  auto& queue = aRuntime->deferredObjectFrees;
+  size_t count = std::min(aLimit, queue.size());
+  for (size_t i = 0; i < count; i++) {
+    auto [cell, slots] = queue.back();
+    queue.pop_back();
+    delete[] slots;
+    FreeCell(cell, sizeof(ObjectCell));
+  }
 }
 
 void FreeStringChars(StringCell* aCell) {

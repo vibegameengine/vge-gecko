@@ -363,11 +363,14 @@ void GCPrologue(v8::Isolate* aIsolate, v8::GCType aType,
   TraceBlackGlobals(rt, &marker);
 }
 
+constexpr size_t kDeferredFreesPerScavenge = 512;
+
 void GCEpilogue(v8::Isolate* aIsolate, v8::GCType aType,
                 v8::GCCallbackFlags aFlags, void* aData) {
   JSRuntime* rt = static_cast<JSRuntime*>(aData);
   if (IsMinorGC(aType)) {
     ReleaseYoungCells(rt);
+    DrainDeferredObjectFrees(rt, kDeferredFreesPerScavenge);
     return;
   }
   if (!(aType & v8::kGCTypeMarkSweepCompact)) {
@@ -690,6 +693,7 @@ void JS_DestroyContext(JSContext* aCx) {
   JSRuntime* rt = aCx->runtime;
   rt->isolate->RemoveGCPrologueCallback(GCPrologue, rt);
   rt->isolate->RemoveGCEpilogueCallback(GCEpilogue, rt);
+  DrainDeferredObjectFrees(rt, SIZE_MAX);
   rt->cellKey.Reset();
   rt->slotsKey.Reset();
   rt->isolate->DetachCppHeap();

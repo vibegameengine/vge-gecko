@@ -138,6 +138,7 @@ const JSClass* ClassForV8(v8::Local<v8::Object> aObject);
 JS::Value* DynamicSlots(ObjectCell* aCell);
 JS::Realm* RealmOfScript(const JSScript* aScript);
 void FreeObjectCell(ObjectCell* aCell);
+void DrainDeferredObjectFrees(JSRuntime* aRuntime, size_t aLimit);
 void FreeStringChars(StringCell* aCell);
 
 JSContext* CurrentContext();
@@ -233,6 +234,7 @@ struct JSRuntime {
   std::vector<JS::Realm*> realms;
   std::vector<JS::Realm*> dyingRealms;
   std::unordered_set<vge::jsapi::ObjectCell*> objectCells;
+  std::vector<std::pair<vge::jsapi::ObjectCell*, JS::Value*>> deferredObjectFrees;
   std::vector<vge::jsapi::ObjectCell*> pendingFinalize;
   std::vector<vge::jsapi::ObjectCell*> deadAnchored;
   void (*weakPointerSweep)(JSRuntime*) = nullptr;
